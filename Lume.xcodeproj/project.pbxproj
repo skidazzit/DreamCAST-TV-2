@@ -703,7 +703,7 @@
 				LUME_CLOUD_URL = "https://cloud.getlume.org";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bilipp.lume;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -765,7 +765,7 @@
 				LUME_CLOUD_URL = "https://cloud.getlume.org";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bilipp.lume;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -1100,7 +1100,7 @@
 				LUME_CLOUD_URL = "https://cloud.getlume.org";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bilipp.lume;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -1178,14 +1178,14 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeWidgets/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Lume;
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bilipp.lume.LumeWidgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.LumeWidgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = iphoneos;
@@ -1210,14 +1210,14 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeWidgets/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Lume;
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bilipp.lume.LumeWidgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.LumeWidgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = iphoneos;
@@ -1242,14 +1242,14 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeWidgets/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Lume;
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bilipp.lume.LumeWidgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.LumeWidgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = iphoneos;
@@ -1274,13 +1274,13 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeTopShelf/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Lume;
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bilipp.lume.topshelf;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.topshelf;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -1305,13 +1305,13 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeTopShelf/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Lume;
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bilipp.lume.topshelf;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.topshelf;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -1336,13 +1336,13 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeTopShelf/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Lume;
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bilipp.lume.topshelf;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.topshelf;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -1367,13 +1367,13 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeTopShelf/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Lume;
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bilipp.lume.topshelf;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.topshelf;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -1589,7 +1589,7 @@
 				LUME_CLOUD_URL = "https://cloud.getlume.org";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bilipp.lume;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -1667,14 +1667,14 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeWidgets/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Lume;
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bilipp.lume.LumeWidgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.LumeWidgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = iphoneos;
