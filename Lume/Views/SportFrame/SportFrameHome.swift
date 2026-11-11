@@ -240,7 +240,7 @@ struct SportFrameHome: View {
 
                         ForEach(events) { event in
                             Button { selectedEvent = event } label: { SportFrameFixtureCard(event: event) }
-                                .buttonStyle(.plain)
+                                .buttonStyle(TVCardButtonStyle(focusScale: 1.03))
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .topLeading)
