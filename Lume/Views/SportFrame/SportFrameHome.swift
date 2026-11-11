@@ -19,7 +19,6 @@ struct SportFrameHome: View {
     @State private var playingMedia: PlayableMedia?
     @State private var premiumKeyInput = ""
     @State private var keyMessage: String?
-    @State private var filterExpanded = false
 
     private let accent = Color(red: 0.0, green: 0.8, blue: 0.94)
     private let fallbackSports = ["Soccer", "Basketball", "American Football", "Tennis", "Motorsport", "Ice Hockey", "Cricket", "Baseball", "Rugby", "Golf"]
@@ -100,58 +99,83 @@ struct SportFrameHome: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("SPORTSFRAME").font(.system(size: 51, weight: .bold, design: .rounded))
-                    Text("Scores, fixtures and channels").font(.title3).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 25) {
+            HStack {
+                Spacer()
+                HStack(spacing: 24) {
+                    pageButton("Sports", index: 0)
+                    pageButton("Channels", index: 1)
+                    pageButton("Settings", index: 2)
                 }
                 Spacer()
-                Button { Task { await refresh() } } label: { Label("Refresh", systemImage: "arrow.clockwise") }
             }
-            HStack(spacing: 18) {
-                pageButton("Sports", index: 0)
-                pageButton("Channels", index: 1)
-                pageButton("Settings", index: 2)
+            .padding(.bottom, 10)
+
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("SportsFrame").font(.system(size: 53, weight: .bold, design: .rounded))
+                    Text("Happening now & coming up").font(.title3).foregroundStyle(.secondary)
+                }
+                Spacer()
+                if page == 0 {
+                    Picker("Day", selection: $dayOffset) {
+                        Text("Yesterday").tag(-1)
+                        Text("Today").tag(0)
+                        Text("Tomorrow").tag(1)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 650)
+                }
+                Button { Task { await refresh() } } label: { Image(systemName: "arrow.clockwise") }
+                    .accessibilityLabel("Refresh sports")
             }
-            .padding(10)
-            .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 18))
+            if page == 0 {
+                HStack(spacing: 20) {
+                    ScrollView(.horizontal) {
+                        HStack(spacing: 12) {
+                            sportButton("All Sports")
+                            ForEach(followedSports, id: \.self) { sport in sportButton(sport) }
+                        }
+                    }
+                    .scrollIndicators(.hidden)
+
+                    Menu {
+                        Button("All Leagues") { selectedLeague = "All Leagues" }
+                        ForEach(availableLeagues, id: \.self) { league in
+                            Button(league) { selectedLeague = league }
+                        }
+                    } label: {
+                        HStack(spacing: 18) {
+                            Text(selectedLeague)
+                                .lineLimit(1)
+                            Image(systemName: "chevron.down")
+                        }
+                        .frame(maxWidth: 275)
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
         }
     }
 
     private func pageButton(_ name: String, index: Int) -> some View {
         Button(name) { page = index }
             .buttonStyle(.borderedProminent)
-            .tint(page == index ? accent : .gray.opacity(0.3))
+            .tint(page == index ? accent : .gray.opacity(0.12))
+    }
+
+    private func sportButton(_ sport: String) -> some View {
+        let selected = selectedSport == sport
+        return Button(sport) {
+            selectedSport = sport
+            selectedLeague = "All Leagues"
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(selected ? accent : .gray.opacity(0.25))
     }
 
     private var matchesPage: some View {
         VStack(alignment: .leading, spacing: 25) {
-            HStack {
-                Picker("Day", selection: $dayOffset) {
-                    Text("Yesterday").tag(-1)
-                    Text("Today").tag(0)
-                    Text("Tomorrow").tag(1)
-                }
-                .pickerStyle(.segmented)
-                Spacer()
-                Button { filterExpanded.toggle() } label: { Label("Filter", systemImage: "line.3.horizontal.decrease") }
-            }
-
-            if filterExpanded {
-                HStack {
-                    Picker("Sport", selection: $selectedSport) {
-                        Text("All Sports").tag("All Sports")
-                        ForEach(followedSports, id: \.self) { Text($0).tag($0) }
-                    }
-                    Picker("League", selection: $selectedLeague) {
-                        Text("All Leagues").tag("All Leagues")
-                        ForEach(availableLeagues, id: \.self) { Text($0).tag($0) }
-                    }
-                }
-                .onChange(of: selectedSport) { _, _ in selectedLeague = "All Leagues" }
-            }
-
             if fixtures.loading { ProgressView("Loading matches…") }
             if let error = fixtures.error { Text(error).foregroundStyle(.orange) }
             if visibleEvents.isEmpty && !fixtures.loading {
@@ -159,25 +183,35 @@ struct SportFrameHome: View {
                     .foregroundStyle(.secondary).padding(30)
             }
 
-            // Each league has a full-width header and up to two cards per row.
-            // Sections remain top-aligned as they were in the original DreamCAST app.
-            ForEach(visibleLeagues, id: \.0) { league, events in
-                VStack(alignment: .leading, spacing: 14) {
-                    HStack {
-                        Text(league).font(.system(size: 30, weight: .bold))
-                        Spacer()
-                        Text("\(events.count) matches").font(.headline).foregroundStyle(.secondary)
-                    }
-                    .padding(20)
-                    .background(LinearGradient(colors: [accent.opacity(0.35), .blue.opacity(0.1)],
-                                               startPoint: .leading, endPoint: .trailing),
-                                in: RoundedRectangle(cornerRadius: 16))
-                    LazyVGrid(columns: [.init(.flexible(), alignment: .top), .init(.flexible(), alignment: .top)], spacing: 16) {
+            // Two league tables per row, each anchored to the top of its grid cell.
+            LazyVGrid(columns: [.init(.flexible(), alignment: .top), .init(.flexible(), alignment: .top)],
+                      alignment: .leading, spacing: 24) {
+                ForEach(visibleLeagues, id: \.0) { league, events in
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 17) {
+                            AsyncImage(url: catalog.badgeURL(for: league,
+                                                              sport: fixtures.eventSports[events[0].idEvent] ?? "")) {
+                                image in image.resizable().scaledToFit()
+                            } placeholder: {
+                                Image(systemName: "shield.lefthalf.filled")
+                            }
+                            .frame(width: 62, height: 62)
+                            Text(league).font(.system(size: 30, weight: .bold)).lineLimit(1)
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.horizontal, 22)
+                        .frame(height: 92)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(LinearGradient(colors: [accent.opacity(0.67), .blue.opacity(0.16)],
+                                                   startPoint: .leading, endPoint: .trailing),
+                                    in: RoundedRectangle(cornerRadius: 18))
+
                         ForEach(events) { event in
                             Button { selectedEvent = event } label: { SportFrameFixtureCard(event: event) }
                                 .buttonStyle(.plain)
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
             }
         }
@@ -239,22 +273,33 @@ private struct SportFrameFixtureCard: View {
     private let accent = Color(red: 0.0, green: 0.8, blue: 0.94)
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack {
-                Text(event.timeLabel).font(.headline)
-                Spacer()
-                if event.isLive { Text("LIVE").foregroundStyle(.green).fontWeight(.bold) }
-                else { Text(event.strStatus ?? "Scheduled").foregroundStyle(.secondary) }
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .center, spacing: 15) {
+                VStack(alignment: .leading, spacing: 16) {
+                    team(event.strHomeTeam ?? "Home", badge: event.homeBadge)
+                    team(event.strAwayTeam ?? "Away", badge: event.awayBadge)
+                }
+                Spacer(minLength: 8)
+                VStack(alignment: .trailing, spacing: 9) {
+                    if event.intHomeScore != nil && event.intAwayScore != nil {
+                        Text(score).font(.system(size: 29, weight: .bold))
+                    } else {
+                        Text(event.timeLabel).font(.system(size: 23, weight: .bold))
+                    }
+                    Text(event.isLive ? "LIVE" : (event.strStatus ?? "Scheduled"))
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(event.isLive ? .green : .secondary)
+                    if event.intHomeScore != nil && event.intAwayScore != nil {
+                        Text(event.timeLabel).font(.subheadline).foregroundStyle(.secondary)
+                    }
+                }
+                .frame(minWidth: 115, alignment: .trailing)
             }
-            HStack(spacing: 18) {
-                team(event.strHomeTeam ?? "Home", badge: event.homeBadge)
-                Text(score).font(.title2.bold()).frame(minWidth: 75)
-                team(event.strAwayTeam ?? "Away", badge: event.awayBadge)
-            }
+            Divider().overlay(.white.opacity(0.15))
             SportFrameFixtureBroadcasters(eventID: event.idEvent)
         }
         .padding(22)
-        .frame(maxWidth: .infinity, minHeight: 235, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: 205, alignment: .topLeading)
         .background(.white.opacity(focused ? 0.17 : 0.07), in: RoundedRectangle(cornerRadius: 20))
         .overlay(RoundedRectangle(cornerRadius: 20).stroke(focused ? accent : .clear, lineWidth: 3))
     }
@@ -265,13 +310,13 @@ private struct SportFrameFixtureCard: View {
     }
 
     private func team(_ name: String, badge: URL?) -> some View {
-        VStack(spacing: 10) {
+        HStack(spacing: 13) {
             AsyncImage(url: badge) { image in image.resizable().scaledToFit() }
                 placeholder: { Image(systemName: "shield").resizable().scaledToFit().foregroundStyle(.secondary) }
-                .frame(width: 65, height: 65)
-            Text(name).font(.headline).multilineTextAlignment(.center).lineLimit(2)
+                .frame(width: 47, height: 47)
+            Text(name).font(.system(size: 21, weight: .semibold)).lineLimit(1)
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
