@@ -1063,8 +1063,8 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = Lume/Lume.entitlements;
-				"CODE_SIGN_ENTITLEMENTS[sdk=appletvos*]" = "Lume/Lume-tvOS.entitlements";
-				"CODE_SIGN_ENTITLEMENTS[sdk=appletvsimulator*]" = "Lume/Lume-tvOS.entitlements";
+				"CODE_SIGN_ENTITLEMENTS[sdk=appletvos*]" = "Lume/Lume-FreeTesting.entitlements";
+				"CODE_SIGN_ENTITLEMENTS[sdk=appletvsimulator*]" = "Lume/Lume-FreeTesting.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "Lume/Lume-iOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = "Lume/Lume-iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
@@ -1330,7 +1330,7 @@
 		C6BD5701000000000000E008 /* Sideload */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = LumeTopShelf/LumeTopShelf.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Lume/Lume-FreeTesting.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_TEAM = CHG45F8MCL;
