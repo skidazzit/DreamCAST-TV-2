@@ -461,6 +461,43 @@ private struct SportFrameFixtureBroadcasters: View {
     }
 }
 
+/// Search the actual IPTV channel list. EPG matches are handled separately.
+nonisolated private enum SportsZoneBroadcasterSearch {
+    static func find(name: String, container: ModelContainer, restriction: ContentRestriction) async -> [ResolvedChannel] {
+        let needle = SportsMatcher.normalize(name).trimmingCharacters(in: .whitespaces)
+        guard !needle.isEmpty else { return [] }
+        return await Task.detached(priority: .userInitiated) {
+            let context = ModelContext(container)
+            let descriptor = SportsChannelResolver.candidateStreamDescriptor(restriction: restriction)
+            let streams = (try? context.fetch(descriptor)) ?? []
+            var results: [(channel: ResolvedChannel, exact: Bool)] = []
+            for stream in streams {
+                if Task.isCancelled { return [ResolvedChannel]() }
+                let channelName = SportsMatcher.normalize(stream.name).trimmingCharacters(in: .whitespaces)
+                guard channelName.contains(needle),
+                      let playlistID = UUID(uuidString: String(stream.id.prefix(36))) else { continue }
+                let exact = channelName == needle
+                results.append((
+                    ResolvedChannel(
+                        stream: ResolvedStreamSummary(id: stream.id, name: stream.name,
+                                                      streamIcon: stream.streamIcon, epgChannelId: stream.epgChannelId),
+                        playlistID: playlistID,
+                        matchedTitle: nil,
+                        matchedStart: nil,
+                        score: exact ? 100 : 50,
+                        source: .channelName,
+                        isConfident: false
+                    ), exact
+                ))
+            }
+            return results.sorted {
+                if $0.exact != $1.exact { return $0.exact }
+                return $0.channel.stream.name.localizedStandardCompare($1.channel.stream.name) == .orderedAscending
+            }.map(\.channel)
+        }.value
+    }
+}
+
 /// Broadcaster-first lookup from DreamCAST, with Lume's indexed EPG search below it.
 private struct SportFrameMatchSheet: View {
     let event: SportEvent
@@ -471,15 +508,12 @@ private struct SportFrameMatchSheet: View {
     @State private var broadcasters: [SportFrameBroadcaster] = []
     @State private var selectedBroadcaster: String?
     @State private var foundChannels: [ResolvedChannel] = []
+    @State private var broadcasterChannels: [ResolvedChannel] = []
+    @State private var searchingBroadcaster = false
     @State private var loading = true
 
     private var broadcasterMatches: [ResolvedChannel] {
-        guard let selectedBroadcaster else { return [] }
-        let broadcaster = ChannelMatcher.normalize(selectedBroadcaster)
-        return foundChannels.filter {
-            let name = " " + ChannelMatcher.normalize($0.stream.name) + " "
-            return name.contains(" " + broadcaster + " ")
-        }
+        broadcasterChannels
     }
 
     private var epgMatches: [ResolvedChannel] {
@@ -513,7 +547,8 @@ private struct SportFrameMatchSheet: View {
 
                     if let selectedBroadcaster {
                         Text("Channels matching \(selectedBroadcaster)").font(.title2.bold())
-                        if broadcasterMatches.isEmpty { Text("No matching channel in your playlist.").foregroundStyle(.secondary) }
+                        if searchingBroadcaster { ProgressView("Searching IPTV channel names…") }
+                        else if broadcasterMatches.isEmpty { Text("No matching channel in your playlist.").foregroundStyle(.secondary) }
                         ForEach(broadcasterMatches) { channel in channelRow(channel) }
                     }
                     Text("More matches from your IPTV guide").font(.title2.bold())
@@ -536,6 +571,17 @@ private struct SportFrameMatchSheet: View {
             guard !Task.isCancelled else { return }
             foundChannels = matches[fixture.id] ?? []
             loading = false
+        }
+        .task(id: selectedBroadcaster) {
+            broadcasterChannels = []
+            guard let selectedBroadcaster else { return }
+            searchingBroadcaster = true
+            let channels = await SportsZoneBroadcasterSearch.find(
+                name: selectedBroadcaster, container: modelContext.container, restriction: restriction
+            )
+            guard !Task.isCancelled else { return }
+            broadcasterChannels = channels
+            searchingBroadcaster = false
         }
     }
 
