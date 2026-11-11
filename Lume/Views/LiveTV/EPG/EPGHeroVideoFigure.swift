@@ -46,7 +46,7 @@
                     Color.black
                     MultiViewTilePlayer(
                         media: media,
-                        isMuted: true,
+                        isMuted: !(handle?.playsAudioInGuide ?? false),
                         role: .guidePreview(handle: handle),
                         onFailure: onFailure
                     )
