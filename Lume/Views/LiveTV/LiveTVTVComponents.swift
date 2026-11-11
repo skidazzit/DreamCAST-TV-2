@@ -390,7 +390,7 @@
             }
             .overlay(alignment: .top) {
                 // The library has no guide to hand caught focus to.
-                if layoutMode == .guide, !recordingsShown {
+                if layoutMode != .list, !recordingsShown {
                     TVLiveTVEntryCatcher(regions: focusRegions) { guideFocusToken += 1 }
                 }
             }
@@ -412,7 +412,7 @@
         private var content: some View {
             if let section = displayedSection {
                 switch layoutMode {
-                case .guide:
+                case .guide, .dreamcastGuide:
                     EPGGuideView(
                         scope: section.scope,
                         catalogScope: catalogScope,
@@ -424,7 +424,7 @@
                         onDidClaimFocus: { guideFocusToken = 0 },
                         preview: preview
                     )
-                    .id("\(section.id)-\(contentSort.rawValue)-guide")
+                    .id("\(section.id)-\(contentSort.rawValue)-\(layoutMode.rawValue)")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 case .list:
                     TVChannelsList(
