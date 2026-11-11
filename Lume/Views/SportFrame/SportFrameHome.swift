@@ -15,6 +15,7 @@ struct SportFrameHome: View {
     @State private var dayOffset = 0
     @State private var selectedSport = "All Sports"
     @State private var selectedLeague = "All Leagues"
+    @State private var expandedLeagueSport: String?
     @State private var selectedEvent: SportEvent?
     @State private var playingMedia: PlayableMedia?
     @State private var premiumKeyInput = ""
@@ -37,6 +38,20 @@ struct SportFrameHome: View {
     private var leagueSelections: [String: [String]] {
         guard let data = leagueValue.data(using: .utf8) else { return [:] }
         return (try? JSONDecoder().decode([String: [String]].self, from: data)) ?? [:]
+    }
+
+    private func selectedLeagueNames(for sport: String, available: [SportsCatalogLeague]) -> Set<String> {
+        if let saved = leagueSelections[sport] { return Set(saved) }
+        return Set(available.map(\.strLeague))
+    }
+
+    private func saveLeagueChoices(_ names: Set<String>?, for sport: String) {
+        var choices = leagueSelections
+        if let names { choices[sport] = names.sorted() }
+        else { choices.removeValue(forKey: sport) }
+        guard let data = try? JSONEncoder().encode(choices),
+              let value = String(data: data, encoding: .utf8) else { return }
+        leagueValue = value
     }
 
     private var visibleEvents: [SportEvent] {
@@ -113,7 +128,7 @@ struct SportFrameHome: View {
 
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("SportsFrame").font(.system(size: 53, weight: .bold, design: .rounded))
+                    Text("SportsZone").font(.system(size: 53, weight: .bold, design: .rounded))
                     Text("Happening now & coming up").font(.title3).foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -246,6 +261,61 @@ struct SportFrameHome: View {
                             .frame(maxWidth: .infinity, alignment: .leading).padding(8)
                     }
                     .buttonStyle(.bordered)
+                }
+            }
+            Text("Which leagues you follow").font(.largeTitle.bold()).padding(.top, 22)
+            Text("Choose a sport to pick its leagues. All leagues are followed until you change them.")
+                .foregroundStyle(.secondary)
+            if let message = catalog.message {
+                Text(message).foregroundStyle(.orange)
+            }
+            ForEach(followedSports, id: \.self) { sport in
+                let leagues = catalog.leagues(for: sport)
+                VStack(alignment: .leading, spacing: 12) {
+                    Button {
+                        expandedLeagueSport = expandedLeagueSport == sport ? nil : sport
+                    } label: {
+                        HStack(spacing: 16) {
+                            Text(sport).font(.title2.bold())
+                            Spacer()
+                            let selectedCount = selectedLeagueNames(for: sport, available: leagues).count
+                            Text(leagues.isEmpty ? "No leagues found" : "\(selectedCount) of \(leagues.count) leagues")
+                                .foregroundStyle(.secondary)
+                            Image(systemName: expandedLeagueSport == sport ? "chevron.up" : "chevron.down")
+                        }
+                        .padding(14)
+                    }
+                    .buttonStyle(.bordered)
+
+                    if expandedLeagueSport == sport {
+                        if leagues.isEmpty {
+                            Text("No leagues are listed for this sport yet.").foregroundStyle(.secondary)
+                        } else {
+                            HStack {
+                                Button("Select All") { saveLeagueChoices(nil, for: sport) }
+                                Button("Select None") { saveLeagueChoices([], for: sport) }
+                            }
+                            LazyVGrid(columns: [.init(.flexible()), .init(.flexible()), .init(.flexible())], spacing: 10) {
+                                ForEach(leagues) { league in
+                                    let selected = selectedLeagueNames(for: sport, available: leagues)
+                                        .contains(league.strLeague)
+                                    Button {
+                                        var names = selectedLeagueNames(for: sport, available: leagues)
+                                        if selected { names.remove(league.strLeague) }
+                                        else { names.insert(league.strLeague) }
+                                        saveLeagueChoices(names.count == leagues.count ? nil : names, for: sport)
+                                    } label: {
+                                        Label(league.strLeague,
+                                              systemImage: selected ? "checkmark.circle.fill" : "circle")
+                                            .lineLimit(2)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .padding(8)
+                                    }
+                                    .buttonStyle(.bordered)
+                                }
+                            }
+                        }
+                    }
                 }
             }
             Text("TheSportsDB Premium API key (optional)").font(.title2.bold())
