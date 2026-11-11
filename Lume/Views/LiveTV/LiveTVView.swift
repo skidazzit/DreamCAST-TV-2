@@ -14,17 +14,32 @@ import SwiftUI
 nonisolated enum LiveTVLayoutMode: String, CaseIterable, Identifiable {
     case list
     case guide
+    #if os(tvOS)
+        case dreamcastGuide
+    #endif
 
     var id: String {
         rawValue
     }
 
     var displayName: String {
-        self == .list ? String(localized: "List") : String(localized: "Guide")
+        switch self {
+        case .list: String(localized: "List")
+        case .guide: String(localized: "Guide")
+        #if os(tvOS)
+            case .dreamcastGuide: "DreamCAST Guide"
+        #endif
+        }
     }
 
     var systemImage: String {
-        self == .list ? "list.bullet" : "tablecells"
+        switch self {
+        case .list: "list.bullet"
+        case .guide: "tablecells"
+        #if os(tvOS)
+            case .dreamcastGuide: "tv"
+        #endif
+        }
     }
 
     static let storageKey = "lume.liveTV.layoutMode"
@@ -105,7 +120,7 @@ struct LiveTVView: View {
     /// layout mode. Shared by every platform's layout.
     private func detail(for section: LiveTVSection) -> some View {
         Group {
-            if layoutMode == .guide {
+            if layoutMode != .list {
                 EPGGuideView(
                     scope: section.scope,
                     catalogScope: catalogScope,
@@ -299,7 +314,7 @@ struct LiveTVView: View {
             .guidePreviewSuspension(guidePreview, playingMedia: $playingMedia)
             // The list has no settled channel to tint the glow from.
             .background {
-                TVAmbientBackground(hero: layoutMode == .guide ? guideHero : nil)
+                TVAmbientBackground(hero: layoutMode != .list ? guideHero : nil)
                     .ignoresSafeArea()
             }
         }
