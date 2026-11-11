@@ -146,6 +146,13 @@ struct SportFrameHome: View {
             focusedControl = .tab(newPage)
         }
         .onMoveCommand { direction in
+            // One focus router owns each remote press. Child handlers used to
+            // handle the same press again, which skipped over controls.
+            if page == 2, let target = settingsFocusTarget(for: direction) {
+                // Apply after tvOS has finished its automatic focus pass.
+                Task { @MainActor in focusedControl = target }
+                return
+            }
             switch direction {
             case .down:
                 if focusedControl == .tab(page) {
@@ -186,6 +193,22 @@ struct SportFrameHome: View {
         }
     }
 
+    private func settingsFocusTarget(for direction: MoveCommandDirection) -> FocusControl? {
+        guard let focusedControl else { return nil }
+        switch (focusedControl, direction) {
+        case (.tab(2), .down): return .refresh
+        case (.refresh, .up): return .tab(2)
+        case (.refresh, .down): return .selectAll
+        case (.selectAll, .up), (.selectNone, .up): return .refresh
+        case (.selectAll, .down), (.selectNone, .down):
+            return sportOrder.first.map { .sportSetting($0) }
+        case (.sportSetting(let sport), .up):
+            guard let index = sportOrder.firstIndex(of: sport), index < 3 else { return nil }
+            return index == 1 ? .selectNone : .selectAll
+        default: return nil
+        }
+    }
+
     private var header: some View {
         VStack(alignment: .leading, spacing: 25) {
             HStack {
@@ -219,10 +242,6 @@ struct SportFrameHome: View {
                     .accessibilityLabel("Refresh sports")
                     .buttonStyle(SportsZonePillStyle())
                     .focused($focusedControl, equals: .refresh)
-                    .onMoveCommand { direction in
-                        if direction == .up { focusedControl = .tab(page) }
-                        if direction == .down, page == 2 { focusedControl = .selectAll }
-                    }
             }
             if page == 0 {
                 HStack(spacing: 20) {
@@ -258,11 +277,6 @@ struct SportFrameHome: View {
         Button(name) { page = index }
             .buttonStyle(SportsZonePillStyle(isSelected: page == index))
             .focused($focusedControl, equals: .tab(index))
-            .onMoveCommand { direction in
-                if direction == .down {
-                    focusedControl = index == 0 ? .date : .refresh
-                }
-            }
     }
 
     private func sportButton(_ sport: String) -> some View {
@@ -336,21 +350,9 @@ struct SportFrameHome: View {
                 Button("Select All") { followedValue = sportOrder.joined(separator: "|") }
                     .buttonStyle(SportsZonePillStyle())
                     .focused($focusedControl, equals: .selectAll)
-                    .onMoveCommand { direction in
-                        if direction == .up { focusedControl = .refresh }
-                        if direction == .down, let first = sportOrder.first {
-                            focusedControl = .sportSetting(first)
-                        }
-                    }
                 Button("Select None") { followedValue = "" }
                     .buttonStyle(SportsZonePillStyle())
                     .focused($focusedControl, equals: .selectNone)
-                    .onMoveCommand { direction in
-                        if direction == .up { focusedControl = .refresh }
-                        if direction == .down, let first = sportOrder.first {
-                            focusedControl = .sportSetting(first)
-                        }
-                    }
             }
             LazyVGrid(columns: [.init(.flexible()), .init(.flexible()), .init(.flexible())], spacing: 12) {
                 ForEach(sportOrder, id: \.self) { sport in
@@ -365,11 +367,6 @@ struct SportFrameHome: View {
                     }
                     .buttonStyle(SportsZonePillStyle())
                     .focused($focusedControl, equals: .sportSetting(sport))
-                    .onMoveCommand { direction in
-                        if direction == .up, let index = sportOrder.firstIndex(of: sport), index < 3 {
-                            focusedControl = index == 1 ? .selectNone : .selectAll
-                        }
-                    }
                 }
             }
             Text("Which leagues you follow").font(.largeTitle.bold()).padding(.top, 22)
