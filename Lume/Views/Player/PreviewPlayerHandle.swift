@@ -99,9 +99,6 @@ final class PreviewPlayerHandle {
     var resolvedMedia: PlayableMedia?
     var coordinator: EngineCoordinator?
     var hasStarted = false
-    /// Full-screen live playback may return to the Guide with sound enabled.
-    /// The Guide's initial, browse-only autoplay remains muted.
-    var playsAudioInGuide = false
 
     /// Ignored while full screen owns the session: a preview tile mounting
     /// behind the cover must not replace the coordinator full screen adopted.
