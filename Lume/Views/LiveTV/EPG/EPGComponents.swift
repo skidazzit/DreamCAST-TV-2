@@ -49,7 +49,49 @@ enum EPGColors {
     }
 }
 
+/// Saved tvOS guide layout presets; unknown values return the existing layout.
+enum TVGuideColumnWidth: String, CaseIterable {
+    case compact, medium, wide
+    static let storageKey = "dreamcast.guide.columnWidth"
+    var displayName: String {
+        switch self {
+        case .compact: "Compact"
+        case .medium: "Medium"
+        case .wide: "Wide"
+        }
+    }
+    var points: CGFloat {
+        switch self {
+        case .compact: 260
+        case .medium: 340
+        case .wide: 430
+        }
+    }
+    init(storedValue: String) { self = Self(rawValue: storedValue) ?? .medium }
+}
+
+enum TVGuideRowHeight: String, CaseIterable {
+    case compact, normal, large
+    static let storageKey = "dreamcast.guide.rowHeight"
+    var displayName: String {
+        switch self {
+        case .compact: "Compact"
+        case .normal: "Normal"
+        case .large: "Large"
+        }
+    }
+    var points: CGFloat {
+        switch self {
+        case .compact: 58
+        case .normal: 70
+        case .large: 88
+        }
+    }
+    init(storedValue: String) { self = Self(rawValue: storedValue) ?? .normal }
+}
+
 // MARK: - Metrics
+
 
 /// Platform-tuned sizing for the guide. The 10-foot UI needs far larger
 /// targets and type than a phone or a pointer-driven window.
@@ -94,13 +136,17 @@ struct EPGMetrics {
 
     static var current: EPGMetrics {
         #if os(tvOS)
-            let channelColumnWidth: CGFloat = 340
+            let columnPreset = TVGuideColumnWidth(storedValue:
+                UserDefaults.standard.string(forKey: TVGuideColumnWidth.storageKey) ?? "medium")
+            let heightPreset = TVGuideRowHeight(storedValue:
+                UserDefaults.standard.string(forKey: TVGuideRowHeight.storageKey) ?? "normal")
+            let channelColumnWidth: CGFloat = columnPreset.points
             let channelColumnGap: CGFloat = 12
             // Two hours across the track beside the category rail.
             let trackWidth = TVLiveTVLayout.paneWidth - channelColumnWidth - channelColumnGap
             return EPGMetrics(
                 pointsPerMinute: trackWidth / 120,
-                rowHeight: 70,
+                rowHeight: heightPreset.points,
                 // The design's 8 pt gap plus its 2 pt row margin.
                 rowSpacing: 10,
                 channelColumnWidth: channelColumnWidth,
@@ -110,15 +156,15 @@ struct EPGMetrics {
                 blockGap: 8,
                 nowLeadInMinutes: 10,
                 channelColumnGap: channelColumnGap,
-                focusedBlockHeight: 80,
+                focusedBlockHeight: heightPreset.points + 10,
                 cardShadowRadius: 22,
                 cardShadowOpacity: 0.55,
                 progressBarHeight: 4,
                 channelCornerRadius: 18,
                 channelCellSpacing: 14,
                 channelCellPadding: 16,
-                channelNameLineLimit: 1,
-                logoSide: 46,
+                channelNameLineLimit: columnPreset == .wide ? 2 : 1,
+                logoSide: heightPreset == .compact ? 38 : (heightPreset == .large ? 52 : 46),
                 blockTitleFont: .system(size: 23, weight: .medium),
                 cardTitleFont: .system(size: 24, weight: .semibold),
                 blockTimeFont: .system(size: 19),
