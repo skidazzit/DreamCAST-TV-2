@@ -26,6 +26,10 @@
 
         @AppStorage(LiveTVLayoutMode.storageKey)
         private var layoutModeRaw = LiveTVLayoutMode.defaultMode.rawValue
+        @AppStorage(TVGuideColumnWidth.storageKey)
+        private var columnWidthRaw = TVGuideColumnWidth.medium.rawValue
+        @AppStorage(TVGuideRowHeight.storageKey)
+        private var rowHeightRaw = TVGuideRowHeight.normal.rawValue
         @AppStorage(PlayerSettings.tvGuidePreviewModeKey)
         private var guidePreviewModeRaw = PlayerSettings.tvGuidePreviewModeDefault.rawValue
         @AppStorage(LiveTVRailSettings.showsFavoritesKey)
@@ -41,7 +45,7 @@
         @FocusState private var focus: Row?
 
         private enum Row: Hashable {
-            case layout, guidePreview, favorites, recentlyWatched, recordingServer, recordings, rail
+            case layout, columnWidth, rowHeight, guidePreview, favorites, recentlyWatched, recordingServer, recordings, rail
         }
 
         private var access: RecordingSettingsAccess {
@@ -82,10 +86,28 @@
 
                 footer("How the Live TV tab shows channels: Guide lays them out on a programme timeline, List as a plain channel list.")
 
+                TVOptionCycleRow(
+                    title: "Guide Channel Width",
+                    valueLabel: TVGuideColumnWidth(storedValue: columnWidthRaw).displayName
+                ) {
+                    columnWidthRaw = PlayerOptionCycle.next(columnWidthRaw, in: TVGuideColumnWidth.self)
+                }
+                .focused($focus, equals: .columnWidth)
+
+                TVOptionCycleRow(
+                    title: "Guide Row Height",
+                    valueLabel: TVGuideRowHeight(storedValue: rowHeightRaw).displayName
+                ) {
+                    rowHeightRaw = PlayerOptionCycle.next(rowHeightRaw, in: TVGuideRowHeight.self)
+                }
+                .focused($focus, equals: .rowHeight)
+
+                footer("Change the guide's channel column width and row height. Compact fits more channels; Wide shows more of each name.")
+
                 // Every choice is open to everyone: the layout is free, only
                 // the video needs Lume Pro (the crown says so).
                 TVOptionCycleRow(
-                    title: "Guide Preview",
+                    title: "Guide Mini-player Size",
                     valueLabel: GuidePreviewMode(storedValue: guidePreviewModeRaw).displayName,
                     showsPremiumBadge: !premium.isPremium
                 ) {
@@ -93,7 +115,7 @@
                 }
                 .focused($focus, equals: .guidePreview)
 
-                footer("Small and Large play the focused channel muted and use a provider connection while you browse. Info Only shows it without video; Off gives the Guide the full height.")
+                footer("Small and Large show the live preview with sound. Info Only shows channel details without video; Off hides the preview.")
             }
         }
 
