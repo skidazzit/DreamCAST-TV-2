@@ -145,48 +145,8 @@ struct SportFrameHome: View {
             // Keep the new tab focused until the viewer presses Down.
             focusedControl = .tab(newPage)
         }
-        .onMoveCommand { direction in
-            // Settings uses spatial focus sections. Do not fight tvOS with
-            // a second, code-driven move on the same remote press.
-            guard page != 2 else { return }
-            switch direction {
-            case .down:
-                if focusedControl == .tab(page) {
-                    focusedControl = page == 0 ? .date : .refresh
-                } else if focusedControl == .date {
-                    focusedControl = .sport(selectedSport)
-                } else if focusedControl == .refresh {
-                    focusedControl = page == 2 ? .selectAll : (page == 0 ? .leagueMenu : nil)
-                } else if focusedControl == .selectAll || focusedControl == .selectNone {
-                    if let first = sportOrder.first { focusedControl = .sportSetting(first) }
-                } else if page == 0 {
-                    switch focusedControl {
-                    case .sport, .leagueMenu:
-                        if let first = visibleEvents.first { focusedControl = .fixture(first.idEvent) }
-                    default: break
-                    }
-                }
-            case .up:
-                if focusedControl == .refresh {
-                    focusedControl = .tab(page)
-                } else if focusedControl == .date {
-                    focusedControl = .tab(0)
-                } else if focusedControl == .selectAll || focusedControl == .selectNone {
-                    focusedControl = .refresh
-                } else if page == 0 {
-                    switch focusedControl {
-                    case .sport: focusedControl = .date
-                    case .leagueMenu: focusedControl = .refresh
-                    case .fixture: focusedControl = .sport(selectedSport)
-                    default: break
-                    }
-                } else if page == 2, let first = sportOrder.first,
-                          focusedControl == .sportSetting(first) {
-                    focusedControl = .selectAll
-                }
-            default: break
-            }
-        }
+        // tvOS handles directional moves through the focus sections below.
+        // No programmatic Up/Down moves compete with the system focus engine.
     }
 
     private var header: some View {
@@ -251,6 +211,7 @@ struct SportFrameHome: View {
                     .buttonStyle(SportsZonePillStyle())
                     .focused($focusedControl, equals: .leagueMenu)
                 }
+                .focusSection()
             }
         }
     }
@@ -312,6 +273,7 @@ struct SportFrameHome: View {
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
             }
+            .focusSection()
         }
     }
 
