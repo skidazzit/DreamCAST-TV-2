@@ -20,6 +20,7 @@ final class GuidePreviewController {
     private(set) var isCoolingDown = false
 
     private var isFullScreenUp = false
+    private var fullScreenWasLive = false
     private var isMultiViewUp = false
     private var isSceneActive = true
 
@@ -38,6 +39,8 @@ final class GuidePreviewController {
     /// full screen opens, and the full player's own retry and fallback absorb
     /// the provider still freeing that connection.
     func prepareToPresent(_ media: PlayableMedia) {
+        fullScreenWasLive = media.isLive
+        handle.playsAudioInGuide = false
         if handle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) {
             handle.handOffToFullScreen()
         } else {
@@ -54,6 +57,10 @@ final class GuidePreviewController {
     }
 
     func fullScreenDidClose() {
+        // The guide resumes the viewed live channel with audio after Back.
+        // Catch-up and other non-live sessions leave browse previews muted.
+        handle.playsAudioInGuide = fullScreenWasLive
+        fullScreenWasLive = false
         transition { isFullScreenUp = false }
         handle.release()
     }
