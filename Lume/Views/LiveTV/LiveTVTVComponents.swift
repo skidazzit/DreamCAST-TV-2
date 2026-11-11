@@ -412,7 +412,7 @@
         private var content: some View {
             if let section = displayedSection {
                 switch layoutMode {
-                case .guide, .dreamcastGuide:
+                case .guide:
                     EPGGuideView(
                         scope: section.scope,
                         catalogScope: catalogScope,
