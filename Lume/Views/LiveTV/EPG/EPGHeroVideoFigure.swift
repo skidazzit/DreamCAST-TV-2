@@ -2,7 +2,7 @@
 //  EPGHeroVideoFigure.swift
 //  Lume
 //
-//  The tvOS Guide hero's 16:9 picture: the settled channel playing muted, or,
+//  The tvOS Guide hero's 16:9 picture: the settled channel playing with audio, or,
 //  while it may not play, the channel's logo on a card tinted with it.
 //
 
@@ -46,7 +46,7 @@
                     Color.black
                     MultiViewTilePlayer(
                         media: media,
-                        isMuted: true,
+                        isMuted: false,
                         role: .guidePreview(handle: handle),
                         onFailure: onFailure
                     )
