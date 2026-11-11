@@ -270,7 +270,7 @@ struct MainTabView: View {
 
                 if sportsTabEnabled {
                     Tab(value: AppTab.sports) {
-                        activeOnly(.sports, selection: selection.wrappedValue) { TVSportsHubScreen() }
+                        activeOnly(.sports, selection: selection.wrappedValue) { SportFrameHome() }
                     } label: {
                         Text("Sports")
                     }

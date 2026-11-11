@@ -1,3 +1,19 @@
+# DreamCAST TV 2
+
+An open-source DreamCAST TV 2 fork of [Lume](https://github.com/bilipp/Lume),
+using Nana Asare's DreamCAST TV branding and a SportsFrame view adapted from
+[DreamCAST TV](https://github.com/skidazzit/Dreamcast-TV).
+
+The tvOS SportsFrame beta uses TheSportsDB for fixtures and broadcaster names.
+It uses Lume's EPG resolver and player to find and play matching IPTV channels.
+The beta needs Apple TV testing before release.
+
+Select the **Sideload** build configuration for free-account device tests.
+TestFlight requires paid Apple Developer enrollment and a review of signing,
+third-party API terms, attribution, and AGPL-3.0 source distribution.
+
+## Upstream Lume project
+
 <div align="center">
 
 <img src=".github/assets/readme/lume-banner.webp" alt="Lume" width="640">
