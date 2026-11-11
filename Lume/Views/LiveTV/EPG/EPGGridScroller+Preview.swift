@@ -161,7 +161,7 @@
                 // view, so the settle task above keeps running.
                 if !mode.showsHero {
                     Color.clear.frame(height: 0)
-                } else if Self.isAvailable(mode: mode, isPremium: premium.isPremium, autoplayAllowed: autoplayAllowed) {
+                } else if GuidePreviewPolicy.autoplayStreamsInGuide && Self.isAvailable(mode: mode, isPremium: premium.isPremium, autoplayAllowed: autoplayAllowed) {
                     EPGPreviewBandContent(
                         target: target,
                         settledRow: settledRow,
