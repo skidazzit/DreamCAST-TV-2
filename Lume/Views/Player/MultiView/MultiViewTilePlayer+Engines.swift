@@ -399,7 +399,7 @@ private extension View {
 
 // MARK: - Audio session
 
-/// A muted guide preview must not interrupt audio another app is playing.
+/// A guide mini-player may mix its audio with another app's playback.
 /// `.ambient` mixes with it. Never deactivated here: by the time a preview
 /// tile goes away, the full-screen player may already own the session.
 enum MultiViewTileAudioSession {
