@@ -41,6 +41,9 @@ struct EPGGuideView: View {
     let onDidClaimFocus: () -> Void
     let preview: EPGGuidePreviewInputs
 
+    @AppStorage(TVGuideDesign.storageKey) private var guideDesignRaw = TVGuideDesign.classic.rawValue
+    @AppStorage(TVGuideColumnWidth.storageKey) private var guideColumnRaw = TVGuideColumnWidth.medium.rawValue
+    @AppStorage(TVGuideRowHeight.storageKey) private var guideHeightRaw = TVGuideRowHeight.normal.rawValue
     @Environment(\.modelContext) private var modelContext
     /// The guide is a channel list like any other, so it owes the viewer the same
     /// parental filtering. It matters most in the Favorites and Recently Watched
@@ -122,6 +125,8 @@ struct EPGGuideView: View {
                     onDidClaimFocus: onDidClaimFocus,
                     preview: preview
                 )
+                // Rebuild the frozen panes and focus surface when display presets change.
+                .id("\(guideDesignRaw)|\(guideColumnRaw)|\(guideHeightRaw)")
                 .timelineLayoutDirection()
             }
         }
