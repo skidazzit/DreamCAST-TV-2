@@ -26,6 +26,8 @@
 
         @AppStorage(LiveTVLayoutMode.storageKey)
         private var layoutModeRaw = LiveTVLayoutMode.defaultMode.rawValue
+        @AppStorage(TVGuideDesign.storageKey)
+        private var guideDesignRaw = TVGuideDesign.classic.rawValue
         @AppStorage(TVGuideColumnWidth.storageKey)
         private var columnWidthRaw = TVGuideColumnWidth.medium.rawValue
         @AppStorage(TVGuideRowHeight.storageKey)
@@ -45,7 +47,7 @@
         @FocusState private var focus: Row?
 
         private enum Row: Hashable {
-            case layout, columnWidth, rowHeight, guidePreview, favorites, recentlyWatched, recordingServer, recordings, rail
+            case layout, guideDesign, columnWidth, rowHeight, guidePreview, favorites, recentlyWatched, recordingServer, recordings, rail
         }
 
         private var access: RecordingSettingsAccess {
@@ -87,6 +89,16 @@
                 footer("How the Live TV tab shows channels: Guide lays them out on a programme timeline, List as a plain channel list.")
 
                 TVOptionCycleRow(
+                    title: "Guide Design",
+                    valueLabel: TVGuideDesign(storedValue: guideDesignRaw).displayName
+                ) {
+                    guideDesignRaw = PlayerOptionCycle.next(guideDesignRaw, in: TVGuideDesign.self)
+                }
+                .focused($focus, equals: .guideDesign)
+
+                footer("Choose Lume Classic or the DreamCAST guide style. Both keep the same channel list and remote controls.")
+
+                TVOptionCycleRow(
                     title: "Guide Channel Width",
                     valueLabel: TVGuideColumnWidth(storedValue: columnWidthRaw).displayName
                 ) {
@@ -115,7 +127,7 @@
                 }
                 .focused($focus, equals: .guidePreview)
 
-                footer("Small and Large show the live preview with sound. Info Only shows channel details without video; Off hides the preview.")
+                footer("The guide displays channel details without auto-playing streams. Select a channel to start playback. Off hides the preview area.")
             }
         }
 
