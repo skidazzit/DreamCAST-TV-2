@@ -90,6 +90,24 @@ enum TVGuideRowHeight: String, CaseIterable {
     init(storedValue: String) { self = Self(rawValue: storedValue) ?? .normal }
 }
 
+/// Keep both guide designs available without changing the EPG or focus engine.
+enum TVGuideDesign: String, CaseIterable {
+    case classic, dreamcast
+
+    static let storageKey = "dreamcast.guide.design"
+
+    var displayName: String {
+        switch self {
+        case .classic: "Lume Classic"
+        case .dreamcast: "DreamCAST"
+        }
+    }
+
+    init(storedValue: String) {
+        self = Self(rawValue: storedValue) ?? .classic
+    }
+}
+
 // MARK: - Metrics
 
 
@@ -136,11 +154,13 @@ struct EPGMetrics {
 
     static var current: EPGMetrics {
         #if os(tvOS)
+            let design = TVGuideDesign(storedValue:
+                UserDefaults.standard.string(forKey: TVGuideDesign.storageKey) ?? "classic")
             let columnPreset = TVGuideColumnWidth(storedValue:
                 UserDefaults.standard.string(forKey: TVGuideColumnWidth.storageKey) ?? "medium")
             let heightPreset = TVGuideRowHeight(storedValue:
                 UserDefaults.standard.string(forKey: TVGuideRowHeight.storageKey) ?? "normal")
-            let channelColumnWidth: CGFloat = columnPreset.points
+            let channelColumnWidth: CGFloat = columnPreset.points + (design == .dreamcast ? 28 : 0)
             let channelColumnGap: CGFloat = 12
             // Two hours across the track beside the category rail.
             let trackWidth = TVLiveTVLayout.paneWidth - channelColumnWidth - channelColumnGap
@@ -148,25 +168,25 @@ struct EPGMetrics {
                 pointsPerMinute: trackWidth / 120,
                 rowHeight: heightPreset.points,
                 // The design's 8 pt gap plus its 2 pt row margin.
-                rowSpacing: 10,
+                rowSpacing: design == .dreamcast ? 6 : 10,
                 channelColumnWidth: channelColumnWidth,
-                headerHeight: 36,
-                blockCornerRadius: 16,
-                blockInset: 18,
-                blockGap: 8,
+                headerHeight: design == .dreamcast ? 46 : 36,
+                blockCornerRadius: design == .dreamcast ? 9 : 16,
+                blockInset: design == .dreamcast ? 14 : 18,
+                blockGap: design == .dreamcast ? 3 : 8,
                 nowLeadInMinutes: 10,
                 channelColumnGap: channelColumnGap,
-                focusedBlockHeight: heightPreset.points + 10,
+                focusedBlockHeight: heightPreset.points + (design == .dreamcast ? 4 : 10),
                 cardShadowRadius: 22,
                 cardShadowOpacity: 0.55,
                 progressBarHeight: 4,
-                channelCornerRadius: 18,
+                channelCornerRadius: design == .dreamcast ? 10 : 18,
                 channelCellSpacing: 14,
                 channelCellPadding: 16,
-                channelNameLineLimit: columnPreset == .wide ? 2 : 1,
+                channelNameLineLimit: design == .dreamcast || columnPreset == .wide ? 2 : 1,
                 logoSide: heightPreset == .compact ? 38 : (heightPreset == .large ? 52 : 46),
-                blockTitleFont: .system(size: 23, weight: .medium),
-                cardTitleFont: .system(size: 24, weight: .semibold),
+                blockTitleFont: .system(size: design == .dreamcast ? 21 : 23, weight: .medium),
+                cardTitleFont: .system(size: design == .dreamcast ? 23 : 24, weight: .semibold),
                 blockTimeFont: .system(size: 19),
                 channelNameFont: .system(size: 23, weight: .semibold),
                 catchupGlyphFont: .system(size: 18, weight: .semibold),
