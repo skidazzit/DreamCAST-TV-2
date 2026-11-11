@@ -12,7 +12,7 @@ import OSLog
 import SwiftData
 import SwiftUI
 
-/// What a tile is for. `.guidePreview` is the tvOS Guide's muted preview: a
+/// What a tile is for. `.guidePreview` is the tvOS Guide's playing mini-player: a
 /// shorter KSPlayer live buffer so the picture arrives sooner, an audio session
 /// that mixes with other apps' audio where the engine lets the app choose one,
 /// the channel logo instead of a Try Again button (the pane has no focusable
