@@ -20,6 +20,14 @@ struct SportFrameHome: View {
     @State private var playingMedia: PlayableMedia?
     @State private var premiumKeyInput = ""
     @State private var keyMessage: String?
+    @FocusState private var focusedControl: FocusControl?
+
+    private enum FocusControl: Hashable {
+        case tab(Int)
+        case refresh
+        case selectAll
+        case selectNone
+    }
 
     private let accent = Color(red: 0.0, green: 0.8, blue: 0.94)
     private let fallbackSports = ["Soccer", "Basketball", "American Football", "Tennis", "Motorsport", "Ice Hockey", "Cricket", "Baseball", "Rugby", "Golf"]
@@ -128,6 +136,18 @@ struct SportFrameHome: View {
                 selectedLeague = "All Leagues"
             }
         }
+        .onMoveCommand { direction in
+            guard page == 2 else { return }
+            switch direction {
+            case .down:
+                if focusedControl == .tab(2) { focusedControl = .refresh }
+                else if focusedControl == .refresh { focusedControl = .selectAll }
+            case .up:
+                if focusedControl == .selectAll || focusedControl == .selectNone { focusedControl = .refresh }
+                else if focusedControl == .refresh { focusedControl = .tab(2) }
+            default: break
+            }
+        }
     }
 
     private var header: some View {
@@ -160,6 +180,8 @@ struct SportFrameHome: View {
                 }
                 Button { Task { await refresh() } } label: { Image(systemName: "arrow.clockwise") }
                     .accessibilityLabel("Refresh sports")
+                    .buttonStyle(SportsZonePillStyle())
+                    .focused($focusedControl, equals: .refresh)
             }
             if page == 0 {
                 HStack(spacing: 20) {
@@ -184,7 +206,7 @@ struct SportFrameHome: View {
                         }
                         .frame(maxWidth: 275)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(SportsZonePillStyle())
                 }
             }
         }
@@ -192,8 +214,8 @@ struct SportFrameHome: View {
 
     private func pageButton(_ name: String, index: Int) -> some View {
         Button(name) { page = index }
-            .buttonStyle(.borderedProminent)
-            .tint(page == index ? accent : .gray.opacity(0.12))
+            .buttonStyle(SportsZonePillStyle(isSelected: page == index))
+            .focused($focusedControl, equals: .tab(index))
     }
 
     private func sportButton(_ sport: String) -> some View {
@@ -202,8 +224,7 @@ struct SportFrameHome: View {
             selectedSport = sport
             selectedLeague = "All Leagues"
         }
-        .buttonStyle(.borderedProminent)
-        .tint(selected ? accent : .gray.opacity(0.25))
+        .buttonStyle(SportsZonePillStyle(isSelected: selected))
     }
 
     private var matchesPage: some View {
@@ -264,7 +285,11 @@ struct SportFrameHome: View {
             Text("Which sports you follow").font(.largeTitle.bold())
             HStack {
                 Button("Select All") { followedValue = sportOrder.joined(separator: "|") }
+                    .buttonStyle(SportsZonePillStyle())
+                    .focused($focusedControl, equals: .selectAll)
                 Button("Select None") { followedValue = "" }
+                    .buttonStyle(SportsZonePillStyle())
+                    .focused($focusedControl, equals: .selectNone)
             }
             LazyVGrid(columns: [.init(.flexible()), .init(.flexible()), .init(.flexible())], spacing: 12) {
                 ForEach(sportOrder, id: \.self) { sport in
@@ -277,7 +302,7 @@ struct SportFrameHome: View {
                         Label(sport, systemImage: selected ? "checkmark.circle.fill" : "circle")
                             .frame(maxWidth: .infinity, alignment: .leading).padding(8)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(SportsZonePillStyle())
                 }
             }
             Text("Which leagues you follow").font(.largeTitle.bold()).padding(.top, 22)
@@ -302,7 +327,7 @@ struct SportFrameHome: View {
                         }
                         .padding(14)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(SportsZonePillStyle())
 
                     if expandedLeagueSport == sport {
                         if leagues.isEmpty {
@@ -310,7 +335,9 @@ struct SportFrameHome: View {
                         } else {
                             HStack {
                                 Button("Select All") { saveLeagueChoices(nil, for: sport) }
+                                    .buttonStyle(SportsZonePillStyle())
                                 Button("Select None") { saveLeagueChoices([], for: sport) }
+                                    .buttonStyle(SportsZonePillStyle())
                             }
                             LazyVGrid(columns: [.init(.flexible()), .init(.flexible()), .init(.flexible())], spacing: 10) {
                                 ForEach(leagues) { league in
@@ -328,7 +355,7 @@ struct SportFrameHome: View {
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                             .padding(8)
                                     }
-                                    .buttonStyle(.bordered)
+                                    .buttonStyle(SportsZonePillStyle())
                                 }
                             }
                         }
@@ -351,6 +378,34 @@ struct SportFrameHome: View {
     private func refresh() async {
         let selectedDay = Calendar.current.date(byAdding: .day, value: dayOffset, to: .now) ?? .now
         await fixtures.fetch(sports: followedSports, date: selectedDay)
+    }
+}
+
+/// Matches the main Lume tab bar: dark at rest, white with dark text on focus.
+private struct SportsZonePillStyle: ButtonStyle {
+    var isSelected = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        FocusedPill(configuration: configuration, isSelected: isSelected)
+    }
+
+    private struct FocusedPill: View {
+        let configuration: ButtonStyleConfiguration
+        let isSelected: Bool
+        @Environment(\.isFocused) private var isFocused
+
+        var body: some View {
+            configuration.label
+                .font(.system(size: 23, weight: .semibold))
+                .foregroundStyle(isFocused || isSelected ? Color.black : Color.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 14)
+                .background(isFocused ? Color.white : (isSelected ? Color.cyan : Color.white.opacity(0.10)),
+                            in: Capsule())
+                .scaleEffect(isFocused ? 1.05 : 1.0)
+                .animation(.easeOut(duration: 0.16), value: isFocused)
+                .contentShape(Capsule())
+        }
     }
 }
 
