@@ -21,7 +21,7 @@ struct SportsHomeRail: View {
 
     var body: some View {
         #if os(tvOS)
-            TVSportsHomeRail()
+            TVSportsZoneHomeRail()
         #else
             PhoneSportsHomeRail(isSyncBusy: isSyncBusy)
         #endif

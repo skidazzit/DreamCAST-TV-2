@@ -98,7 +98,7 @@ struct SportFrameHome: View {
                 .padding(.vertical, 36)
             }
         }
-        .sheet(item: $selectedEvent) { event in
+        .fullScreenCover(item: $selectedEvent) { event in
             SportFrameMatchSheet(event: event, onPlay: { channel in
                 guard let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
                 selectedEvent = nil
@@ -499,7 +499,7 @@ nonisolated private enum SportsZoneBroadcasterSearch {
 }
 
 /// Broadcaster-first lookup from DreamCAST, with Lume's indexed EPG search below it.
-private struct SportFrameMatchSheet: View {
+struct SportFrameMatchSheet: View {
     let event: SportEvent
     let onPlay: (ResolvedChannel) -> Void
     @Environment(\.modelContext) private var modelContext
@@ -522,43 +522,88 @@ private struct SportFrameMatchSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Text("\(event.strHomeTeam ?? "Home") vs \(event.strAwayTeam ?? "Away")")
-                        .font(.largeTitle.bold())
-                    Text("TheSportsDB broadcasters").font(.title2.bold())
-                    if loading { ProgressView("Finding IPTV matches…") }
-                    else if broadcasters.isEmpty { Text("No broadcaster names listed.").foregroundStyle(.secondary) }
-                    ForEach(broadcasters, id: \.stableID) { broadcaster in
-                        Button {
-                            selectedBroadcaster = broadcaster.name
-                        } label: {
-                            HStack {
-                                AsyncImage(url: broadcaster.logoURL) { image in image.resizable().scaledToFit() }
-                                    placeholder: { Image(systemName: "tv") }.frame(width: 65, height: 42)
-                                Text(broadcaster.name)
-                                Spacer()
-                                if selectedBroadcaster == broadcaster.name { Image(systemName: "checkmark.circle.fill") }
+        ZStack {
+            Color(red: 0.025, green: 0.055, blue: 0.11).ignoresSafeArea()
+            VStack(alignment: .leading, spacing: 25) {
+                HStack(spacing: 24) {
+                    VStack(alignment: .leading, spacing: 7) {
+                        Text("Match channels").font(.system(size: 29, weight: .semibold)).foregroundStyle(.secondary)
+                        Text("\(event.strHomeTeam ?? "Home") vs \(event.strAwayTeam ?? "Away")")
+                            .font(.system(size: 39, weight: .bold))
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
+                    }
+                    Spacer(minLength: 16)
+                    Button("Back") { dismiss() }
+                        .buttonStyle(.borderedProminent)
+                }
+
+                HStack(alignment: .top, spacing: 32) {
+                    VStack(alignment: .leading, spacing: 15) {
+                        Text("Broadcasters").font(.system(size: 28, weight: .bold))
+                        Text("Choose a network to search your IPTV channels.")
+                            .font(.system(size: 18)).foregroundStyle(.secondary)
+                        ScrollView {
+                            LazyVStack(alignment: .leading, spacing: 10) {
+                                if loading { ProgressView("Loading broadcasters…") }
+                                else if broadcasters.isEmpty {
+                                    Text("No broadcasters listed.").foregroundStyle(.secondary)
+                                }
+                                ForEach(broadcasters, id: \.stableID) { broadcaster in
+                                    Button {
+                                        selectedBroadcaster = broadcaster.name
+                                    } label: {
+                                        HStack(spacing: 15) {
+                                            AsyncImage(url: broadcaster.logoURL) { image in image.resizable().scaledToFit() }
+                                                placeholder: { Image(systemName: "tv") }
+                                                .frame(width: 52, height: 36)
+                                            Text(broadcaster.name).font(.system(size: 21)).lineLimit(2)
+                                            Spacer(minLength: 0)
+                                            if selectedBroadcaster == broadcaster.name {
+                                                Image(systemName: "checkmark.circle.fill").foregroundStyle(.cyan)
+                                            }
+                                        }
+                                        .padding(10)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    .buttonStyle(.bordered)
+                                }
                             }
                         }
-                        .buttonStyle(.bordered)
                     }
+                    .frame(width: 440)
 
-                    if let selectedBroadcaster {
-                        Text("Channels matching \(selectedBroadcaster)").font(.title2.bold())
-                        if searchingBroadcaster { ProgressView("Searching IPTV channel names…") }
-                        else if broadcasterMatches.isEmpty { Text("No matching channel in your playlist.").foregroundStyle(.secondary) }
-                        ForEach(broadcasterMatches) { channel in channelRow(channel) }
+                    VStack(alignment: .leading, spacing: 15) {
+                        ScrollView {
+                            LazyVStack(alignment: .leading, spacing: 15) {
+                                if let selectedBroadcaster {
+                                    Text("Channels matching \(selectedBroadcaster)")
+                                        .font(.system(size: 27, weight: .bold)).lineLimit(2)
+                                    if searchingBroadcaster { ProgressView("Searching IPTV channels…") }
+                                    else if broadcasterMatches.isEmpty {
+                                        Text("No matching channel in your playlist.").foregroundStyle(.secondary)
+                                    }
+                                    ForEach(broadcasterMatches) { channel in channelRow(channel) }
+                                } else {
+                                    Text("Select a broadcaster on the left")
+                                        .font(.title3).foregroundStyle(.secondary)
+                                }
+                                Divider().padding(.vertical, 10)
+                                Text("More matches from your IPTV guide")
+                                    .font(.system(size: 27, weight: .bold)).lineLimit(2)
+                                if epgMatches.isEmpty && !loading {
+                                    Text("No other match-name results found.").foregroundStyle(.secondary)
+                                }
+                                ForEach(epgMatches) { channel in channelRow(channel) }
+                            }
+                        }
                     }
-                    Text("More matches from your IPTV guide").font(.title2.bold())
-                    if epgMatches.isEmpty && !loading { Text("No other match-name results found.").foregroundStyle(.secondary) }
-                    ForEach(epgMatches) { channel in channelRow(channel) }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(50)
+                .frame(maxHeight: .infinity, alignment: .top)
             }
-            .navigationTitle("Match channels")
-            .toolbar { Button("Back") { dismiss() } }
+            .padding(.horizontal, 75)
+            .padding(.vertical, 55)
         }
         .task(id: event.idEvent) {
             loading = true
@@ -590,10 +635,11 @@ private struct SportFrameMatchSheet: View {
             HStack {
                 AsyncImage(url: channel.stream.streamIcon.flatMap(URL.init(string:))) { image in image.resizable().scaledToFit() }
                     placeholder: { Image(systemName: "play.tv") }.frame(width: 60, height: 40)
-                Text(channel.stream.name).font(.headline)
+                Text(channel.stream.name).font(.system(size: 21)).lineLimit(2)
                 Spacer()
                 Image(systemName: "play.fill")
             }
+            .padding(.vertical, 7)
         }
         .buttonStyle(.bordered)
     }

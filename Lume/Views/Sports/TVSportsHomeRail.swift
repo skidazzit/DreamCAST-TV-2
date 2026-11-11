@@ -270,4 +270,99 @@ import SwiftUI
         }
     }
 
+/// The Home shelf uses the same TheSportsDB feed and league picks as SportsZone.
+struct TVSportsZoneHomeRail: View {
+    @Environment(\.modelContext) private var modelContext
+    @StateObject private var fixtures = FixtureStore()
+    @AppStorage("sportFrameFollowedSportsV2") private var followedValue = "Soccer|Basketball|American Football"
+    @AppStorage("sportFrameLeagueSelectionsV2") private var leagueValue = "{}"
+    @State private var selectedEvent: SportEvent?
+    @State private var playingMedia: PlayableMedia?
+
+    private var followedSports: [String] {
+        followedValue.split(separator: "|").map(String.init)
+    }
+
+    private var leagueChoices: [String: [String]] {
+        guard let data = leagueValue.data(using: .utf8) else { return [:] }
+        return (try? JSONDecoder().decode([String: [String]].self, from: data)) ?? [:]
+    }
+
+    private var matches: [SportEvent] {
+        fixtures.events.filter { event in
+            guard let sport = fixtures.eventSports[event.idEvent], followedSports.contains(sport) else { return false }
+            return leagueChoices[sport].map { $0.contains(event.league) } ?? true
+        }
+        .sorted { ($0.startDate ?? .distantFuture) < ($1.startDate ?? .distantFuture) }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("SportsZone")
+                .font(.subheadline.bold())
+                .foregroundStyle(.secondary)
+                .padding(.horizontal)
+            if matches.isEmpty {
+                Text(fixtures.loading ? "Loading today's matches…" : "No matches for your followed leagues today")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                    .padding(24)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: PosterCardMetrics.railSpacing) {
+                        ForEach(matches.prefix(20)) { event in
+                            Button { selectedEvent = event } label: {
+                                HStack(spacing: 15) {
+                                    teamBadge(event.homeBadge)
+                                    VStack(spacing: 7) {
+                                        Text(event.strHomeTeam ?? "Home")
+                                        Text(event.timeLabel).fontWeight(.bold)
+                                        Text(event.strAwayTeam ?? "Away")
+                                    }
+                                    .font(.system(size: 19))
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.75)
+                                    .frame(maxWidth: .infinity)
+                                    teamBadge(event.awayBadge)
+                                }
+                                .padding(17)
+                                .frame(width: 420, height: 180)
+                                .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 18))
+                            }
+                            .buttonStyle(TVCardButtonStyle(focusScale: 1.03))
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, PosterCardMetrics.railVerticalPadding)
+                }
+                .scrollClipDisabled()
+            }
+        }
+        .focusSection()
+        .task(id: "\(followedValue)|\(leagueValue)") {
+            while !Task.isCancelled {
+                await fixtures.fetch(sports: followedSports, date: .now, quietly: !fixtures.events.isEmpty)
+                try? await Task.sleep(for: .seconds(300))
+            }
+        }
+        .fullScreenCover(item: $selectedEvent) { event in
+            SportFrameMatchSheet(event: event) { channel in
+                guard let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
+                selectedEvent = nil
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(350))
+                    playingMedia = media
+                }
+            }
+        }
+        .fullScreenCover(item: $playingMedia) { FullScreenPlayerView(media: $0) }
+    }
+
+    private func teamBadge(_ url: URL?) -> some View {
+        AsyncImage(url: url) { image in image.resizable().scaledToFit() }
+            placeholder: { Image(systemName: "shield.fill").foregroundStyle(.secondary) }
+            .frame(width: 64, height: 64)
+    }
+}
+
 #endif
