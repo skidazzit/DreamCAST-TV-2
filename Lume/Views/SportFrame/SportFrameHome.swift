@@ -70,9 +70,13 @@ struct SportFrameHome: View {
     }
 
     private var availableLeagues: [String] {
-        Array(Set(fixtures.events.filter {
-            selectedSport == "All Sports" || fixtures.eventSports[$0.idEvent] == selectedSport
-        }.map(\.league))).sorted()
+        let sports = selectedSport == "All Sports" ? followedSports : [selectedSport]
+        let names = sports.flatMap { sport -> [String] in
+            // Explicit picks are shown even when a league has no match today.
+            if let saved = leagueSelections[sport] { return saved }
+            return fixtures.events.filter { fixtures.eventSports[$0.idEvent] == sport }.map(\.league)
+        }
+        return Array(Set(names)).sorted()
     }
 
     var body: some View {
@@ -110,6 +114,19 @@ struct SportFrameHome: View {
         .task(id: "\(dayOffset)|\(followedValue)|\(SportsDBAccess.apiKey)") {
             let selectedDay = Calendar.current.date(byAdding: .day, value: dayOffset, to: .now) ?? .now
             await fixtures.fetch(sports: followedSports, date: selectedDay)
+        }
+        .onChange(of: followedValue) { _, _ in
+            if selectedSport != "All Sports" && !followedSports.contains(selectedSport) {
+                selectedSport = "All Sports"
+            }
+            if selectedLeague != "All Leagues" && !availableLeagues.contains(selectedLeague) {
+                selectedLeague = "All Leagues"
+            }
+        }
+        .onChange(of: leagueValue) { _, _ in
+            if selectedLeague != "All Leagues" && !availableLeagues.contains(selectedLeague) {
+                selectedLeague = "All Leagues"
+            }
         }
     }
 
