@@ -99,6 +99,7 @@
 
         private let metrics = EPGMetrics.current
         @Environment(\.epgHeroLayout) private var layout
+        @AppStorage(TVGuideDesign.storageKey) private var guideDesignRaw = TVGuideDesign.classic.rawValue
         /// Per pane, so a stale pane's late `onDisappear` can't release the
         /// hold of the pane that replaced it.
         @State private var holdOwner = "guide-preview-\(UUID().uuidString)"
@@ -134,21 +135,16 @@
         }
 
         var body: some View {
-            // The info starts at the band's leading edge, level with the focus
-            // strip: `EPGFocusStrip` reads anything left of the strip as the rail.
+            // The original Lume guide keeps details on the left.
+            // DreamCAST puts the playing preview first, as on the approved design.
             HStack(alignment: .bottom, spacing: metrics.previewSpacing) {
-                EPGHeroInfo(hero: hero, settled: settledRow)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-
-                EPGHeroVideoFigure(
-                    target: target,
-                    isAllowed: isAllowed,
-                    isFailed: isFailed,
-                    restartToken: restartToken,
-                    handle: handle,
-                    hero: hero,
-                    onFailure: onFailure
-                )
+                if TVGuideDesign(storedValue: guideDesignRaw) == .dreamcast {
+                    previewVideo
+                    previewInfo
+                } else {
+                    previewInfo
+                    previewVideo
+                }
             }
             .frame(height: layout.height)
             .padding(.bottom, layout.bottomPadding)
@@ -158,6 +154,23 @@
                 PlaybackSurfaceHold.set(holds, owner: holdOwner)
             }
             .onDisappear { PlaybackSurfaceHold.set(false, owner: holdOwner) }
+        }
+
+        private var previewInfo: some View {
+            EPGHeroInfo(hero: hero, settled: settledRow)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+        }
+
+        private var previewVideo: some View {
+            EPGHeroVideoFigure(
+                target: target,
+                isAllowed: isAllowed,
+                isFailed: isFailed,
+                restartToken: restartToken,
+                handle: handle,
+                hero: hero,
+                onFailure: onFailure
+            )
         }
 
         /// Released once full screen adopts the stream, so its QoE session
