@@ -14,32 +14,17 @@ import SwiftUI
 nonisolated enum LiveTVLayoutMode: String, CaseIterable, Identifiable {
     case list
     case guide
-    #if os(tvOS)
-        case dreamcastGuide
-    #endif
 
     var id: String {
         rawValue
     }
 
     var displayName: String {
-        switch self {
-        case .list: String(localized: "List")
-        case .guide: String(localized: "Guide")
-        #if os(tvOS)
-            case .dreamcastGuide: "DreamCAST Guide"
-        #endif
-        }
+        self == .list ? String(localized: "List") : String(localized: "Guide")
     }
 
     var systemImage: String {
-        switch self {
-        case .list: "list.bullet"
-        case .guide: "tablecells"
-        #if os(tvOS)
-            case .dreamcastGuide: "tv"
-        #endif
-        }
+        self == .list ? "list.bullet" : "tablecells"
     }
 
     static let storageKey = "lume.liveTV.layoutMode"
