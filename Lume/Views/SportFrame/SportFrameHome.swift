@@ -146,13 +146,9 @@ struct SportFrameHome: View {
             focusedControl = .tab(newPage)
         }
         .onMoveCommand { direction in
-            // One focus router owns each remote press. Child handlers used to
-            // handle the same press again, which skipped over controls.
-            if page == 2, let target = settingsFocusTarget(for: direction) {
-                // Apply after tvOS has finished its automatic focus pass.
-                Task { @MainActor in focusedControl = target }
-                return
-            }
+            // Settings uses spatial focus sections. Do not fight tvOS with
+            // a second, code-driven move on the same remote press.
+            guard page != 2 else { return }
             switch direction {
             case .down:
                 if focusedControl == .tab(page) {
@@ -193,22 +189,6 @@ struct SportFrameHome: View {
         }
     }
 
-    private func settingsFocusTarget(for direction: MoveCommandDirection) -> FocusControl? {
-        guard let focusedControl else { return nil }
-        switch (focusedControl, direction) {
-        case (.tab(2), .down): return .refresh
-        case (.refresh, .up): return .tab(2)
-        case (.refresh, .down): return .selectAll
-        case (.selectAll, .up), (.selectNone, .up): return .refresh
-        case (.selectAll, .down), (.selectNone, .down):
-            return sportOrder.first.map { .sportSetting($0) }
-        case (.sportSetting(let sport), .up):
-            guard let index = sportOrder.firstIndex(of: sport), index < 3 else { return nil }
-            return index == 1 ? .selectNone : .selectAll
-        default: return nil
-        }
-    }
-
     private var header: some View {
         VStack(alignment: .leading, spacing: 25) {
             HStack {
@@ -221,6 +201,7 @@ struct SportFrameHome: View {
                 Spacer()
             }
             .padding(.bottom, 10)
+            .focusSection()
 
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 5) {
@@ -243,6 +224,7 @@ struct SportFrameHome: View {
                     .buttonStyle(SportsZonePillStyle())
                     .focused($focusedControl, equals: .refresh)
             }
+            .focusSection()
             if page == 0 {
                 HStack(spacing: 20) {
                     ScrollView(.horizontal) {
@@ -354,6 +336,8 @@ struct SportFrameHome: View {
                     .buttonStyle(SportsZonePillStyle())
                     .focused($focusedControl, equals: .selectNone)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .focusSection()
             LazyVGrid(columns: [.init(.flexible()), .init(.flexible()), .init(.flexible())], spacing: 12) {
                 ForEach(sportOrder, id: \.self) { sport in
                     let selected = followedSports.contains(sport)
@@ -369,6 +353,7 @@ struct SportFrameHome: View {
                     .focused($focusedControl, equals: .sportSetting(sport))
                 }
             }
+            .focusSection()
             Text("Which leagues you follow").font(.largeTitle.bold()).padding(.top, 22)
             Text("Choose a sport to pick its leagues. All leagues are followed until you change them.")
                 .foregroundStyle(.secondary)
