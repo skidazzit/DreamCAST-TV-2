@@ -24,9 +24,14 @@ struct SportFrameHome: View {
 
     private enum FocusControl: Hashable {
         case tab(Int)
+        case date
         case refresh
+        case sport(String)
+        case leagueMenu
+        case fixture(String)
         case selectAll
         case selectNone
+        case sportSetting(String)
     }
 
     private let accent = Color(red: 0.0, green: 0.8, blue: 0.94)
@@ -137,14 +142,41 @@ struct SportFrameHome: View {
             }
         }
         .onMoveCommand { direction in
-            guard page == 2 else { return }
             switch direction {
             case .down:
-                if focusedControl == .tab(2) { focusedControl = .refresh }
-                else if focusedControl == .refresh { focusedControl = .selectAll }
+                if focusedControl == .tab(page) {
+                    focusedControl = page == 0 ? .date : .refresh
+                } else if focusedControl == .date {
+                    focusedControl = .sport(selectedSport)
+                } else if focusedControl == .refresh {
+                    focusedControl = page == 2 ? .selectAll : (page == 0 ? .leagueMenu : nil)
+                } else if focusedControl == .selectAll || focusedControl == .selectNone {
+                    if let first = sportOrder.first { focusedControl = .sportSetting(first) }
+                } else if page == 0 {
+                    switch focusedControl {
+                    case .sport, .leagueMenu:
+                        if let first = visibleEvents.first { focusedControl = .fixture(first.idEvent) }
+                    default: break
+                    }
+                }
             case .up:
-                if focusedControl == .selectAll || focusedControl == .selectNone { focusedControl = .refresh }
-                else if focusedControl == .refresh { focusedControl = .tab(2) }
+                if focusedControl == .refresh {
+                    focusedControl = .tab(page)
+                } else if focusedControl == .date {
+                    focusedControl = .tab(0)
+                } else if focusedControl == .selectAll || focusedControl == .selectNone {
+                    focusedControl = .refresh
+                } else if page == 0 {
+                    switch focusedControl {
+                    case .sport: focusedControl = .date
+                    case .leagueMenu: focusedControl = .refresh
+                    case .fixture: focusedControl = .sport(selectedSport)
+                    default: break
+                    }
+                } else if page == 2, let first = sportOrder.first,
+                          focusedControl == .sportSetting(first) {
+                    focusedControl = .selectAll
+                }
             default: break
             }
         }
@@ -177,6 +209,7 @@ struct SportFrameHome: View {
                     }
                     .pickerStyle(.segmented)
                     .frame(width: 650)
+                    .focused($focusedControl, equals: .date)
                 }
                 Button { Task { await refresh() } } label: { Image(systemName: "arrow.clockwise") }
                     .accessibilityLabel("Refresh sports")
@@ -207,6 +240,7 @@ struct SportFrameHome: View {
                         .frame(maxWidth: 275)
                     }
                     .buttonStyle(SportsZonePillStyle())
+                    .focused($focusedControl, equals: .leagueMenu)
                 }
             }
         }
@@ -225,6 +259,7 @@ struct SportFrameHome: View {
             selectedLeague = "All Leagues"
         }
         .buttonStyle(SportsZonePillStyle(isSelected: selected))
+        .focused($focusedControl, equals: .sport(sport))
     }
 
     private var matchesPage: some View {
@@ -262,6 +297,7 @@ struct SportFrameHome: View {
                         ForEach(events) { event in
                             Button { selectedEvent = event } label: { SportFrameFixtureCard(event: event) }
                                 .buttonStyle(TVCardButtonStyle(focusScale: 1.03))
+                                .focused($focusedControl, equals: .fixture(event.idEvent))
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -303,6 +339,7 @@ struct SportFrameHome: View {
                             .frame(maxWidth: .infinity, alignment: .leading).padding(8)
                     }
                     .buttonStyle(SportsZonePillStyle())
+                    .focused($focusedControl, equals: .sportSetting(sport))
                 }
             }
             Text("Which leagues you follow").font(.largeTitle.bold()).padding(.top, 22)
