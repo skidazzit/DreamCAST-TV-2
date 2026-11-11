@@ -48,6 +48,10 @@ nonisolated enum GuidePreviewMode: String, CaseIterable {
 }
 
 nonisolated enum GuidePreviewPolicy {
+    /// Never open an IPTV stream just by entering or browsing the Guide.
+    /// The selected channel starts only through the explicit Play action.
+    static let autoplayStreamsInGuide = false
+
     /// How long focus has to rest on a channel before its preview starts. Also
     /// gates the Stalker `create_link` resolve, so browsing never spends one.
     static let settleDuration: Duration = .seconds(1)
