@@ -101,13 +101,6 @@
 			);
 			target = C6AA31032FDD00020000AB03 /* LumeWidgets */;
 		};
-		C6AA31102FDD00020000AB10 /* Exceptions for "LumeWidgets" folder in "Lume" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				DownloadActivityAttributes.swift,
-			);
-			target = C67C02BF2F880F2200842DBA /* Lume */;
-		};
 		C6BD5701000000000000C002 /* Exceptions for "LumeTopShelf" folder in "LumeTopShelf" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -149,7 +142,6 @@
 		C6AA31022FDD00020000AB02 /* LumeWidgets */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				C6AA31102FDD00020000AB10 /* Exceptions for "LumeWidgets" folder in "Lume" target */,
 				C6AA310F2FDD00020000AB0F /* Exceptions for "LumeWidgets" folder in "LumeWidgets" target */,
 			);
 			path = LumeWidgets;
