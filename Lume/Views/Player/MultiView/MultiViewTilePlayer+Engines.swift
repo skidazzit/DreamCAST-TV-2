@@ -53,7 +53,14 @@ struct MultiViewKSTile: View {
             .id(reloadToken)
             .onAppear {
                 coordinator.isMuted = isMuted
-                startWatchdog()
+                if role.previewHandle?.hasStarted == true,
+                   role.previewHandle?.coordinator?.ksCoordinator === coordinator {
+                    // The same decoder already has live frames after Back.
+                    hasStarted = true
+                    onPlaybackStarted()
+                } else {
+                    startWatchdog()
+                }
             }
             .onDisappear {
                 startupWatchdog?.cancel()
@@ -64,6 +71,15 @@ struct MultiViewKSTile: View {
             .onChange(of: isMuted) { _, muted in
                 guard role.ownsSession else { return }
                 coordinator.isMuted = muted
+            }
+            .onChange(of: role.previewHandle?.owner) { _, owner in
+                guard owner == .preview,
+                      role.previewHandle?.hasStarted == true,
+                      role.previewHandle?.coordinator?.ksCoordinator === coordinator else { return }
+                startupWatchdog?.cancel()
+                hasStarted = true
+                coordinator.isMuted = false
+                onPlaybackStarted()
             }
     }
 
