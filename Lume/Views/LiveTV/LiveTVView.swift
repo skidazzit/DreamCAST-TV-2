@@ -318,7 +318,11 @@ struct LiveTVView: View {
                                     media: media,
                                     isMuted: false,
                                     role: .guidePreview(handle: nil),
-                                    onFailure: { guideMiniFailed = true }
+                                    onFailure: {
+                                        // An old player must not mark a newly selected channel failed.
+                                        guard guideMiniMedia?.id == media.id else { return }
+                                        guideMiniFailed = true
+                                    }
                                 )
                                 .id(media.id)
                             } else if guideMiniFailed {
@@ -349,7 +353,7 @@ struct LiveTVView: View {
                             Spacer()
                         }
                         .padding(12)
-                        .background(.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+                        .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
                     }
                 }
                 .onChange(of: media.id) { _, _ in guideMiniFailed = false }
@@ -503,18 +507,17 @@ struct LiveTVView: View {
                let lastMedia = PlayableMedia.from(
                    stream: lastStream, ownedByOneOf: playlists,
                    surfScope: LiveSurfScope(catalogScope)
-               ) {
-                // A recent channel may live in a different category. Only
-                // show a scope that is still visible and allowed.
-                if let categoryID = lastStream.categoryId,
-                   let match = sections.first(where: { section in
-                       if case let .category(category) = section {
-                           return category.id == categoryID
-                       }
-                       return false
-                   }) {
-                    selectedSection = match
-                }
+               ),
+               let categoryID = lastStream.categoryId,
+               let match = sections.first(where: { section in
+                   if case let .category(category) = section {
+                       return category.id == categoryID
+                   }
+                   return false
+               }) {
+                // Only restore a channel in the current, visible playlist
+                // scope; an old profile or different playlist must not autoplay.
+                selectedSection = match
                 guideMiniMedia = lastMedia
                 guideMiniFailed = false
             }
@@ -547,6 +550,11 @@ struct LiveTVView: View {
                 stream: stream, ownedByOneOf: playlists,
                 scope: scope, surfScope: LiveSurfScope(catalogScope)
             ) else { return }
+            // With preview disabled, one tap should still open the channel.
+            if GuidePreviewMode(storedValue: guideMiniModeRaw) == .off {
+                present(media)
+                return
+            }
             if guideMiniMedia?.id == media.id {
                 present(media)
             } else {
