@@ -265,7 +265,29 @@ struct MultiViewAVTile: View {
     var onPlaybackFailed: () -> Void
     let sourceMedia: PlayableMedia
 
-    @StateObject private var coordinator = AVPlayerCoordinator(isEmbedded: true)
+    @StateObject private var coordinator: AVPlayerCoordinator
+
+    init(
+        media: PlayableMedia,
+        isMuted: Bool,
+        usesQuickStartupTimeout: Bool,
+        role: MultiViewTileRole,
+        onPlaybackStarted: @escaping () -> Void,
+        onPlaybackFailed: @escaping () -> Void,
+        sourceMedia: PlayableMedia
+    ) {
+        self.media = media
+        self.isMuted = isMuted
+        self.usesQuickStartupTimeout = usesQuickStartupTimeout
+        self.role = role
+        self.onPlaybackStarted = onPlaybackStarted
+        self.onPlaybackFailed = onPlaybackFailed
+        self.sourceMedia = sourceMedia
+        let handle = role.previewHandle
+        let existing = handle?.media?.id == sourceMedia.id
+            ? handle?.coordinator?.avCoordinator : nil
+        _coordinator = StateObject(wrappedValue: existing ?? AVPlayerCoordinator(isEmbedded: true))
+    }
 
     var body: some View {
         MultiViewAVSurface(coordinator: coordinator, handle: role.previewHandle)
@@ -278,7 +300,15 @@ struct MultiViewAVTile: View {
                     ? MultiViewTilePlayer.fallbackStartupTimeout
                     : MultiViewTilePlayer.startupTimeout
                 coordinator.onPlaybackFailure = onPlaybackFailed
-                coordinator.configure(media: media)
+                if role.previewHandle?.owner == .preview,
+                   role.previewHandle?.hasStarted == true,
+                   role.previewHandle?.coordinator?.avCoordinator === coordinator,
+                   coordinator.keepLoadedItem(as: media) {
+                    coordinator.isEmbedded = true
+                    onPlaybackStarted()
+                } else {
+                    coordinator.configure(media: media)
+                }
             }
             .previewHandoff(role, media: sourceMedia, resolved: media, coordinator: .av(coordinator))
             .onChange(of: isMuted) { _, muted in
