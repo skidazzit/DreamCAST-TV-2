@@ -17,6 +17,19 @@
     struct LiveTVSettingsView: View {
         @AppStorage(LiveTVLayoutMode.storageKey)
         private var layoutModeRaw = LiveTVLayoutMode.defaultMode.rawValue
+        #if os(iOS)
+            // Same saved keys as the Apple TV Live TV settings.
+            @AppStorage(PlayerSettings.tvGuidePreviewModeKey)
+            private var guidePreviewModeRaw = PlayerSettings.tvGuidePreviewModeDefault.rawValue
+            @AppStorage(LiveTVEngineSelection.storageKey)
+            private var liveEngineRaw = LiveTVEngineSelection.automatic.rawValue
+            @AppStorage(TVGuideDesign.storageKey)
+            private var guideDesignRaw = TVGuideDesign.classic.rawValue
+            @AppStorage(TVGuideColumnWidth.storageKey)
+            private var guideColumnWidthRaw = TVGuideColumnWidth.medium.rawValue
+            @AppStorage(TVGuideRowHeight.storageKey)
+            private var guideRowHeightRaw = TVGuideRowHeight.normal.rawValue
+        #endif
         @AppStorage(LiveTVRailSettings.showsFavoritesKey)
         private var showsFavorites = LiveTVRailSettings.showsFavoritesDefault
         @AppStorage(LiveTVRailSettings.showsRecentlyWatchedKey)
@@ -64,6 +77,56 @@
                 } footer: {
                     Text("How the Live TV tab shows channels: Guide lays them out on a programme timeline, List as a plain channel list.")
                 }
+
+                #if os(iOS)
+                    Section {
+                        Picker("Guide Mini-player Size", selection: $guidePreviewModeRaw) {
+                            ForEach(GuidePreviewMode.allCases, id: \.rawValue) { mode in
+                                Text(mode.displayName).tag(mode.rawValue)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                    } header: {
+                        Text("Guide Mini-player")
+                    } footer: {
+                        Text("Small or Large: video with audio. Info Only: channel details. Off: hide the preview. This choice is saved for the iPhone guide; the video preview still needs a mobile view.")
+                    }
+
+                    Section {
+                        Picker("Live TV Playback Engine", selection: $liveEngineRaw) {
+                            ForEach(LiveTVEngineSelection.available, id: \.rawValue) { engine in
+                                Text(engine.displayName).tag(engine.rawValue)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                    } header: {
+                        Text("Playback")
+                    } footer: {
+                        Text("Choose the player used for Live TV. Automatic follows the app's normal playback order. Reopen Live TV to apply changes.")
+                    }
+
+                    Section {
+                        Picker("Guide Design", selection: $guideDesignRaw) {
+                            ForEach(TVGuideDesign.allCases, id: \.rawValue) { design in
+                                Text(design.displayName).tag(design.rawValue)
+                            }
+                        }
+                        Picker("Guide Channel Width", selection: $guideColumnWidthRaw) {
+                            ForEach(TVGuideColumnWidth.allCases, id: \.rawValue) { width in
+                                Text(width.displayName).tag(width.rawValue)
+                            }
+                        }
+                        Picker("Guide Row Height", selection: $guideRowHeightRaw) {
+                            ForEach(TVGuideRowHeight.allCases, id: \.rawValue) { height in
+                                Text(height.displayName).tag(height.rawValue)
+                            }
+                        }
+                    } header: {
+                        Text("Guide Appearance")
+                    } footer: {
+                        Text("These settings match Apple TV. The iPhone guide still uses its compact touch layout until its matching design options are wired in.")
+                    }
+                #endif
 
                 Section {
                     Toggle(isOn: $showsFavorites) {
