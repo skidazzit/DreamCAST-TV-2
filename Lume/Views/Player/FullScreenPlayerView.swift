@@ -467,7 +467,7 @@ struct FullScreenPlayerView: View {
                 usesQuickStartupTimeout: hasFallbackEngine,
                 onPlaybackFailed: handlePlaybackFailure,
                 onSelectMedia: switchMedia,
-                onCompleteCurrentItem: completeActiveEpisode, onRemoteAdvance: remoteAdvanceHandler, coordinator: adopted ?? .init(), isAdoptedSession: adopted != nil, returnHandle: adoption?.handle
+                onCompleteCurrentItem: completeActiveEpisode, onRemoteAdvance: remoteAdvanceHandler, coordinator: adopted ?? .init(), isAdoptedSession: adopted != nil, returnHandle: adoption?.handle, onReturnToGuide: returnAdoptedLiveToGuide
             )
             .id(engineAttempt)
         case .ksPlayer:
@@ -478,7 +478,7 @@ struct FullScreenPlayerView: View {
                 usesQuickStartupTimeout: hasFallbackEngine,
                 onPlaybackFailed: fallBackToNextEngine,
                 onSelectMedia: switchMedia,
-                onCompleteCurrentItem: completeActiveEpisode, onRemoteAdvance: remoteAdvanceHandler, coordinator: adoptedKSCoordinator ?? .init(), isAdoptedSession: adoptedKSCoordinator != nil, returnHandle: adoption?.handle
+                onCompleteCurrentItem: completeActiveEpisode, onRemoteAdvance: remoteAdvanceHandler, coordinator: adoptedKSCoordinator ?? .init(), isAdoptedSession: adoptedKSCoordinator != nil, returnHandle: adoption?.handle, onReturnToGuide: returnAdoptedLiveToGuide
             )
             .id(engineAttempt)
         case .vlcKit:
@@ -516,14 +516,15 @@ struct FullScreenPlayerView: View {
         #endif
     }
 
-    func closePlayer() {
+    func returnAdoptedLiveToGuide() {
         #if os(tvOS)
-            // A same-channel live session belongs to the guide again before
-            // the full-screen video surface is dismantled.
-            if activeMedia.isLive, let adoption, adoption.mediaID == activeMedia.id {
-                _ = adoption.handle.returnToPreview(mediaID: activeMedia.id)
-            }
+            guard activeMedia.isLive, let adoption, adoption.mediaID == activeMedia.id else { return }
+            _ = adoption.handle.returnToPreview(mediaID: activeMedia.id)
         #endif
+    }
+
+    func closePlayer() {
+        returnAdoptedLiveToGuide()
         #if os(macOS)
             // Exit fullscreen first so the window animation is graceful, then close.
             if let window = NSApp.keyWindow, window.styleMask.contains(.fullScreen) {
