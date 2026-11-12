@@ -15,6 +15,8 @@ final class GuidePreviewController {
     let handle = PreviewPlayerHandle()
     /// Bumped to reopen the Guide preview on a fresh stream.
     private(set) var restartToken = 0
+    /// Redraw the existing video host after Back, without rebuilding its decoder.
+    private(set) var handoffRevision = 0
     /// Holds the preview off briefly after full screen or Multi-View closes,
     /// so the provider has freed that connection first.
     private(set) var isCoolingDown = false
@@ -61,6 +63,7 @@ final class GuidePreviewController {
             // An adopted session came back alive. Never cool down or restart it.
             isFullScreenUp = false
             isCoolingDown = false
+            handoffRevision += 1
         } else {
             transition { isFullScreenUp = false }
             handle.release()
