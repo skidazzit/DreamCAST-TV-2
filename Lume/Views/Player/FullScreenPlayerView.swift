@@ -391,7 +391,11 @@ struct FullScreenPlayerView: View {
             // Capture the clock synchronously, then flush off the main thread.
             persistProgressDetached(force: true)
             NowPlayingService.shared.endSession()
-            releaseAudioSession()
+            // The guide now owns the same live player: deactivating the
+            // global audio route here would silence its continuing feed.
+            if adoption?.handle.owner != .preview {
+                releaseAudioSession()
+            }
             ContentIndexingService.shared.resume(for: indexingHoldOwner)
             if adoption?.handle.owner == .fullScreen {
                 adoption?.handle.release()
