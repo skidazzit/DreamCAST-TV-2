@@ -64,8 +64,8 @@ struct KSPlayerEngineView: View {
     /// Set when `coordinator` came from the tvOS Guide preview already
     /// playing. See `KSPlayerEngineView+Adoption`.
     @State var isAdoptedSession = false
-    var returnHandle: PreviewPlayerHandle?
-    var onReturnToGuide: (() -> Void)?
+    var returnHandle: PreviewPlayerHandle? = nil
+    var onReturnToGuide: (() -> Void)? = nil
     /// Drives bounded backoff reconnects when the stream drops (see
     /// `handleState`). KSPlayer otherwise stops dead on a mid-stream failure.
     /// Non-private so the playback/reconnect logic in `KSPlayerEngineView+Playback`
