@@ -108,6 +108,12 @@ final class PreviewPlayerHandle {
         coordinator: EngineCoordinator
     ) {
         guard owner != .fullScreen else { return }
+        // Reattaching the guide after Back must not turn a running adopted
+        // session into an unstarted one. Its first frame already arrived.
+        if owner == .preview, self.media?.id == media.id,
+           let existing = self.coordinator, existing.isSame(as: coordinator) {
+            return
+        }
         owner = .preview
         self.media = media
         resolvedMedia = resolved
