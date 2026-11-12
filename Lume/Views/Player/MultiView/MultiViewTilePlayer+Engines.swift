@@ -39,7 +39,34 @@ struct MultiViewKSTile: View {
     /// initializers claim a non-mixable `.playback` session themselves
     /// (`KSOptions.setAudioSession()`, a static the app cannot override), so
     /// keeping other apps' audio playing would take a KSPlayer patch.
-    @StateObject private var coordinator = KSVideoPlayer.Coordinator()
+    @StateObject private var coordinator: KSVideoPlayer.Coordinator
+
+    init(
+        media: PlayableMedia,
+        isMuted: Bool,
+        usesQuickStartupTimeout: Bool,
+        role: MultiViewTileRole,
+        onPlaybackStarted: @escaping () -> Void,
+        onPlaybackFailed: @escaping () -> Void,
+        sourceMedia: PlayableMedia
+    ) {
+        self.media = media
+        self.isMuted = isMuted
+        self.usesQuickStartupTimeout = usesQuickStartupTimeout
+        self.role = role
+        self.onPlaybackStarted = onPlaybackStarted
+        self.onPlaybackFailed = onPlaybackFailed
+        self.sourceMedia = sourceMedia
+
+        // The guide may recreate this tile after a full-screen cover.
+        // Reuse the decoder already registered for the exact same channel,
+        // rather than creating a second coordinator and provider request.
+        let saved = role.previewHandle
+        let existing = saved?.media?.id == sourceMedia.id
+            ? saved?.coordinator?.ksCoordinator : nil
+        _coordinator = StateObject(wrappedValue: existing ?? KSVideoPlayer.Coordinator())
+    }
+
     /// Bounded backoff for a *mid-stream* drop. KSPlayer has no safe in-place
     /// re-prepare (see `KSPlayerEngineView+Playback`), so a reconnect here bumps
     /// the id below, which tears the layer down and builds a fresh one.
