@@ -64,6 +64,8 @@ struct KSPlayerEngineView: View {
     /// Set when `coordinator` came from the tvOS Guide preview already
     /// playing. See `KSPlayerEngineView+Adoption`.
     @State var isAdoptedSession = false
+    var returnHandle: PreviewPlayerHandle?
+    var onReturnToGuide: (() -> Void)?
     /// Drives bounded backoff reconnects when the stream drops (see
     /// `handleState`). KSPlayer otherwise stops dead on a mid-stream failure.
     /// Non-private so the playback/reconnect logic in `KSPlayerEngineView+Playback`
@@ -329,7 +331,9 @@ struct KSPlayerEngineView: View {
                 cancelStallWatchdog()
                 PlaybackQoE.shared.endSession()
                 NowPlayingService.shared.detachTransport(owner: coordinator)
-                coordinator.resetPlayer()
+                if returnHandle?.owner != .preview {
+                    coordinator.resetPlayer()
+                }
             }
             .onChange(of: engine.isPlaying) { _, _ in
                 resetHideTimer()
