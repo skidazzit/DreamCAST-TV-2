@@ -76,6 +76,50 @@ nonisolated enum PlayerEngineKind: String, CaseIterable, Identifiable {
     }
 }
 
+/// Independent engine choice for live channels. Automatic follows the global
+/// engine order; a picked engine goes first while keeping fallback available.
+nonisolated enum LiveTVEngineSelection: String, CaseIterable {
+    case automatic
+    case ksPlayer
+    case avPlayer
+    case vlcKit
+    case lumeEngine
+    case aetherEngine
+
+    static let storageKey = "dreamcast.liveTV.playbackEngine"
+
+    var displayName: String {
+        guard let engine else { return "Automatic" }
+        return engine.displayName
+    }
+
+    var engine: PlayerEngineKind? {
+        guard self != .automatic else { return nil }
+        return PlayerEngineKind(rawValue: rawValue)
+    }
+
+    static var available: [Self] {
+        allCases.filter { $0.engine?.isAvailable ?? true }
+    }
+
+    static func selected(_ raw: String) -> Self {
+        let selection = Self(rawValue: raw) ?? .automatic
+        return available.contains(selection) ? selection : .automatic
+    }
+
+    static func priority(defaults: UserDefaults = .standard) -> [PlayerEngineKind] {
+        let global = PlayerEnginePriority.resolve(
+            priorityRaw: defaults.string(forKey: PlayerSettings.enginePriorityKey) ?? "",
+            legacyEngineRaw: defaults.string(forKey: PlayerSettings.engineKey)
+                ?? PlayerEngineKind.defaultValue.rawValue
+        )
+        guard let preferred = selected(defaults.string(forKey: storageKey) ?? "automatic").engine else {
+            return global
+        }
+        return [preferred] + global.filter { $0 != preferred }
+    }
+}
+
 /// How much the in-player stream-information caption spells out. A two-level
 /// preset rather than per-element toggles: Simple carries programme context
 /// (playlist, EPG), Advanced adds the technical
