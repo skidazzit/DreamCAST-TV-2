@@ -60,6 +60,11 @@ enum SettingsCategory: String, CaseIterable, Identifiable {
     /// iOS / macOS tool. Help & Feedback and About are sidebar panes on tvOS
     /// only; iOS / macOS show their rows on the root list itself.
     var isAvailableOnPlatform: Bool {
+        #if os(iOS)
+        // DreamCAST iOS includes all Pro features and uses on-device data.
+        // SportsZone manages its own followed sports and leagues.
+        if self == .premium || self == .sports || self == .iCloud { return false }
+        #endif
         switch self {
         case .help, .about:
             #if os(tvOS)
