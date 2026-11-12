@@ -94,6 +94,9 @@ struct MultiViewKSTile: View {
                     mode: .preview(previewHandle),
                     onStateChanged: stateChanged
                 )
+                // Rebuild only the UIView host after full-screen closes.
+                // The owning KS coordinator stays alive, so no URL reload.
+                .id(previewHandle.returnGeneration)
             } else {
                 videoPlayer
             }
