@@ -2,7 +2,7 @@
 //  LumeCloudPairingSheet.swift
 //  Lume
 //
-//  Lume Cloud pairing (PROTOCOL.md §4.5). A new device shows a six-digit code
+//  Cloud Sync pairing (PROTOCOL.md §4.5). A new device shows a six-digit code
 //  and its QR (`lume://cloud/pair?code=`) and waits; a device that already
 //  syncs enters or scans that code, checks the new device's name and platform,
 //  and adds it. Codes are never logged.
@@ -47,7 +47,7 @@ enum LumeCloudPairingRole: Equatable {
                     }
                 }
                 .formStyle(.grouped)
-                .platformNavigationTitle(isAddingDevice ? "Add a Device" : "Join Lume Cloud")
+                .platformNavigationTitle(isAddingDevice ? "Add a Device" : "Join Cloud Sync")
                 .toolbar { toolbarContent }
                 .task(id: model.joinAttempt) {
                     guard !isAddingDevice else { return }
@@ -121,7 +121,7 @@ enum LumeCloudPairingRole: Equatable {
                 }
             } footer: {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("On a device that already uses Lume Cloud, open Settings ▸ Sync ▸ Add a Device and enter this code, or scan the QR code with that device’s camera.")
+                    Text("On a device that already uses Cloud Sync, open Settings ▸ Sync ▸ Add a Device and enter this code, or scan the QR code with that device’s camera.")
                     Text(SyncSettingsPromptText.privacyNote)
                 }
             }
@@ -138,7 +138,7 @@ enum LumeCloudPairingRole: Equatable {
                 } header: {
                     Text("New Device")
                 } footer: {
-                    Text("Only add devices you own. The new device can read everything you sync with Lume Cloud.")
+                    Text("Only add devices you own. The new device can read everything you sync with Cloud Sync.")
                 }
             } else {
                 Section {
@@ -177,7 +177,7 @@ enum LumeCloudPairingRole: Equatable {
 #endif
 
 extension View {
-    /// The macOS size of the Lume Cloud pairing and new-key sheets, which
+    /// The macOS size of the Cloud Sync pairing and new-key sheets, which
     /// otherwise collapse; nothing elsewhere.
     func lumeCloudSheetFrame() -> some View {
         #if os(macOS)
