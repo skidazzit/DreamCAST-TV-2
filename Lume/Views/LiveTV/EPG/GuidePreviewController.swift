@@ -61,10 +61,11 @@ final class GuidePreviewController {
     func fullScreenDidClose() {
         let lastChannelID = LiveChannelHistory.currentChannelId()
         preferredStreamID = lastChannelID ?? preferredStreamID
-        // A system dismissal may bypass the engine's close action. Return
-        // the original session only when it is still the viewed channel.
+        // The history store is not a playback truth source: a save can lag
+        // behind dismissal. The full-screen player marks its handle released
+        // if the viewer changes channels, so a still-owned session is safe.
         if handle.owner == .fullScreen, let mediaID = handle.media?.id,
-           mediaID == lastChannelID, handle.hasStarted {
+           handle.hasStarted, handle.coordinator != nil {
             _ = handle.returnToPreview(mediaID: mediaID)
         }
         if handle.finishReturnToPreview() {
@@ -73,7 +74,9 @@ final class GuidePreviewController {
             isCoolingDown = false
             handoffRevision += 1
         } else {
-            Logger.player.warning("Guide handoff: could not reuse live decoder; preview will restart")
+            Logger.player.warning(
+                "Guide handoff failed: owner=\(String(describing: self.handle.owner), privacy: .public) hasStarted=\(self.handle.hasStarted) hasCoordinator=\(self.handle.coordinator != nil) historyMatch=\(self.handle.media?.id == lastChannelID)"
+            )
             transition { isFullScreenUp = false }
             handle.release()
         }
