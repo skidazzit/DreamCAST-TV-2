@@ -10,7 +10,7 @@
 //  preview's Auto Layout.
 //
 
-#if os(tvOS)
+#if os(tvOS) || os(iOS)
     import KSPlayer
     import SwiftUI
     import UIKit
