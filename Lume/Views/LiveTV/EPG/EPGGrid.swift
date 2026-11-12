@@ -43,6 +43,8 @@ struct EPGGrid: View, Equatable {
     }
 
     @State private var position = ScrollPosition()
+    /// Coalesces geometry callbacks so SwiftUI state is changed after layout.
+    @State private var geometryDelivery = EPGGeometryDelivery()
     @State private var didInitialScroll = false
     /// The initial scroll, kept until the grid has actually reached it. The
     /// first `scrollTo` runs while the container is still a few points wide,
@@ -84,31 +86,11 @@ struct EPGGrid: View, Equatable {
         }
         .scrollPosition($position)
         .onScrollGeometryChange(for: CGRect.self) { CGRect(origin: $0.contentOffset, size: $0.containerSize) } action: { _, new in
-            replayInitialScrollIfDropped(at: new)
-            let clamped = CGPoint(x: max(0, new.origin.x), y: max(0, new.origin.y))
-            sync.offset = clamped
-            sync.viewport = new.size
-            #if !os(tvOS)
-                // Touch scrolling has no known target — the panes mirror the
-                // measured offset per frame. tvOS mirrors per programmatic
-                // move instead (see EPGGridScroller.requestScroll).
-                sync.mirror = clamped
-            #endif
-            let window = EPGRealizeWindow.around(
-                offset: clamped.x,
-                viewport: new.width,
-                blockLength: 30 * metrics.pointsPerMinute
-            )
-            if sync.window != window {
-                sync.window = window
-            }
-            let rowWindow = EPGRealizeWindow.around(
-                offset: clamped.y,
-                viewport: new.height,
-                blockLength: 2 * (metrics.rowHeight + metrics.rowSpacing)
-            )
-            if sync.rowWindow != rowWindow {
-                sync.rowWindow = rowWindow
+            // This fires during SwiftUI's layout pass. Never write @State or
+            // observed realization windows here: doing so causes a geometry
+            // feedback loop and repeated updates in the same frame.
+            geometryDelivery.enqueue(new) { geometry in
+                applyMeasuredGeometry(geometry)
             }
         }
         .onAppear {
@@ -149,6 +131,30 @@ struct EPGGrid: View, Equatable {
         }
     }
 
+    /// Applies the most recent measurement on the next run loop, outside the
+    /// scroll view's geometry/layout callback.
+    private func applyMeasuredGeometry(_ geometry: CGRect) {
+        replayInitialScrollIfDropped(at: geometry)
+        let clamped = CGPoint(x: max(0, geometry.origin.x), y: max(0, geometry.origin.y))
+        sync.offset = clamped
+        sync.viewport = geometry.size
+        #if !os(tvOS)
+            sync.mirror = clamped
+        #endif
+        let window = EPGRealizeWindow.around(
+            offset: clamped.x,
+            viewport: geometry.width,
+            blockLength: 30 * metrics.pointsPerMinute
+        )
+        if sync.window != window { sync.window = window }
+        let rowWindow = EPGRealizeWindow.around(
+            offset: clamped.y,
+            viewport: geometry.height,
+            blockLength: 2 * (metrics.rowHeight + metrics.rowSpacing)
+        )
+        if sync.rowWindow != rowWindow { sync.rowWindow = rowWindow }
+    }
+
     /// Re-issues a dropped initial scroll once the grid has a real size,
     /// a turn later and outside the layout pass. It gives up after a few
     /// tries so it can never fight a drag on touch platforms.
@@ -169,6 +175,27 @@ struct EPGGrid: View, Equatable {
             await Task.yield()
             guard pendingInitialScroll == pending else { return }
             position.scrollTo(point: pending)
+        }
+    }
+}
+
+/// Stores layout measurements without publishing observable changes. A burst
+/// of geometry updates produces one state write on the next main-queue turn.
+@MainActor
+private final class EPGGeometryDelivery {
+    private var latest: CGRect?
+    private var isScheduled = false
+
+    func enqueue(_ geometry: CGRect, apply: @escaping @MainActor (CGRect) -> Void) {
+        latest = geometry
+        guard !isScheduled else { return }
+        isScheduled = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.isScheduled = false
+            guard let latest = self.latest else { return }
+            self.latest = nil
+            apply(latest)
         }
     }
 }
