@@ -49,7 +49,7 @@ enum MultiViewTileRole {
         previewHandle.ownsSession
     }
 
-    private var isGuidePreview: Bool {
+    var isGuidePreview: Bool {
         if case .guidePreview = self { true } else { false }
     }
 }
@@ -102,11 +102,13 @@ struct MultiViewTilePlayer: View {
         self.role = role
         self.onFailure = onFailure
         let defaults = UserDefaults.standard
-        enginePriority = PlayerEnginePriority.resolve(
-            priorityRaw: defaults.string(forKey: PlayerSettings.enginePriorityKey) ?? "",
-            legacyEngineRaw: defaults.string(forKey: PlayerSettings.engineKey)
-                ?? PlayerEngineKind.defaultValue.rawValue
-        )
+        enginePriority = role.isGuidePreview
+            ? LiveTVEngineSelection.priority(defaults: defaults)
+            : PlayerEnginePriority.resolve(
+                priorityRaw: defaults.string(forKey: PlayerSettings.enginePriorityKey) ?? "",
+                legacyEngineRaw: defaults.string(forKey: PlayerSettings.engineKey)
+                    ?? PlayerEngineKind.defaultValue.rawValue
+            )
     }
 
     private var engine: PlayerEngineKind {
