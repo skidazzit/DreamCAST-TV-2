@@ -80,8 +80,17 @@ struct EPGGrid: View, Equatable {
         .background {
             GeometryReader { geo in
                 Color.clear
-                    .onAppear { viewportHeight = geo.size.height }
-                    .onChange(of: geo.size.height) { viewportHeight = $1 }
+                    .onAppear {
+                        if abs(viewportHeight - geo.size.height) > 1 {
+                            viewportHeight = geo.size.height
+                        }
+                    }
+                    .onChange(of: geo.size.height) { _, height in
+                        // Skip subpoint jitter: writing minHeight during layout
+                        // can change the measured height and feed back forever.
+                        guard abs(viewportHeight - height) > 1 else { return }
+                        DispatchQueue.main.async { viewportHeight = height }
+                    }
             }
         }
         .scrollPosition($position)
@@ -115,7 +124,9 @@ struct EPGGrid: View, Equatable {
             withTransaction(transaction) {
                 sync.mirror = CGPoint(x: nowTarget, y: 0)
             }
-            pendingInitialScroll = CGPoint(x: nowTarget, y: 0)
+            #if !os(tvOS)
+                pendingInitialScroll = CGPoint(x: nowTarget, y: 0)
+            #endif
             position.scrollTo(point: CGPoint(x: nowTarget, y: 0))
         }
         .onChange(of: scrollRequest) { _, request in
@@ -134,7 +145,9 @@ struct EPGGrid: View, Equatable {
     /// Applies the most recent measurement on the next run loop, outside the
     /// scroll view's geometry/layout callback.
     private func applyMeasuredGeometry(_ geometry: CGRect) {
-        replayInitialScrollIfDropped(at: geometry)
+        #if !os(tvOS)
+            replayInitialScrollIfDropped(at: geometry)
+        #endif
         let clamped = CGPoint(x: max(0, geometry.origin.x), y: max(0, geometry.origin.y))
         sync.offset = clamped
         sync.viewport = geometry.size
