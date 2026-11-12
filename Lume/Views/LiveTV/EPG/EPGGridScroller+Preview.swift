@@ -257,6 +257,7 @@
                 isAllowed: isAllowed,
                 isFailed: isFailed,
                 restartToken: controller?.restartToken ?? 0,
+                handoffRevision: controller?.handoffRevision ?? 0,
                 handle: controller?.handle,
                 onFailure: onFailure
             )
