@@ -331,7 +331,10 @@ struct KSPlayerEngineView: View {
                 cancelStallWatchdog()
                 PlaybackQoE.shared.endSession()
                 NowPlayingService.shared.detachTransport(owner: coordinator)
-                if returnHandle?.owner != .preview && returnHandle?.owner != .returning {
+                // The full-screen cover can dismantle its child before the parent
+                // sees onDisappear. Keep an adopted decoder alive in ALL
+                // handoff states; the guide reuses this exact coordinator.
+                if returnHandle == nil || returnHandle?.owner == .released {
                     coordinator.resetPlayer()
                 }
             }
