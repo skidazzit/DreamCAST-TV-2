@@ -401,9 +401,10 @@ struct FullScreenPlayerView: View {
                 releaseAudioSession()
             }
             ContentIndexingService.shared.resume(for: indexingHoldOwner)
-            if adoption?.handle.owner == .fullScreen {
-                adoption?.handle.release()
-            }
+            // The full-screen cover may disappear before the presenting
+            // view receives onDismiss. Leave its decoder in the handle until
+            // the guide decides whether it can take playback back.
+            // A changed stream invalidates the handle in switchMedia(to:).
             endReviewSession(isChildWatching: profileManager?.activeProfileIsChild ?? false)
         }
     }
