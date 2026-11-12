@@ -245,6 +245,7 @@ struct MainTabView: View {
             case .liveTV, .movies, .series: tabs.showsTab(tab)
             case .sports: sportsTabEnabled
             case .search, .settings: true
+            @unknown default: false
             }
         }
 
