@@ -45,9 +45,9 @@
                     }
                 }
             } header: {
-                Text("Lume")
+                Text("DreamCAST TV")
             } footer: {
-                Text("Lume is free, open-source software, licensed under the GNU Affero General Public License v3.")
+                Text("DreamCAST TV is based on Lume, an open-source project licensed under the GNU Affero General Public License v3. Original authors and licenses remain credited here.")
             }
         }
 
@@ -59,7 +59,7 @@
             } header: {
                 Text("Open Source")
             } footer: {
-                Text("Lume's playback engines build on these open-source projects. Each remains under its own license.")
+                Text("Playback relies on open-source projects. Each remains under its own license.")
             }
         }
 
