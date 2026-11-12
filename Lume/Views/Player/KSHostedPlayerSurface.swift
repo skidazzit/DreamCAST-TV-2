@@ -86,8 +86,11 @@
         }
 
         static func dismantleUIView(_: UIView, coordinator host: Host) {
+            // UIKit can dismantle the fullscreen UIView before the parent
+            // receives onDisappear. The guide's handle still owns this exact
+            // coordinator, even while owner == .fullScreen. Never reset it.
             if host.resetsOnDismantle,
-               host.returnHandle?.owner != .preview && host.returnHandle?.owner != .returning {
+               host.returnHandle == nil || host.returnHandle?.owner == .released {
                 host.player.resetPlayer()
             }
         }
