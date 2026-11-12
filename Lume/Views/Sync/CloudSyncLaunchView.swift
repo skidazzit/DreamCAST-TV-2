@@ -22,7 +22,7 @@ struct CloudSyncLaunchView: View {
     @State private var showSkip = false
 
     private var message: LocalizedStringKey {
-        checksLumeCloud ? "Checking Lume Cloud for your playlists…" : "Checking iCloud for your playlists…"
+        checksLumeCloud ? "Checking cloud sync for your playlists…" : "Checking iCloud for your playlists…"
     }
 
     var body: some View {
