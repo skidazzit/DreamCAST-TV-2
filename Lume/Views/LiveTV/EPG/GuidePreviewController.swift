@@ -56,10 +56,15 @@ final class GuidePreviewController {
     }
 
     func fullScreenDidClose() {
-        // Return to the last viewed live channel after the full-screen cover.
         preferredStreamID = LiveChannelHistory.currentChannelId() ?? preferredStreamID
-        transition { isFullScreenUp = false }
-        handle.release()
+        if handle.owner == .preview, handle.coordinator != nil {
+            // An adopted session came back alive. Never cool down or restart it.
+            isFullScreenUp = false
+            isCoolingDown = false
+        } else {
+            transition { isFullScreenUp = false }
+            handle.release()
+        }
     }
 
     func setMultiViewUp(_ isUp: Bool) {
