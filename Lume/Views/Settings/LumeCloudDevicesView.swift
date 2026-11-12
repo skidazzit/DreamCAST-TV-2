@@ -2,8 +2,8 @@
 //  LumeCloudDevicesView.swift
 //  Lume
 //
-//  The Lume Cloud account's devices with platform and last seen, fetched live.
-//  Other devices can be removed; this one leaves through Leave Lume Cloud.
+//  The Cloud Sync account's devices with platform and last seen, fetched live.
+//  Other devices can be removed; this one leaves through Leave Cloud Sync.
 //  The server stores last seen once per day, so it reads as a date.
 //
 
@@ -23,7 +23,7 @@ import SwiftUI
                             row(for: device)
                         }
                     } footer: {
-                        Text("To remove this device, leave Lume Cloud instead.")
+                        Text("To remove this device, leave Cloud Sync instead.")
                     }
                 } else if model.errorMessage == nil {
                     Section {
@@ -64,7 +64,7 @@ import SwiftUI
                 }
                 Button("Cancel", role: .cancel) {}
             } message: { _ in
-                Text("It stops syncing with Lume Cloud. Anything already on it stays there.")
+                Text("It stops syncing with Cloud Sync. Anything already on it stays there.")
             }
         }
 
