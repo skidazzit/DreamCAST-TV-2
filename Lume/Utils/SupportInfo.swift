@@ -31,7 +31,11 @@ nonisolated enum SupportInfo {
     static let recorderGuideDisplay = "getlume.org/recorder"
 
     static var websiteURL: URL? {
-        URL(string: website)
+        #if os(iOS)
+            URL(string: "https://github.com/skidazzit/DreamCAST-TV-2")
+        #else
+            URL(string: website)
+        #endif
     }
 
     static var recorderGuideURL: URL? {
@@ -39,15 +43,27 @@ nonisolated enum SupportInfo {
     }
 
     static var discordURL: URL? {
-        URL(string: discord)
+        #if os(iOS)
+            nil // Do not send DreamCAST viewers to upstream Lume support.
+        #else
+            URL(string: discord)
+        #endif
     }
 
     static var emailURL: URL? {
-        URL(string: "mailto:\(email)")
+        #if os(iOS)
+            nil // No DreamCAST-specific support email has been configured.
+        #else
+            URL(string: "mailto:\(email)")
+        #endif
     }
 
     static var appStoreReviewURL: URL? {
-        URL(string: appStoreReview)
+        #if os(iOS)
+            nil // The original Lume App Store listing is not DreamCAST TV.
+        #else
+            URL(string: appStoreReview)
+        #endif
     }
 
     /// Marketing version (`CFBundleShortVersionString`, e.g. "2.1.0"), sourced
