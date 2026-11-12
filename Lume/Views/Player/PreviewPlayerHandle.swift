@@ -138,6 +138,16 @@ final class PreviewPlayerHandle {
         owner = .fullScreen
     }
 
+    /// Full-screen returned to the same live item: keep the decoder and URL.
+    /// The guide tile can reclaim the coordinator without a second connection.
+    @discardableResult
+    func returnToPreview(mediaID: String) -> Bool {
+        guard owner == .fullScreen, media?.id == mediaID, coordinator != nil, hasStarted else { return false }
+        owner = .preview
+        coordinator?.setMuted(false)
+        return true
+    }
+
     func release() {
         owner = .released
         coordinator = nil
