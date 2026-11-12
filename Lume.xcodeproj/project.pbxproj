@@ -1066,6 +1066,7 @@
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "Lume/Lume-FreeTesting.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = "Lume/Lume-FreeTesting.entitlements";
 				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = NO;
 				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				ENABLE_APP_SANDBOX = YES;
