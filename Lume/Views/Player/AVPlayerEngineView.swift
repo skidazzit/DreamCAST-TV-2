@@ -65,8 +65,8 @@ struct AVPlayerEngineView: View {
     /// Set when `coordinator` came from the tvOS Guide preview already playing
     /// `media`; cleared by the first stream it isn't already playing.
     @State var isAdoptedSession = false
-    var returnHandle: PreviewPlayerHandle?
-    var onReturnToGuide: (() -> Void)?
+    var returnHandle: PreviewPlayerHandle? = nil
+    var onReturnToGuide: (() -> Void)? = nil
     @State private var isControlsVisible = true
     /// Set once the stream is given up on (initial-load failure with no fallback
     /// left). Swaps the player for the `PlayerErrorIndicator` (Try Again / Back).
