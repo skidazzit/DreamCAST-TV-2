@@ -149,11 +149,12 @@ struct FullScreenPlayerView: View {
         (_clock, _castSession) = Self.playbackStates(adopting: media)
         let defaults = UserDefaults.standard
         enginePriority = PlayerEnginePriority.playable(
-            PlayerEnginePriority.resolve(
-                priorityRaw: defaults.string(forKey: PlayerSettings.enginePriorityKey) ?? "",
-                legacyEngineRaw: defaults.string(forKey: PlayerSettings.engineKey)
-                    ?? PlayerEngineKind.defaultValue.rawValue
-            ),
+            media.isLive ? LiveTVEngineSelection.priority(defaults: defaults)
+                : PlayerEnginePriority.resolve(
+                    priorityRaw: defaults.string(forKey: PlayerSettings.enginePriorityKey) ?? "",
+                    legacyEngineRaw: defaults.string(forKey: PlayerSettings.engineKey)
+                        ?? PlayerEngineKind.defaultValue.rawValue
+                ),
             for: media
         )
         let adoption = handle == nil ? nil : Self.previewAdoption(
