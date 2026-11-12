@@ -9,6 +9,7 @@
 //
 
 import KSPlayer
+import OSLog
 import SwiftUI
 
 @MainActor @Observable
@@ -147,6 +148,7 @@ final class PreviewPlayerHandle {
     func handOffToFullScreen() {
         guard owner == .preview else { return }
         owner = .fullScreen
+        Logger.player.info("Guide handoff: mini-player to full-screen; decoder retained")
     }
 
     /// Full-screen returned to the same live item: keep the decoder and URL.
@@ -157,6 +159,7 @@ final class PreviewPlayerHandle {
         // Delay moving the video view until the modal is actually dismissed.
         // The player and audio decoder stay alive during this short transition.
         owner = .returning
+        Logger.player.info("Guide handoff: full-screen closing; decoder retained")
         coordinator?.setMuted(false)
         return true
     }
@@ -168,6 +171,7 @@ final class PreviewPlayerHandle {
         owner = .preview
         coordinator?.setMuted(false)
         returnGeneration += 1
+        Logger.player.info("Guide handoff: existing decoder returned to mini-player")
         return true
     }
 
