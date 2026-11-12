@@ -486,7 +486,7 @@ struct FullScreenPlayerView: View {
                 usesQuickStartupTimeout: hasFallbackEngine,
                 onPlaybackFailed: fallBackToNextEngine,
                 onSelectMedia: switchMedia,
-                onCompleteCurrentItem: completeActiveEpisode, onRemoteAdvance: remoteAdvanceHandler, coordinator: adoptedKSCoordinator ?? .init(), isAdoptedSession: adoptedKSCoordinator != nil, returnHandle: adoption?.handle, onReturnToGuide: returnAdoptedLiveToGuide
+                onCompleteCurrentItem: completeActiveEpisode, onRemoteAdvance: remoteAdvanceHandler, coordinator: adoptedKSCoordinator ?? .init(), isAdoptedSession: adoptedKSCoordinator != nil, returnHandle: adoptedKSCoordinator == nil ? nil : adoption?.handle, onReturnToGuide: returnAdoptedLiveToGuide
             )
             .id(engineAttempt)
         case .vlcKit:
