@@ -310,6 +310,10 @@ struct LumeApp: App {
     /// the app backgrounds — the shelf would keep an unfavorited title.
     private func exportWidgetSnapshot() {
         #if os(iOS) || os(tvOS)
+            // Free device signing may omit App Group entitlements. Avoid
+            // running SwiftData snapshot work when no shared destination exists.
+            // This also avoids noisy Top Shelf file/entitlement failures.
+            guard WidgetDataStore.snapshotURL != nil else { return }
             let container = catalogContainer
             if container.mainContext.hasChanges {
                 try? container.mainContext.save()
