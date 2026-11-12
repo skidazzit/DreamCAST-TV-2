@@ -112,13 +112,7 @@ extension SettingsView {
                     Text("Included")
                 }
             }
-            .platformNavigationTitle(
-                #if os(iOS)
-                "DreamCAST TV Pro"
-                #else
-                "Lume Pro"
-                #endif
-            )
+            .platformNavigationTitle(DreamCASTBrand.proTitle)
         }
     }
 
