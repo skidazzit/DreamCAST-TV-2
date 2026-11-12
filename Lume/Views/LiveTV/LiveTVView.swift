@@ -240,6 +240,24 @@ struct LiveTVView: View {
                     selectedSection: selectedSectionBinding
                 )
 
+                // A small, thumb-friendly guide switch. Keep this inside
+                // the iOS layout so Apple TV's focus rail is untouched.
+                HStack(spacing: 12) {
+                    Label("Live TV", systemImage: "dot.radiowaves.left.and.right")
+                        .font(.headline)
+                        .lineLimit(1)
+                    Spacer(minLength: 8)
+                    Picker("Channel layout", selection: $layoutModeRaw) {
+                        Text("Guide").tag(LiveTVLayoutMode.guide.rawValue)
+                        Text("List").tag(LiveTVLayoutMode.list.rawValue)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 190)
+                    .accessibilityLabel("Live TV layout")
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+
                 if let displayed {
                     detail(for: displayed)
                 } else {
