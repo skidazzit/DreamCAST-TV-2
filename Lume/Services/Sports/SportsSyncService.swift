@@ -90,17 +90,9 @@ final class SportsSyncService {
     /// `@AppStorage` key for spoiler-free fixture cards: no score, no winner
     /// emphasis. The game detail still shows the score once opened.
     static let hideScoresKey = "sports.hideScores"
-    /// Default for the Sports tab toggle: on everywhere except iPhone, where iOS
-    /// fits four regular tabs plus the Search pill — a fifth would push both
-    /// Sports and Search into "More". There the Home rail's "See All" opens the
-    /// hub and the tab can be enabled in Settings › Sports.
-    static var tabEnabledDefault: Bool {
-        #if os(iOS)
-            UIDevice.current.userInterfaceIdiom != .phone
-        #else
-            true
-        #endif
-    }
+    /// DreamCAST keeps SportsZone in the tab bar on iPhone and iPad.
+    /// Viewers can still hide it using the Sports setting.
+    static var tabEnabledDefault: Bool { true }
 
     private static let lastRefreshKey = "lume.sportsLastRefresh"
 
