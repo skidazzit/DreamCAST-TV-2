@@ -2,7 +2,7 @@
 //  LumeCloudRecoveryKeyView.swift
 //  Lume
 //
-//  The Lume Cloud recovery key: shown once after an account is created ("I’ve
+//  The Cloud Sync recovery key: shown once after an account is created ("I’ve
 //  saved it" clears the Settings badge, "Later" keeps it) and again from
 //  Settings ▸ Sync. Plus the sheet that joins an account from a recovery key.
 //  The key is never logged.
@@ -97,7 +97,7 @@
                     Text("Recovery Key")
                 } footer: {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("If you lose all your devices, this key is the only way back to your Lume Cloud data. Without it, your synced data is gone.")
+                        Text("If you lose all your devices, this key is the only way back to your Cloud Sync data. Without it, your synced data is gone.")
                         Text("Store it somewhere safe, like a password manager. Never share it.")
                     }
                 }
@@ -184,7 +184,7 @@
 
     // MARK: - Restore
 
-    /// Joins the Lume Cloud account a recovery key belongs to, then makes Lume
+    /// Joins the Cloud Sync account a recovery key belongs to, then makes Lume
     /// Cloud this device's backend.
     struct LumeCloudRestoreSheet: View {
         @Environment(\.dismiss) private var dismiss
@@ -208,7 +208,7 @@
                         Text("Recovery Key")
                     } footer: {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Enter the recovery key you saved when you created your Lume Cloud account.")
+                            Text("Enter the recovery key you saved when you created your Cloud Sync account.")
                             Text(SyncSettingsPromptText.privacyNote)
                         }
                     }
