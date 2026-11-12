@@ -389,6 +389,9 @@ struct FullScreenPlayerView: View {
             resumeActiveMedia(at: clock.current)
         }
         .onDisappear {
+            // Back can be handled by a child engine or by the system. In both
+            // cases, return the live KSPlayer/AVPlayer before the host tears down.
+            returnAdoptedLiveToGuide()
             // Capture the clock synchronously, then flush off the main thread.
             persistProgressDetached(force: true)
             NowPlayingService.shared.endSession()
