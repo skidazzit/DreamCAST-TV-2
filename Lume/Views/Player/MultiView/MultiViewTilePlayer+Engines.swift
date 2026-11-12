@@ -112,7 +112,7 @@ struct MultiViewKSTile: View {
 
     @ViewBuilder
     private var surface: some View {
-        #if os(tvOS)
+        #if os(tvOS) || os(iOS)
             if let previewHandle = role.previewHandle {
                 KSHostedPlayerSurface(
                     coordinator: coordinator,
