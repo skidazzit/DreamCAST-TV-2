@@ -394,7 +394,7 @@ struct FullScreenPlayerView: View {
             NowPlayingService.shared.endSession()
             // The guide now owns the same live player: deactivating the
             // global audio route here would silence its continuing feed.
-            if adoption?.handle.owner != .preview {
+            if adoption?.handle.owner != .preview && adoption?.handle.owner != .returning {
                 releaseAudioSession()
             }
             ContentIndexingService.shared.resume(for: indexingHoldOwner)
