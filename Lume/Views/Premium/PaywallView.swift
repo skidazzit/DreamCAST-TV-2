@@ -67,13 +67,7 @@ struct PaywallView: View {
                     .frame(maxWidth: 520)
                     .frame(maxWidth: .infinity)
                 }
-                .navigationTitle(
-                    #if os(iOS)
-                    "DreamCAST TV Pro"
-                    #else
-                    "Lume Pro"
-                    #endif
-                )
+                .navigationTitle(DreamCASTBrand.proTitle)
                 #if os(iOS)
                     .navigationBarTitleDisplayMode(.inline)
                 #endif
