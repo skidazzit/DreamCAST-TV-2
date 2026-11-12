@@ -101,6 +101,9 @@ final class PreviewPlayerHandle {
     var resolvedMedia: PlayableMedia?
     var coordinator: EngineCoordinator?
     var hasStarted = false
+    /// Forces only the guide's UIView host to reattach after returning.
+    /// The KSPlayer coordinator and decoder are kept intact.
+    private(set) var returnGeneration = 0
 
     /// Ignored while full screen owns the session: a preview tile mounting
     /// behind the cover must not replace the coordinator full screen adopted.
@@ -164,6 +167,7 @@ final class PreviewPlayerHandle {
         coordinator?.avCoordinator?.isEmbedded = true
         owner = .preview
         coordinator?.setMuted(false)
+        returnGeneration += 1
         return true
     }
 
