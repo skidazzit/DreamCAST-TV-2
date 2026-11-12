@@ -65,7 +65,7 @@ enum SettingsCategory: String, CaseIterable, Identifiable {
         // SportsZone manages its own followed sports and leagues.
         if self == .premium || self == .sports || self == .iCloud { return false }
         #endif
-        switch self {
+        return switch self {
         case .help, .about:
             #if os(tvOS)
                 true
