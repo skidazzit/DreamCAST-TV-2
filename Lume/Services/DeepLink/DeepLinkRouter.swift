@@ -17,7 +17,7 @@ import SwiftUI
 @MainActor
 @Observable
 final class DeepLinkRouter {
-    #if os(tvOS)
+    #if os(tvOS) || os(iOS)
         var selectedTab: AppTab = .liveTV
     #else
         var selectedTab: AppTab = .home
