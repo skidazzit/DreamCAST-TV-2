@@ -1046,7 +1046,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = Lume;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CODE_SIGN_ENTITLEMENTS = Lume/Lume.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Lume/Lume-FreeTesting.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvos*]" = "Lume/Lume-FreeTesting.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvsimulator*]" = "Lume/Lume-FreeTesting.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "Lume/Lume-FreeTesting.entitlements";
