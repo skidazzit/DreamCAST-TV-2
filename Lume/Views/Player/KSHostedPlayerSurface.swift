@@ -75,6 +75,9 @@
                 // full screen.
                 guard handle.owner == .preview else { return }
                 attachCallbacks()
+                // Full screen temporarily moved this same running video view.
+                // Reparent it into the guide without reloading the live URL.
+                host(coordinator.makeView(url: url, options: options), in: container)
             case .adopted:
                 attachCallbacks()
                 guard coordinator.playerLayer?.url != url else { return }
