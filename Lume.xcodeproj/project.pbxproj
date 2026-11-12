@@ -77,7 +77,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				C6AA310B2FDD00020000AB0B /* LumeWidgets.appex in Embed Foundation Extensions */,
 				C6BD5701000000000000F003 /* LumeTopShelf.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
@@ -283,7 +282,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				C6AA310E2FDD00020000AB0E /* PBXTargetDependency */,
 				C6BD5701000000000000F007 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
@@ -1065,8 +1063,8 @@
 				CODE_SIGN_ENTITLEMENTS = Lume/Lume.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvos*]" = "Lume/Lume-FreeTesting.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvsimulator*]" = "Lume/Lume-FreeTesting.entitlements";
-				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "Lume/Lume-iOS.entitlements";
-				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = "Lume/Lume-iOS.entitlements";
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "Lume/Lume-FreeTesting.entitlements";
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = "Lume/Lume-FreeTesting.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_TEAM = CHG45F8MCL;
@@ -1102,7 +1100,7 @@
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
+				REGISTER_APP_GROUPS = NO;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "appletvos appletvsimulator iphoneos iphonesimulator macosx xros xrsimulator";
