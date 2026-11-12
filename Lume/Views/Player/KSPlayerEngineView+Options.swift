@@ -158,7 +158,13 @@ enum KSPlayerOptionsFactory {
         // `NowPlayingService` for all engines; KSPlayer's built-in
         // registration would double-handle every command.
         options.registerRemoteControll = false
-        options.hardwareDecode = settings.hardwareDecode
+        #if targetEnvironment(simulator)
+            // The tvOS simulator may not provide this codec to VideoToolbox
+            // (-12906). Use KSPlayer's software decode path on simulators.
+            options.hardwareDecode = false
+        #else
+            options.hardwareDecode = settings.hardwareDecode
+        #endif
         options.asynchronousDecompression = settings.asyncDecompression
         options.isSecondOpen = settings.secondOpen
         options.isAccurateSeek = settings.accurateSeek
