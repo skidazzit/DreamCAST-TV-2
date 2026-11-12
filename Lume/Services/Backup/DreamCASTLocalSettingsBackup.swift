@@ -118,7 +118,7 @@ struct DreamCASTBackupSettingsSection: View {
         }
         .fileExporter(
             isPresented: $exporting,
-            document: $exportedFile,
+            document: exportedFile,
             contentType: .json,
             defaultFilename: "DreamCAST-TV-settings"
         ) { result in
