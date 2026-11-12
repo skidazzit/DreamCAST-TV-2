@@ -41,14 +41,26 @@ nonisolated struct LumeCloudSettings {
     /// iCloud.
     var backend: SyncBackendSelection {
         get {
+            #if os(iOS)
+                // DreamCAST iOS keeps the local SwiftData store and never opens
+                // an inherited iCloud or Lume Cloud backend.
+                return .off
+            #else
             let stored = defaults.string(forKey: Key.backend).flatMap(SyncBackendSelection.init(rawValue:)) ?? Self.defaultBackend
             #if SIDE_LOAD
                 return stored == .icloud ? .off : stored
             #else
                 return stored
             #endif
+            #endif
         }
-        nonmutating set { defaults.set(newValue.rawValue, forKey: Key.backend) }
+        nonmutating set {
+            #if os(iOS)
+                defaults.set(SyncBackendSelection.off.rawValue, forKey: Key.backend)
+            #else
+                defaults.set(newValue.rawValue, forKey: Key.backend)
+            #endif
+        }
     }
 
     /// Whether a backend was ever stored on this device: by a switch, the
