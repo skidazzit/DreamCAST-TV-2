@@ -192,7 +192,13 @@ struct LiveTVView: View {
                 openMultiView()
             }
             #if os(iOS) || os(tvOS)
-            .fullScreenCover(item: $playingMedia) { media in
+            .fullScreenCover(item: $playingMedia, onDismiss: {
+                #if os(tvOS)
+                    // UIKit has removed the full-screen video host. The guide
+                    // can now reclaim its live player without a new request.
+                    guidePreview.fullScreenDidClose()
+                #endif
+            }) { media in
                 #if os(tvOS)
                     FullScreenPlayerView(media: media, adopting: guidePreview.handle)
                 #else
