@@ -331,7 +331,7 @@ struct KSPlayerEngineView: View {
                 cancelStallWatchdog()
                 PlaybackQoE.shared.endSession()
                 NowPlayingService.shared.detachTransport(owner: coordinator)
-                if returnHandle?.owner != .preview {
+                if returnHandle?.owner != .preview && returnHandle?.owner != .returning {
                     coordinator.resetPlayer()
                 }
             }
