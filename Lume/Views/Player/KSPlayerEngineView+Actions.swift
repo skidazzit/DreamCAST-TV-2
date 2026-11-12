@@ -85,6 +85,7 @@ extension KSPlayerEngineView {
     }
 
     func closePlayer() {
+        onReturnToGuide?()
         #if os(macOS)
             if let window = NSApp.keyWindow, window.styleMask.contains(.fullScreen) {
                 window.toggleFullScreen(nil)
