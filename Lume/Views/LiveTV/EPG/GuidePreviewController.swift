@@ -19,6 +19,8 @@ final class GuidePreviewController {
     /// so the provider has freed that connection first.
     private(set) var isCoolingDown = false
 
+    /// The live channel that should open in the guide mini-player.
+    var preferredStreamID: String?
     private var isFullScreenUp = false
     private var isMultiViewUp = false
     private var isSceneActive = true
@@ -54,6 +56,8 @@ final class GuidePreviewController {
     }
 
     func fullScreenDidClose() {
+        // Return to the last viewed live channel after the full-screen cover.
+        preferredStreamID = LiveChannelHistory.currentChannelId() ?? preferredStreamID
         transition { isFullScreenUp = false }
         handle.release()
     }
