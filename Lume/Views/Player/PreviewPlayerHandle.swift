@@ -16,6 +16,8 @@ final class PreviewPlayerHandle {
     nonisolated enum Owner: Equatable {
         case preview
         case fullScreen
+        /// The full-screen player is closing but still owns the video view.
+        case returning
         case released
     }
 
@@ -107,7 +109,7 @@ final class PreviewPlayerHandle {
         resolved: PlayableMedia?,
         coordinator: EngineCoordinator
     ) {
-        guard owner != .fullScreen else { return }
+        guard owner != .fullScreen && owner != .returning else { return }
         // Reattaching the guide after Back must not turn a running adopted
         // session into an unstarted one. Its first frame already arrived.
         if owner == .preview, self.media?.id == media.id,
@@ -149,8 +151,18 @@ final class PreviewPlayerHandle {
     @discardableResult
     func returnToPreview(mediaID: String) -> Bool {
         guard owner == .fullScreen, media?.id == mediaID, coordinator != nil, hasStarted else { return false }
-        owner = .preview
+        // Delay moving the video view until the modal is actually dismissed.
+        // The player and audio decoder stay alive during this short transition.
+        owner = .returning
+        coordinator?.setMuted(false)
+        return true
+    }
+
+    @discardableResult
+    func finishReturnToPreview() -> Bool {
+        guard owner == .returning, coordinator != nil else { return false }
         coordinator?.avCoordinator?.isEmbedded = true
+        owner = .preview
         coordinator?.setMuted(false)
         return true
     }
