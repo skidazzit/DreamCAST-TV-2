@@ -144,8 +144,7 @@ struct MainTabView: View {
                     }
                 #elseif os(iOS)
                     // The iPhone app starts on Live TV, with Home removed.
-                    if router.selectedTab == .home || !showsTab(router.selectedTab)
-                        || (router.selectedTab == .sports && !sportsTabEnabled) {
+                    if router.selectedTab == .home || !showsTab(router.selectedTab) {
                         router.selectedTab = [AppTab.liveTV, .movies, .series]
                             .first(where: { showsTab($0) }) ?? .search
                     }
@@ -366,16 +365,17 @@ struct MainTabView: View {
                     }
                 }
 
-                if sportsTabEnabled {
-                    Tab("Sports", systemImage: "sportscourt", value: AppTab.sports) {
-                        IdleUnmountingTab(isSelected: selection.wrappedValue == .sports) { SportFrameMobile() }
-                    }
+                // Always expose SportsZone on iOS, including installs that
+                // saved the old Sports Hub preference as disabled. The TV and
+                // other platforms keep their existing user toggle.
+                Tab("SportsZone", systemImage: "sportscourt", value: AppTab.sports) {
+                    IdleUnmountingTab(isSelected: selection.wrappedValue == .sports) { SportFrameMobile() }
                 }
 
-                Tab(value: AppTab.search, role: .search) {
+                // Use a regular fifth tab, not the special search role. This
+                // keeps all five destinations visible on iPhone.
+                Tab("Search", systemImage: "magnifyingglass", value: AppTab.search) {
                     SearchView().castMiniControllerInset()
-                } label: {
-                    Label("Search", systemImage: "magnifyingglass")
                 }
             }
         }
