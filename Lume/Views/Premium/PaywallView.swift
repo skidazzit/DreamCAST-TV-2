@@ -67,7 +67,13 @@ struct PaywallView: View {
                     .frame(maxWidth: 520)
                     .frame(maxWidth: .infinity)
                 }
-                .navigationTitle("Lume Pro")
+                .navigationTitle(
+                    #if os(iOS)
+                    "DreamCAST TV Pro"
+                    #else
+                    "Lume Pro"
+                    #endif
+                )
                 #if os(iOS)
                     .navigationBarTitleDisplayMode(.inline)
                 #endif
@@ -112,10 +118,14 @@ struct PaywallView: View {
                 Image(systemName: "crown")
                     .font(.system(size: 44))
                     .foregroundStyle(.tint)
-                Text("Unlock Lume Pro")
+                #if os(iOS)
+                    Text("Unlock DreamCAST TV Pro")
+                #else
+                    Text("Unlock Lume Pro")
+                #endif
                     .font(.title.bold())
                     .multilineTextAlignment(.center)
-                Text("Lume is free and open source. Pro supports development and unlocks a few extra conveniences.")
+                Text("DreamCAST TV is based on open-source software. Pro includes extra features.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
