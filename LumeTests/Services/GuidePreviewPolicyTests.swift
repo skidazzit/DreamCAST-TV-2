@@ -18,6 +18,10 @@ struct GuidePreviewPolicyTests {
         )
     }
 
+    @Test func `guide mini-player autoplay is enabled`() {
+        #expect(GuidePreviewPolicy.autoplayStreamsInGuide)
+    }
+
     // MARK: - Timing
 
     @Test func `settle and restart durations`() {
