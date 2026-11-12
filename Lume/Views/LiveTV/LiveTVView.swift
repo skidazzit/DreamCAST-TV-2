@@ -73,6 +73,14 @@ struct LiveTVView: View {
     @State private var showingSync = false
     @State private var playingMedia: PlayableMedia?
     @State private var showingSettings = false
+    #if os(iOS)
+        /// Owned by Live TV, not the EPG scroller, so category changes don't
+        /// silently reset the channel that is already playing.
+        @State private var guideMiniMedia: PlayableMedia?
+        @State private var guideMiniFailed = false
+        @AppStorage(PlayerSettings.tvGuidePreviewModeKey)
+        private var guideMiniModeRaw = PlayerSettings.tvGuidePreviewModeDefault.rawValue
+    #endif
     #if os(tvOS)
         @Environment(DeepLinkRouter.self) private var router
         @State private var guidePreview = GuidePreviewController()
@@ -110,7 +118,7 @@ struct LiveTVView: View {
                     scope: section.scope,
                     catalogScope: catalogScope,
                     sort: contentSort,
-                    onPlay: { playChannel($0, scope: section.scope) },
+                    onPlay: { handleGuideChannel($0, scope: section.scope) },
                     onPlayCatchup: { playCatchup($0, cell: $1) },
                     onStartMultiView: { startMultiView(with: $0) }
                 )
@@ -258,6 +266,12 @@ struct LiveTVView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
 
+                if layoutMode == .guide {
+                    guideMiniPlayer
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 10)
+                }
+
                 if let displayed {
                     detail(for: displayed)
                 } else {
@@ -267,6 +281,78 @@ struct LiveTVView: View {
                         description: Text("Choose a category from the list")
                     )
                 }
+            }
+        }
+    #endif
+
+    #if os(iOS)
+        /// The same Mini-player Size setting used by tvOS. This is a
+        /// separate iOS video surface; a full-screen transition releases it.
+        @ViewBuilder
+        private var guideMiniPlayer: some View {
+            let mode = GuidePreviewMode(storedValue: guideMiniModeRaw)
+            if mode.showsHero, let media = guideMiniMedia {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 10) {
+                        Text("NOW PLAYING")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.secondary)
+                        Text(media.title)
+                            .font(.subheadline.weight(.semibold))
+                            .lineLimit(1)
+                        Spacer(minLength: 4)
+                        Button {
+                            present(media)
+                        } label: {
+                            Label("Full Screen", systemImage: "arrow.up.left.and.arrow.down.right")
+                                .labelStyle(.iconOnly)
+                        }
+                        .accessibilityLabel("Open current channel full screen")
+                    }
+
+                    if mode.playsVideo {
+                        ZStack {
+                            Color.black
+                            if playingMedia == nil && !guideMiniFailed {
+                                MultiViewTilePlayer(
+                                    media: media,
+                                    isMuted: false,
+                                    role: .guidePreview(handle: nil),
+                                    onFailure: { guideMiniFailed = true }
+                                )
+                                .id(media.id)
+                            } else if guideMiniFailed {
+                                Label("Preview unavailable", systemImage: "exclamationmark.triangle")
+                                    .font(.caption)
+                                    .foregroundStyle(.white)
+                            } else {
+                                ProgressView()
+                            }
+                        }
+                        .frame(height: mode == .large ? 210 : 124)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    } else {
+                        HStack(spacing: 12) {
+                            if let image = media.posterURL {
+                                AsyncImage(url: image) { image in
+                                    image.resizable().scaledToFit()
+                                } placeholder: {
+                                    Image(systemName: "tv")
+                                }
+                                .frame(width: 52, height: 52)
+                            } else {
+                                Image(systemName: "tv").font(.title)
+                            }
+                            Text(media.title)
+                                .font(.headline)
+                                .lineLimit(2)
+                            Spacer()
+                        }
+                        .padding(12)
+                        .background(.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+                .onChange(of: media.id) { _, _ in guideMiniFailed = false }
             }
         }
     #endif
@@ -405,6 +491,33 @@ struct LiveTVView: View {
                 seededScopeToken = catalogScope.token
                 return
             }
+        #elseif os(iOS)
+            if layoutMode == .guide,
+               let lastID = LiveChannelHistory.currentChannelId(),
+               let lastStream = try? modelContext.fetch(
+                   FetchDescriptor<LiveStream>(
+                       predicate: #Predicate { $0.id == lastID && $0.isHidden == false }
+                   )
+               ).first,
+               !restriction.hides(categoryID: lastStream.categoryId),
+               let lastMedia = PlayableMedia.from(
+                   stream: lastStream, ownedByOneOf: playlists,
+                   surfScope: LiveSurfScope(catalogScope)
+               ) {
+                // A recent channel may live in a different category. Only
+                // show a scope that is still visible and allowed.
+                if let categoryID = lastStream.categoryId,
+                   let match = sections.first(where: { section in
+                       if case let .category(category) = section {
+                           return category.id == categoryID
+                       }
+                       return false
+                   }) {
+                    selectedSection = match
+                }
+                guideMiniMedia = lastMedia
+                guideMiniFailed = false
+            }
         #endif
         if seededScopeToken != nil, seededScopeToken != catalogScope.token {
             selectedSection = sections.first
@@ -423,6 +536,27 @@ struct LiveTVView: View {
         return sections.contains { $0.id == selectedSection.id }
             ? selectedSection
             : sections.first
+    }
+
+    /// On iPhone, first selection tunes the guide's live preview. A second
+    /// selection of the same channel takes it full screen. Other platforms
+    /// keep their original selection flow.
+    private func handleGuideChannel(_ stream: LiveStream, scope: LiveChannelScope?) {
+        #if os(iOS)
+            guard let media = PlayableMedia.from(
+                stream: stream, ownedByOneOf: playlists,
+                scope: scope, surfScope: LiveSurfScope(catalogScope)
+            ) else { return }
+            if guideMiniMedia?.id == media.id {
+                present(media)
+            } else {
+                guideMiniFailed = false
+                guideMiniMedia = media
+                LiveChannelHistory.record(media)
+            }
+        #else
+            playChannel(stream, scope: scope)
+        #endif
     }
 
     /// `scope` is the section the channel was picked from; it travels with the
