@@ -10,7 +10,6 @@
 #if os(tvOS)
     import SwiftData
     import SwiftUI
-    import UIKit
 
     extension EPGGridScroller {
         /// The band above the time ruler. Never focusable and outside the
@@ -60,9 +59,15 @@
         private func settlePreview() async {
             // Do not retune merely because remote focus moved to another row.
             guard !isPreviewFrozen else { return }
-            let streamID = preview.controller?.preferredStreamID ?? previewTarget?.streamID ?? rows.first?.id
-            guard let streamID, previewTarget?.streamID != streamID else { return }
-            guard let rowIndex = rows.firstIndex(where: { $0.id == streamID }) else { return }
+            let preferred = preview.controller?.preferredStreamID
+            // A category change may not contain the previous channel. Use the
+            // first visible channel instead of leaving an empty mini-player.
+            let rowIndex = preferred.flatMap { id in rows.firstIndex(where: { $0.id == id }) }
+                ?? rows.firstIndex(where: { $0.id == previewTarget?.streamID })
+                ?? rows.indices.first
+            guard let rowIndex else { return }
+            let streamID = rows[rowIndex].id
+            guard previewTarget?.streamID != streamID else { return }
             let row = rows[rowIndex]
             previewTarget = EPGPreviewTarget(row: row, rowIndex: rowIndex, media: preview.media(row.stream))
             preview.hero?.settleGlow(onLogo: row.logoURL)
@@ -113,8 +118,6 @@
         let playlistIDs: [UUID]
         let onFailure: () -> Void
 
-        @State private var premium = PremiumManager.shared
-        @State private var autoplayAllowed = UIAccessibility.isVideoAutoplayEnabled
         /// Read here, never by the scroller, so changing it re-renders only
         /// the band; the grid below takes whatever height the band leaves.
         @AppStorage(PlayerSettings.tvGuidePreviewModeKey)
@@ -135,7 +138,8 @@
         }
 
         static func isAvailable(mode: GuidePreviewMode, isPremium: Bool, autoplayAllowed: Bool) -> Bool {
-            mode.playsVideo && isPremium && autoplayAllowed
+            // The DreamCAST guide is a live player, not a muted, gated teaser.
+            mode.playsVideo
         }
 
         var body: some View {
@@ -146,7 +150,7 @@
                 // view, so the settle task above keeps running.
                 if !mode.showsHero {
                     Color.clear.frame(height: 0)
-                } else if GuidePreviewPolicy.autoplayStreamsInGuide && Self.isAvailable(mode: mode, isPremium: premium.isPremium, autoplayAllowed: autoplayAllowed) {
+                } else if GuidePreviewPolicy.autoplayStreamsInGuide && mode.playsVideo {
                     EPGPreviewBandContent(
                         target: target,
                         settledRow: settledRow,
@@ -172,9 +176,6 @@
             }
             .environment(\.epgHeroLayout, EPGHeroLayout(mode))
             .allowsHitTesting(false)
-            .onReceive(NotificationCenter.default.publisher(for: UIAccessibility.videoAutoplayStatusDidChangeNotification)) { _ in
-                autoplayAllowed = UIAccessibility.isVideoAutoplayEnabled
-            }
         }
     }
 
