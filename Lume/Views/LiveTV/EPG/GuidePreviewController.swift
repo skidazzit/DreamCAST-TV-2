@@ -60,7 +60,8 @@ final class GuidePreviewController {
 
     func fullScreenDidClose() {
         let lastChannelID = LiveChannelHistory.currentChannelId()
-        preferredStreamID = lastChannelID ?? preferredStreamID
+        // Keep the guide pointing at the adopted stream, even if history has
+        // not flushed the newest channel yet.
         // The history store is not a playback truth source: a save can lag
         // behind dismissal. The full-screen player marks its handle released
         // if the viewer changes channels, so a still-owned session is safe.
@@ -69,11 +70,13 @@ final class GuidePreviewController {
             _ = handle.returnToPreview(mediaID: mediaID)
         }
         if handle.finishReturnToPreview() {
+            preferredStreamID = handle.media?.id ?? preferredStreamID
             // Reclaim the running stream only after full screen has closed.
             isFullScreenUp = false
             isCoolingDown = false
             handoffRevision += 1
         } else {
+            preferredStreamID = lastChannelID ?? preferredStreamID
             Logger.player.warning(
                 "Guide handoff failed: owner=\(String(describing: self.handle.owner), privacy: .public) hasStarted=\(self.handle.hasStarted) hasCoordinator=\(self.handle.coordinator != nil) historyMatch=\(self.handle.media?.id == lastChannelID)"
             )
