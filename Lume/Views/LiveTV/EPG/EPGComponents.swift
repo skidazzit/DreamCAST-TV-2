@@ -98,7 +98,12 @@ enum TVGuideDesign: String, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .classic: "Lume Classic"
+        case .classic:
+            #if os(iOS)
+                "Classic"
+            #else
+                "Lume Classic"
+            #endif
         case .dreamcast: "DreamCAST"
         }
     }
