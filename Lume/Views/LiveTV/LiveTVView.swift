@@ -78,6 +78,7 @@ struct LiveTVView: View {
         /// silently reset the channel that is already playing.
         @State private var guideMiniMedia: PlayableMedia?
         @State private var guideMiniFailed = false
+        @State private var guideMiniHandle = PreviewPlayerHandle()
         @AppStorage(PlayerSettings.tvGuidePreviewModeKey)
         private var guideMiniModeRaw = PlayerSettings.tvGuidePreviewModeDefault.rawValue
     #endif
@@ -205,12 +206,22 @@ struct LiveTVView: View {
                     // UIKit has removed the full-screen video host. The guide
                     // can now reclaim its live player without a new request.
                     guidePreview.fullScreenDidClose()
+                #elseif os(iOS)
+                    // Reparent the decoder only once the full-screen UIKit view
+                    // has gone. This is the same two-step handoff as Apple TV.
+                    if guideMiniHandle.owner == .fullScreen,
+                       let id = guideMiniHandle.media?.id {
+                        _ = guideMiniHandle.returnToPreview(mediaID: id)
+                    }
+                    if !guideMiniHandle.finishReturnToPreview() {
+                        guideMiniHandle.release()
+                    }
                 #endif
             }) { media in
                 #if os(tvOS)
                     FullScreenPlayerView(media: media, adopting: guidePreview.handle)
                 #else
-                    FullScreenPlayerView(media: media)
+                    FullScreenPlayerView(media: media, adopting: guideMiniHandle)
                 #endif
             }
             #endif
@@ -302,6 +313,11 @@ struct LiveTVView: View {
                             .lineLimit(1)
                         Spacer(minLength: 4)
                         Button {
+                            if guideMiniHandle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) {
+                                guideMiniHandle.handOffToFullScreen()
+                            } else {
+                                guideMiniHandle.stopPreview()
+                            }
                             present(media)
                         } label: {
                             Label("Full Screen", systemImage: "arrow.up.left.and.arrow.down.right")
@@ -317,7 +333,7 @@ struct LiveTVView: View {
                                 MultiViewTilePlayer(
                                     media: media,
                                     isMuted: false,
-                                    role: .guidePreview(handle: nil),
+                                    role: .guidePreview(handle: guideMiniHandle),
                                     onFailure: {
                                         // An old player must not mark a newly selected channel failed.
                                         guard guideMiniMedia?.id == media.id else { return }
@@ -556,8 +572,16 @@ struct LiveTVView: View {
                 return
             }
             if guideMiniMedia?.id == media.id {
+                // Reuse the running decoder only when it has started and is
+                // compatible with full screen. Unsupported players fall back.
+                if guideMiniHandle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) {
+                    guideMiniHandle.handOffToFullScreen()
+                } else {
+                    guideMiniHandle.stopPreview()
+                }
                 present(media)
             } else {
+                guideMiniHandle.stopPreview()
                 guideMiniFailed = false
                 guideMiniMedia = media
                 LiveChannelHistory.record(media)
