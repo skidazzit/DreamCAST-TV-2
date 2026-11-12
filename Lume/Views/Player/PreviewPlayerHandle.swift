@@ -144,6 +144,7 @@ final class PreviewPlayerHandle {
     func returnToPreview(mediaID: String) -> Bool {
         guard owner == .fullScreen, media?.id == mediaID, coordinator != nil, hasStarted else { return false }
         owner = .preview
+        coordinator?.avCoordinator?.isEmbedded = true
         coordinator?.setMuted(false)
         return true
     }
