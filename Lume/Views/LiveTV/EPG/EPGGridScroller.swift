@@ -73,6 +73,8 @@ struct EPGGridScroller: View {
         @FocusState private var surfaceClaimsFocus: Bool
         /// The channel the preview settled on after focus rested on it.
         @State var previewTarget: EPGPreviewTarget?
+        /// A press tunes the mini-player; pressing the same row again goes full-screen.
+        @State private var selectedMiniPlayerStreamID: String?
         /// Channels whose preview failed this visit; never retried.
         @State var previewFailedStreamIDs: Set<String> = []
     #endif
@@ -519,12 +521,34 @@ struct EPGGridScroller: View {
         private func activateVirtualFocus() {
             switch virtualFocus {
             case let .channel(rowIndex) where rows.indices.contains(rowIndex):
-                onPlay(rows[rowIndex].stream)
+                selectGuideChannel(rowIndex: rowIndex)
             case let .cell(rowIndex, cellID) where rows.indices.contains(rowIndex):
                 guard let cell = rows[rowIndex].cells.first(where: { $0.id == cellID }) else { return }
-                playCell(rows[rowIndex], cell)
+                if !cell.isGap, cell.isPast(at: now),
+                   PlayableMedia.isCatchupAvailable(stream: rows[rowIndex].stream, start: cell.start, now: now) {
+                    onPlayCatchup(rows[rowIndex].stream, cell)
+                } else {
+                    selectGuideChannel(rowIndex: rowIndex)
+                }
             default:
                 break
+            }
+        }
+
+        /// First Select plays in the mini-player; second Select opens full-screen.
+        private func selectGuideChannel(rowIndex: Int) {
+            guard rows.indices.contains(rowIndex) else { return }
+            let row = rows[rowIndex]
+            if selectedMiniPlayerStreamID == row.id, previewTarget?.streamID == row.id {
+                onPlay(row.stream)
+                return
+            }
+            selectedMiniPlayerStreamID = row.id
+            preview.controller?.preferredStreamID = row.id
+            previewTarget = EPGPreviewTarget(row: row, rowIndex: rowIndex, media: preview.media(row.stream))
+            preview.hero?.settleGlow(onLogo: row.logoURL)
+            if let media = preview.media(row.stream) {
+                LiveChannelHistory.record(media)
             }
         }
 
