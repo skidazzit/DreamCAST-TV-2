@@ -526,7 +526,7 @@ struct FullScreenPlayerView: View {
     }
 
     func returnAdoptedLiveToGuide() {
-        #if os(tvOS)
+        #if os(tvOS) || os(iOS)
             guard activeMedia.isLive, let adoption, adoption.mediaID == activeMedia.id,
                   adoption.engineAttempt == engineAttempt, adoption.coordinator.engine == engine else { return }
             _ = adoption.handle.returnToPreview(mediaID: activeMedia.id)
