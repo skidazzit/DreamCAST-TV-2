@@ -26,7 +26,7 @@ extension KSPlayerEngineView {
                     coordinator: coordinator,
                     url: media.url,
                     options: options,
-                    mode: .adopted,
+                    mode: .adopted(returnHandle),
                     onStateChanged: onStateChanged,
                     onPlay: onPlay
                 )
