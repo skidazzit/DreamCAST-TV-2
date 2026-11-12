@@ -24,6 +24,8 @@
         /// SettingsView's paywall, so the pane never stacks a second one.
         let presentPaywall: (PremiumFeature) -> Void
 
+        @AppStorage(LiveTVEngineSelection.storageKey)
+        private var liveEngineRaw = LiveTVEngineSelection.automatic.rawValue
         @AppStorage(LiveTVLayoutMode.storageKey)
         private var layoutModeRaw = LiveTVLayoutMode.defaultMode.rawValue
         @AppStorage(TVGuideDesign.storageKey)
@@ -47,7 +49,7 @@
         @FocusState private var focus: Row?
 
         private enum Row: Hashable {
-            case layout, guideDesign, columnWidth, rowHeight, guidePreview, favorites, recentlyWatched, recordingServer, recordings, rail
+            case layout, guideDesign, columnWidth, rowHeight, guidePreview, playbackEngine, favorites, recentlyWatched, recordingServer, recordings, rail
         }
 
         private var access: RecordingSettingsAccess {
@@ -61,6 +63,7 @@
         var body: some View {
             VStack(alignment: .leading, spacing: 28) {
                 layoutSection
+                playbackSection
                 categoriesSection
                 recordingSection
             }
@@ -121,13 +124,34 @@
                 TVOptionCycleRow(
                     title: "Guide Mini-player Size",
                     valueLabel: GuidePreviewMode(storedValue: guidePreviewModeRaw).displayName,
-                    showsPremiumBadge: !premium.isPremium
+                    showsPremiumBadge: false
                 ) {
                     guidePreviewModeRaw = PlayerOptionCycle.next(guidePreviewModeRaw, in: GuidePreviewMode.self)
                 }
                 .focused($focus, equals: .guidePreview)
 
-                footer("The guide displays channel details without auto-playing streams. Select a channel to start playback. Off hides the preview area.")
+                footer("Small and Large play the selected live channel with audio. Info Only shows its details; Off hides the preview area.")
+            }
+        }
+
+        // MARK: - Playback
+
+        private var playbackSection: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                TVSettingsSectionLabel("Playback")
+
+                TVOptionCycleRow(
+                    title: "Live TV Playback Engine",
+                    valueLabel: LiveTVEngineSelection.selected(liveEngineRaw).displayName
+                ) {
+                    let choices = LiveTVEngineSelection.available
+                    let current = LiveTVEngineSelection.selected(liveEngineRaw)
+                    let next = (choices.firstIndex(of: current).map { ($0 + 1) % choices.count }) ?? 0
+                    liveEngineRaw = choices[next].rawValue
+                }
+                .focused($focus, equals: .playbackEngine)
+
+                footer("Choose Automatic or a player for Live TV and the guide mini-player. If the chosen player fails, the next available player is tried. This does not change Movies or Series. Reopen Live TV to apply changes.")
             }
         }
 
