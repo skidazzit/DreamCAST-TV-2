@@ -3,9 +3,8 @@
 //  Lume
 //
 //  Wires the tvOS Guide's now-playing hero (`EPGPreviewPane`) into the
-//  scroller: the Guide opens on its first channel, focus has to rest on
-//  another channel before the preview switches to it, and the last channel
-//  keeps playing while focus is on the rail or the tab bar.
+//  scroller: the Guide starts on the last watched channel when available.
+//  Moving focus never changes playback; Select tunes the mini-player.
 //
 
 #if os(tvOS)
@@ -30,7 +29,7 @@
                 onFailure: { [streamID = previewTarget?.streamID] in markPreviewFailed(streamID) }
             )
             .equatable()
-            .task(id: PreviewSettleKey(streamID: previewFocusedStreamID, isFrozen: isPreviewFrozen)) {
+            .task(id: PreviewSettleKey(streamID: preview.controller?.preferredStreamID, isFrozen: isPreviewFrozen)) {
                 await settlePreview()
             }
             .onChange(of: HeroFocusKey(streamID: previewFocusedStreamID, dataVersion: dataVersion), initial: true) {
@@ -59,24 +58,10 @@
         }
 
         private func settlePreview() async {
-            // Settles whether or not the preview may play: the hero describes
-            // the settled channel and shows its logo when the video can't run.
+            // Do not retune merely because remote focus moved to another row.
             guard !isPreviewFrozen else { return }
-            let streamID: String
-            switch GuidePreviewPolicy.step(
-                focused: previewFocusedStreamID,
-                current: previewTarget?.streamID,
-                first: rows.first?.id
-            ) {
-            case .keep:
-                return
-            case let .start(id):
-                streamID = id
-            case let .settle(id):
-                try? await Task.sleep(for: GuidePreviewPolicy.settleDuration)
-                guard !Task.isCancelled else { return }
-                streamID = id
-            }
+            let streamID = preview.controller?.preferredStreamID ?? previewTarget?.streamID ?? rows.first?.id
+            guard let streamID, previewTarget?.streamID != streamID else { return }
             guard let rowIndex = rows.firstIndex(where: { $0.id == streamID }) else { return }
             let row = rows[rowIndex]
             previewTarget = EPGPreviewTarget(row: row, rowIndex: rowIndex, media: preview.media(row.stream))
