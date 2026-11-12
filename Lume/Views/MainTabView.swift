@@ -136,9 +136,17 @@ struct MainTabView: View {
             // Combined set) without it, would leave the selection pointing at
             // nothing.
             .onChange(of: PlaylistTab.encode(tabs), initial: true) {
-                if !showsTab(router.selectedTab) {
-                    router.selectedTab = .home
-                }
+                #if os(tvOS)
+                    // Home is removed from the Apple TV tab bar.
+                    if !isVisibleTVTab(router.selectedTab, tabs: tabs) {
+                        router.selectedTab = [AppTab.liveTV, .movies, .series, .sports, .search, .settings]
+                            .first { isVisibleTVTab($0, tabs: tabs) } ?? .settings
+                    }
+                #else
+                    if !showsTab(router.selectedTab) {
+                        router.selectedTab = .home
+                    }
+                #endif
             }
         #if os(iOS)
             .tabBarMinimizeOnScrollDownIfAvailable()
@@ -230,18 +238,24 @@ struct MainTabView: View {
             .animation(.easeInOut(duration: 0.2), value: router.isQuickSwitchPresented)
         }
 
+        /// Checks tab visibility for Apple TV's compact top bar.
+        private func isVisibleTVTab(_ tab: AppTab, tabs: Set<PlaylistTab>) -> Bool {
+            switch tab {
+            case .home: false
+            case .liveTV, .movies, .series: tabs.showsTab(tab)
+            case .sports: sportsTabEnabled
+            case .search, .settings: true
+            }
+        }
+
         private func tabView(selection: Binding<AppTab>, tabs: Set<PlaylistTab>) -> some View {
             TabView(selection: selection) {
-                Tab(value: AppTab.search) {
-                    activeOnly(.search, selection: selection.wrappedValue) { SearchView() }
-                } label: {
-                    Image(systemName: "magnifyingglass")
-                }
-
-                Tab(value: AppTab.home) {
-                    activeOnly(.home, selection: selection.wrappedValue) { HomeView() }
-                } label: {
-                    Text("Home")
+                if tabs.showsTab(.liveTV) {
+                    Tab(value: AppTab.liveTV) {
+                        activeOnly(.liveTV, selection: selection.wrappedValue) { LiveTVView() }
+                    } label: {
+                        Text("Live TV")
+                    }
                 }
 
                 if tabs.showsTab(.movies) {
@@ -260,20 +274,18 @@ struct MainTabView: View {
                     }
                 }
 
-                if tabs.showsTab(.liveTV) {
-                    Tab(value: AppTab.liveTV) {
-                        activeOnly(.liveTV, selection: selection.wrappedValue) { LiveTVView() }
-                    } label: {
-                        Text("Live TV")
-                    }
-                }
-
                 if sportsTabEnabled {
                     Tab(value: AppTab.sports) {
                         activeOnly(.sports, selection: selection.wrappedValue) { SportFrameHome() }
                     } label: {
                         Text("Sports")
                     }
+                }
+
+                Tab(value: AppTab.search) {
+                    activeOnly(.search, selection: selection.wrappedValue) { SearchView() }
+                } label: {
+                    Image(systemName: "magnifyingglass")
                 }
 
                 Tab(value: AppTab.settings) {
