@@ -24,7 +24,7 @@
             /// Full screen's surface for an adopted session: follows URL changes
             /// (in-player channel surfing) the way `KSVideoPlayer` does, and
             /// resets the player when dismantled.
-            case adopted
+            case adopted(PreviewPlayerHandle?)
 
             var resetsOnDismantle: Bool {
                 if case .adopted = self { true } else { false }
@@ -34,10 +34,12 @@
         final class Host {
             let player: KSVideoPlayer.Coordinator
             let resetsOnDismantle: Bool
+            let returnHandle: PreviewPlayerHandle?
 
-            init(player: KSVideoPlayer.Coordinator, resetsOnDismantle: Bool) {
+            init(player: KSVideoPlayer.Coordinator, resetsOnDismantle: Bool, returnHandle: PreviewPlayerHandle?) {
                 self.player = player
                 self.resetsOnDismantle = resetsOnDismantle
+                self.returnHandle = returnHandle
             }
         }
 
@@ -49,7 +51,9 @@
         var onPlay: ((TimeInterval, TimeInterval) -> Void)?
 
         func makeCoordinator() -> Host {
-            Host(player: coordinator, resetsOnDismantle: mode.resetsOnDismantle)
+            let returnHandle: PreviewPlayerHandle?
+            if case let .adopted(handle) = mode { returnHandle = handle } else { returnHandle = nil }
+            return Host(player: coordinator, resetsOnDismantle: mode.resetsOnDismantle, returnHandle: returnHandle)
         }
 
         func makeUIView(context _: Context) -> UIView {
@@ -79,7 +83,7 @@
         }
 
         static func dismantleUIView(_: UIView, coordinator host: Host) {
-            if host.resetsOnDismantle {
+            if host.resetsOnDismantle, host.returnHandle?.owner != .preview {
                 host.player.resetPlayer()
             }
         }
