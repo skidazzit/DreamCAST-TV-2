@@ -94,6 +94,8 @@
         let isFailed: Bool
         /// Bumped to reopen a fresh stream on the same channel.
         let restartToken: Int
+        /// Re-renders the existing surface after a full-screen handoff.
+        let handoffRevision: Int
         let handle: PreviewPlayerHandle?
         let onFailure: () -> Void
 
@@ -111,6 +113,7 @@
             isAllowed: Bool,
             isFailed: Bool = false,
             restartToken: Int,
+            handoffRevision: Int = 0,
             handle: PreviewPlayerHandle?,
             onFailure: @escaping () -> Void
         ) {
@@ -120,6 +123,7 @@
             self.isAllowed = isAllowed
             self.isFailed = isFailed
             self.restartToken = restartToken
+            self.handoffRevision = handoffRevision
             self.handle = handle
             self.onFailure = onFailure
         }
@@ -131,6 +135,7 @@
                 && lhs.isAllowed == rhs.isAllowed
                 && lhs.isFailed == rhs.isFailed
                 && lhs.restartToken == rhs.restartToken
+                && lhs.handoffRevision == rhs.handoffRevision
                 && lhs.handle === rhs.handle
         }
 
