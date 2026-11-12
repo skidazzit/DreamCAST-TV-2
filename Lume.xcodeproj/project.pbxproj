@@ -10,7 +10,6 @@
 		C66C81672FC5A59D0048468D /* KSPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = C66C81682FC5A59D0048468D /* KSPlayer */; };
 		C6AA10012FDD00010000AA01 /* LumeEngine in Frameworks */ = {isa = PBXBuildFile; productRef = C6AA10022FDD00010000AA02 /* LumeEngine */; };
 		C6AA10042FDD00010000AA04 /* LumeEngine in Embed Frameworks */ = {isa = PBXBuildFile; productRef = C6AA10022FDD00010000AA02 /* LumeEngine */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		C6AA310B2FDD00020000AB0B /* LumeWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C6AA31012FDD00020000AB01 /* LumeWidgets.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C6BB20012FDE00030000BB01 /* LumeRecorderKit in Frameworks */ = {isa = PBXBuildFile; productRef = C6BB20022FDE00030000BB02 /* LumeRecorderKit */; };
 		C6BD5701000000000000F003 /* LumeTopShelf.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C6BD5701000000000000A002 /* LumeTopShelf.appex */; platformFilters = (tvos, ); settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C6CC30012FDF00040000CC01 /* LumeCloudKit in Frameworks */ = {isa = PBXBuildFile; productRef = C6CC30022FDF00040000CC02 /* LumeCloudKit */; };
@@ -34,13 +33,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = C67C02BF2F880F2200842DBA;
 			remoteInfo = Lume;
-		};
-		C6AA310D2FDD00020000AB0D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C67C02B82F880F2200842DBA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = C6AA31032FDD00020000AB03;
-			remoteInfo = LumeWidgets;
 		};
 		C6BD5701000000000000F005 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -634,12 +626,6 @@
 			isa = PBXTargetDependency;
 			target = C67C02BF2F880F2200842DBA /* Lume */;
 			targetProxy = C67C02DC2F880F2400842DBA /* PBXContainerItemProxy */;
-		};
-		C6AA310E2FDD00020000AB0E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			platformFilter = ios;
-			target = C6AA31032FDD00020000AB03 /* LumeWidgets */;
-			targetProxy = C6AA310D2FDD00020000AB0D /* PBXContainerItemProxy */;
 		};
 		C6BD5701000000000000F007 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1235,8 +1221,9 @@
 		C6AA310A2FDD00020000AB0A /* Sideload */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = LumeWidgets/LumeWidgets.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Lume/Lume-FreeTesting.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = NO;
 				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1250,7 +1237,7 @@
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.LumeWidgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
+				REGISTER_APP_GROUPS = NO;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
