@@ -270,8 +270,13 @@ struct LumeApp: App {
     /// A fresh install asks how to sync before anything else. Automated runs
     /// skip the question unless a UI test asks for it with `-sync-setup`.
     private static var backendChoiceOffer: CloudSyncCoordinator.BackendChoiceOffer {
+        #if os(iOS)
+            // Never show the upstream cloud setup screen in DreamCAST iOS.
+            return .never
+        #else
         if CommandLine.arguments.contains("-sync-setup") { return .always }
         return isTestOrPreviewHost ? .never : .freshInstall
+        #endif
     }
 
     private static var cloudKitDatabase: ModelConfiguration.CloudKitDatabase {
