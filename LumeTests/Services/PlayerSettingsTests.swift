@@ -3,6 +3,28 @@ import Foundation
 import Testing
 
 struct PlayerSettingsTests {
+    @Test func `live TV engine defaults to automatic and handles unknown values`() {
+        #expect(LiveTVEngineSelection.selected("automatic") == .automatic)
+        #expect(LiveTVEngineSelection.selected("unknown") == .automatic)
+        #expect(LiveTVEngineSelection.selected("ksPlayer") == .ksPlayer)
+        #expect(LiveTVEngineSelection.available.contains(.automatic))
+    }
+
+    @Test func `live TV engine choice comes first while retaining fallbacks`() throws {
+        let suite = "DreamCAST-LiveEngine-\(UUID().uuidString)"
+        defer { UserDefaults.standard.removePersistentDomain(forName: suite) }
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defaults.set("avPlayer,ksPlayer,vlcKit,lumeEngine,aetherEngine", forKey: PlayerSettings.enginePriorityKey)
+        let automatic = LiveTVEngineSelection.priority(defaults: defaults)
+        #expect(automatic.first == .avPlayer)
+        defaults.set("ksPlayer", forKey: LiveTVEngineSelection.storageKey)
+        let preferred = LiveTVEngineSelection.priority(defaults: defaults)
+        #expect(preferred.first == .ksPlayer)
+        #expect(preferred.count == automatic.count)
+        #expect(Set(preferred) == Set(automatic))
+        #expect(preferred.dropFirst().first == .avPlayer)
+    }
+
     @Test func `engine kind all cases`() {
         #expect(PlayerEngineKind.allCases.count == 5)
         #expect(PlayerEngineKind.lumeEngine.rawValue == "lumeEngine")
