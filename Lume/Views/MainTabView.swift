@@ -142,6 +142,13 @@ struct MainTabView: View {
                         router.selectedTab = [AppTab.liveTV, .movies, .series, .sports, .search, .settings]
                             .first { isVisibleTVTab($0, tabs: tabs) } ?? .settings
                     }
+                #elseif os(iOS)
+                    // The iPhone app starts on Live TV, with Home removed.
+                    if router.selectedTab == .home || !showsTab(router.selectedTab)
+                        || (router.selectedTab == .sports && !sportsTabEnabled) {
+                        router.selectedTab = [AppTab.liveTV, .movies, .series]
+                            .first(where: { showsTab($0) }) ?? .search
+                    }
                 #else
                     if !showsTab(router.selectedTab) {
                         router.selectedTab = .home
@@ -334,6 +341,42 @@ struct MainTabView: View {
                 content()
             } else {
                 Color.clear
+            }
+        }
+    #elseif os(iOS)
+        /// Phone-first navigation. TV code above remains unchanged; macOS and
+        /// visionOS retain the original tab layout below.
+        private func tabView(selection: Binding<AppTab>, tabs: Set<PlaylistTab>) -> some View {
+            TabView(selection: selection) {
+                if tabs.showsTab(.liveTV) {
+                    Tab("Live TV", systemImage: "antenna.radiowaves.left.and.right", value: AppTab.liveTV) {
+                        IdleUnmountingTab(isSelected: selection.wrappedValue == .liveTV) { LiveTVView() }
+                    }
+                }
+
+                if tabs.showsTab(.movies) {
+                    Tab("Movies", systemImage: "film", value: AppTab.movies) {
+                        IdleUnmountingTab(isSelected: selection.wrappedValue == .movies) { MoviesView() }
+                    }
+                }
+
+                if tabs.showsTab(.series) {
+                    Tab("Shows", systemImage: "tv", value: AppTab.series) {
+                        IdleUnmountingTab(isSelected: selection.wrappedValue == .series) { SeriesView() }
+                    }
+                }
+
+                if sportsTabEnabled {
+                    Tab("Sports", systemImage: "sportscourt", value: AppTab.sports) {
+                        IdleUnmountingTab(isSelected: selection.wrappedValue == .sports) { SportsHubView() }
+                    }
+                }
+
+                Tab(value: AppTab.search, role: .search) {
+                    SearchView().castMiniControllerInset()
+                } label: {
+                    Label("Search", systemImage: "magnifyingglass")
+                }
             }
         }
     #else
