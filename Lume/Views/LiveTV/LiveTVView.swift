@@ -363,6 +363,25 @@ struct LiveTVView: View {
     /// Anything narrower (a category hidden in Content Management, the last
     /// favorite removed) is left to `displayedSection(in:)`, as before.
     private func seedSelection(from sections: [LiveTVSection]) {
+        #if os(tvOS)
+            // Restore the last live channel and its real category on entering
+            // Live TV. Never jump into a hidden or locked section.
+            if layoutMode == .guide,
+               let lastID = LiveChannelHistory.currentChannelId(),
+               let lastStream = try? modelContext.fetch(
+                   FetchDescriptor<LiveStream>(predicate: #Predicate { $0.id == lastID && $0.isHidden == false })
+               ).first,
+               let lastCategoryID = lastStream.categoryId,
+               let matchingSection = sections.first(where: { section in
+                   if case let .category(category) = section { return category.id == lastCategoryID }
+                   return false
+               }) {
+                selectedSection = matchingSection
+                guidePreview.preferredStreamID = lastID
+                seededScopeToken = catalogScope.token
+                return
+            }
+        #endif
         if seededScopeToken != nil, seededScopeToken != catalogScope.token {
             selectedSection = sections.first
         } else if selectedSection == nil {
