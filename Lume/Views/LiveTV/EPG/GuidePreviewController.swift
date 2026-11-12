@@ -59,8 +59,8 @@ final class GuidePreviewController {
 
     func fullScreenDidClose() {
         preferredStreamID = LiveChannelHistory.currentChannelId() ?? preferredStreamID
-        if handle.owner == .preview, handle.coordinator != nil {
-            // An adopted session came back alive. Never cool down or restart it.
+        if handle.finishReturnToPreview() {
+            // Reclaim the running stream only after full screen has closed.
             isFullScreenUp = false
             isCoolingDown = false
             handoffRevision += 1
