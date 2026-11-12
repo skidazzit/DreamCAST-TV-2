@@ -12,9 +12,9 @@ import SwiftUI
 struct PremiumBadge: View {
     var body: some View {
         Image(systemName: "crown.fill")
-            .font(Self.font)
+            .font(Self.badgeFont)
             .foregroundStyle(Self.style)
-            .accessibilityLabel(DreamCASTBrand.proTitle)
+            .accessibilityLabel(Text(DreamCASTBrand.proTitle))
     }
 
     /// The accent elsewhere. tvOS takes the row's own foreground instead: the
@@ -28,7 +28,7 @@ struct PremiumBadge: View {
         #endif
     }
 
-    private static var font: Font {
+    private static var badgeFont: Font {
         #if os(tvOS)
             .system(size: 20)
         #else
