@@ -225,28 +225,45 @@ struct EPGMetrics {
                 cornerFont: .caption
             )
         #elseif os(iOS)
-            // Phone guide: narrow channel rail, readable show blocks and
-            // shorter rows so both the station and timeline fit in portrait.
-            EPGMetrics(
-                pointsPerMinute: 2.8,
-                rowHeight: 56,
-                rowSpacing: 4,
-                channelColumnWidth: 116,
-                headerHeight: 30,
-                blockCornerRadius: 8,
+            // Honor the Apple TV presets, scaled to actual phone touch sizes.
+            // No 10-foot point sizes leak into an iPhone portrait guide.
+            let defaults = UserDefaults.standard
+            let design = TVGuideDesign(storedValue:
+                defaults.string(forKey: TVGuideDesign.storageKey) ?? "classic")
+            let columnPreset = TVGuideColumnWidth(storedValue:
+                defaults.string(forKey: TVGuideColumnWidth.storageKey) ?? "medium")
+            let heightPreset = TVGuideRowHeight(storedValue:
+                defaults.string(forKey: TVGuideRowHeight.storageKey) ?? "normal")
+            let rowHeight: CGFloat = switch heightPreset {
+                case .compact: 48
+                case .normal: 56
+                case .large: 68
+            }
+            let columnWidth: CGFloat = switch columnPreset {
+                case .compact: 100
+                case .medium: 116
+                case .wide: 140
+            }
+            return EPGMetrics(
+                pointsPerMinute: design == .dreamcast ? 3.0 : 2.8,
+                rowHeight: rowHeight,
+                rowSpacing: design == .dreamcast ? 3 : 4,
+                channelColumnWidth: columnWidth,
+                headerHeight: design == .dreamcast ? 34 : 30,
+                blockCornerRadius: design == .dreamcast ? 6 : 8,
                 blockInset: 8,
-                blockGap: 3,
+                blockGap: design == .dreamcast ? 2 : 3,
                 nowLeadInMinutes: 8,
                 channelColumnGap: 4,
-                focusedBlockHeight: 56,
+                focusedBlockHeight: rowHeight,
                 cardShadowRadius: 4,
                 cardShadowOpacity: 0.2,
                 progressBarHeight: 3,
-                channelCornerRadius: 8,
+                channelCornerRadius: design == .dreamcast ? 6 : 8,
                 channelCellSpacing: 6,
                 channelCellPadding: 6,
                 channelNameLineLimit: 2,
-                logoSide: 30,
+                logoSide: heightPreset == .large ? 36 : 30,
                 blockTitleFont: .system(size: 13, weight: .medium),
                 cardTitleFont: .subheadline.weight(.semibold),
                 blockTimeFont: .caption2,
