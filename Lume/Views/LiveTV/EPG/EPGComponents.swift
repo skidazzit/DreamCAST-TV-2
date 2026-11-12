@@ -224,6 +224,38 @@ struct EPGMetrics {
                 nowPillFont: .caption.weight(.bold),
                 cornerFont: .caption
             )
+        #elseif os(iOS)
+            // Phone guide: narrow channel rail, readable show blocks and
+            // shorter rows so both the station and timeline fit in portrait.
+            EPGMetrics(
+                pointsPerMinute: 2.8,
+                rowHeight: 56,
+                rowSpacing: 4,
+                channelColumnWidth: 116,
+                headerHeight: 30,
+                blockCornerRadius: 8,
+                blockInset: 8,
+                blockGap: 3,
+                nowLeadInMinutes: 8,
+                channelColumnGap: 4,
+                focusedBlockHeight: 56,
+                cardShadowRadius: 4,
+                cardShadowOpacity: 0.2,
+                progressBarHeight: 3,
+                channelCornerRadius: 8,
+                channelCellSpacing: 6,
+                channelCellPadding: 6,
+                channelNameLineLimit: 2,
+                logoSide: 30,
+                blockTitleFont: .system(size: 13, weight: .medium),
+                cardTitleFont: .subheadline.weight(.semibold),
+                blockTimeFont: .caption2,
+                channelNameFont: .system(size: 12, weight: .semibold),
+                catchupGlyphFont: .caption2.weight(.semibold),
+                rulerFont: .caption2,
+                nowPillFont: .caption2.weight(.bold),
+                cornerFont: .caption2
+            )
         #else
             EPGMetrics(
                 pointsPerMinute: 3.0,
