@@ -368,7 +368,7 @@ struct MainTabView: View {
 
                 if sportsTabEnabled {
                     Tab("Sports", systemImage: "sportscourt", value: AppTab.sports) {
-                        IdleUnmountingTab(isSelected: selection.wrappedValue == .sports) { SportsHubView() }
+                        IdleUnmountingTab(isSelected: selection.wrappedValue == .sports) { SportFrameMobile() }
                     }
                 }
 
