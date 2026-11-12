@@ -81,12 +81,9 @@ final class PremiumManager {
         hasReadEntitlements ? !purchasedProductIDs.isEmpty : lastKnownEntitled
     }
 
-    #if os(iOS)
-        /// DreamCAST TV iOS ships fully unlocked for personal device builds.
-        /// Keep the StoreKit model intact for other platforms.
-        var isPremium: Bool { true }
-
-    #elseif SIDE_LOAD
+    #if SIDE_LOAD
+        /// Sideload already unlocks all Pro features in DreamCAST iOS.
+        /// Preserve DEBUG StoreKit testing symbols for other build modes.
         /// Sideloaded / self-compiled builds unlock everything. No StoreKit, no
         /// paywall — this is the open-source promise.
         var isPremium: Bool {
