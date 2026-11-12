@@ -40,7 +40,13 @@
         /// mounted on its channel, whatever focus does underneath the cover.
         private var isPreviewFrozen: Bool {
             guard let controller = preview.controller else { return false }
-            return controller.isSuspended && controller.handle.owner == .fullScreen
+            // The handoff passes through .returning while the full-screen
+            // surface is dismissed. Keep the SAME tile mounted throughout:
+            // removing it here destroys its @StateObject KS coordinator and
+            // forces the new preview to reconnect after showing the logo.
+            return controller.isSuspended && (
+                controller.handle.owner == .fullScreen || controller.handle.owner == .returning
+            )
         }
 
         /// `nil` while real focus is outside the grid.
