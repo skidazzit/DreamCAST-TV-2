@@ -17,7 +17,11 @@ import SwiftUI
 @MainActor
 @Observable
 final class DeepLinkRouter {
-    var selectedTab: AppTab = .home
+    #if os(tvOS)
+        var selectedTab: AppTab = .liveTV
+    #else
+        var selectedTab: AppTab = .home
+    #endif
     var moviesPath = NavigationPath()
     var seriesPath = NavigationPath()
     var sportsPath = NavigationPath()
