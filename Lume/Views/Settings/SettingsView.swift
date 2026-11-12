@@ -220,6 +220,9 @@ struct SettingsView: View {
                             }
                         }
                     }
+                    #if os(iOS)
+                        DreamCASTBackupSettingsSection()
+                    #endif
                     HelpFeedbackSection()
                     AboutSection()
                 }
