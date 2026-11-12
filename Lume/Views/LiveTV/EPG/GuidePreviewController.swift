@@ -58,7 +58,14 @@ final class GuidePreviewController {
     }
 
     func fullScreenDidClose() {
-        preferredStreamID = LiveChannelHistory.currentChannelId() ?? preferredStreamID
+        let lastChannelID = LiveChannelHistory.currentChannelId()
+        preferredStreamID = lastChannelID ?? preferredStreamID
+        // A system dismissal may bypass the engine's close action. Return
+        // the original session only when it is still the viewed channel.
+        if handle.owner == .fullScreen, let mediaID = handle.media?.id,
+           mediaID == lastChannelID, handle.hasStarted {
+            _ = handle.returnToPreview(mediaID: mediaID)
+        }
         if handle.finishReturnToPreview() {
             // Reclaim the running stream only after full screen has closed.
             isFullScreenUp = false
@@ -116,10 +123,6 @@ final class GuidePreviewController {
 
         func body(content: Content) -> some View {
             content
-                .onChange(of: playingMedia == nil) { _, isDismissed in
-                    guard isDismissed else { return }
-                    controller.fullScreenDidClose()
-                }
                 .onChange(of: router.multiViewLaunch != nil, initial: true) { _, isUp in
                     controller.setMultiViewUp(isUp)
                 }
