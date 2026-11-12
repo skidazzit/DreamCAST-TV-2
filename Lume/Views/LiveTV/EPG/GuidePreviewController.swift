@@ -7,6 +7,7 @@
 //  change or a restart re-renders the band rather than Live TV and the grid.
 //
 
+import OSLog
 import SwiftUI
 
 @MainActor @Observable
@@ -72,6 +73,7 @@ final class GuidePreviewController {
             isCoolingDown = false
             handoffRevision += 1
         } else {
+            Logger.player.warning("Guide handoff: could not reuse live decoder; preview will restart")
             transition { isFullScreenUp = false }
             handle.release()
         }
