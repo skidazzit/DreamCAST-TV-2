@@ -94,11 +94,15 @@ struct EPGGrid: View, Equatable {
             }
         }
         .scrollPosition($position)
-        .onScrollGeometryChange(for: CGRect.self) { CGRect(origin: $0.contentOffset, size: $0.containerSize) } action: { _, new in
+        .onScrollGeometryChange(for: EPGMeasuredGeometry.self) {
+            // Round away tiny geometry jitter before SwiftUI compares values.
+            // Only meaningful changes reach the view update callback.
+            EPGMeasuredGeometry(offset: $0.contentOffset, size: $0.containerSize)
+        } action: { _, new in
             // This fires during SwiftUI's layout pass. Never write @State or
             // observed realization windows here: doing so causes a geometry
             // feedback loop and repeated updates in the same frame.
-            geometryDelivery.enqueue(new) { geometry in
+            geometryDelivery.enqueue(new.rect) { geometry in
                 applyMeasuredGeometry(geometry)
             }
         }
@@ -210,5 +214,26 @@ private final class EPGGeometryDelivery {
             self.latest = nil
             apply(latest)
         }
+    }
+}
+
+/// Quantized scroll geometry. Stable values suppress subpoint feedback cycles
+/// without changing where the programme grid actually scrolls.
+private struct EPGMeasuredGeometry: Equatable {
+    let offsetX: CGFloat
+    let offsetY: CGFloat
+    let width: CGFloat
+    let height: CGFloat
+
+    init(offset: CGPoint, size: CGSize) {
+        // Four-point position steps are below a guide cell's focus movement.
+        offsetX = (offset.x / 4).rounded() * 4
+        offsetY = (offset.y / 4).rounded() * 4
+        width = size.width.rounded()
+        height = size.height.rounded()
+    }
+
+    var rect: CGRect {
+        CGRect(x: offsetX, y: offsetY, width: width, height: height)
     }
 }
