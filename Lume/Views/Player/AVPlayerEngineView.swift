@@ -65,6 +65,8 @@ struct AVPlayerEngineView: View {
     /// Set when `coordinator` came from the tvOS Guide preview already playing
     /// `media`; cleared by the first stream it isn't already playing.
     @State var isAdoptedSession = false
+    var returnHandle: PreviewPlayerHandle?
+    var onReturnToGuide: (() -> Void)?
     @State private var isControlsVisible = true
     /// Set once the stream is given up on (initial-load failure with no fallback
     /// left). Swaps the player for the `PlayerErrorIndicator` (Try Again / Back).
@@ -191,7 +193,9 @@ struct AVPlayerEngineView: View {
         .onDisappear {
             hideTask?.cancel()
             NowPlayingService.shared.detachTransport(owner: coordinator)
-            coordinator.tearDown()
+            if returnHandle?.owner != .preview {
+                coordinator.tearDown()
+            }
         }
         .onChange(of: coordinator.isPlaying) { _, _ in
             resetHideTimer()
@@ -421,6 +425,7 @@ struct AVPlayerEngineView: View {
     }
 
     private func closePlayer() {
+        onReturnToGuide?()
         #if os(macOS)
             if let window = NSApp.keyWindow, window.styleMask.contains(.fullScreen) {
                 window.toggleFullScreen(nil)
