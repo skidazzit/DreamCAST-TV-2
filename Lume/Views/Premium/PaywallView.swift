@@ -112,11 +112,7 @@ struct PaywallView: View {
                 Image(systemName: "crown")
                     .font(.system(size: 44))
                     .foregroundStyle(.tint)
-                #if os(iOS)
-                    Text("Unlock DreamCAST TV Pro")
-                #else
-                    Text("Unlock Lume Pro")
-                #endif
+                Text("Unlock DreamCAST TV Pro")
                     .font(.title.bold())
                     .multilineTextAlignment(.center)
                 Text("DreamCAST TV is based on open-source software. Pro includes extra features.")
