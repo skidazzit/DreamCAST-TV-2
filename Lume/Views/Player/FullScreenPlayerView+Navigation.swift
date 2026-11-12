@@ -56,6 +56,12 @@ extension FullScreenPlayerView {
     /// (a use-after-free in KSPlayer's decode threads).
     func switchMedia(to newMedia: PlayableMedia) {
         guard newMedia.id != activeMedia.id else { return }
+        // This player has switched away from the channel held by the guide.
+        // Never return that stale coordinator to the mini-player on Back.
+        if adoption != nil {
+            adoption?.handle.release()
+            adoption = nil
+        }
         // Flush the outgoing stream's progress before the clock resets — capture
         // happens synchronously inside `persistProgressDetached`. A channel's
         // touch is held for the player's next flush rather than saved while the
