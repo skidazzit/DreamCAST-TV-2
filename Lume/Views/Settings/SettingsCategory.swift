@@ -24,7 +24,12 @@ enum SettingsCategory: String, CaseIterable, Identifiable {
 
     var title: LocalizedStringKey {
         switch self {
-        case .premium: "Lume Pro"
+        case .premium:
+            #if os(iOS)
+                "DreamCAST TV Pro"
+            #else
+                "Lume Pro"
+            #endif
         case .profiles: "Profiles"
         case .playlists: "Playlists"
         case .epg: "TV Guide"
