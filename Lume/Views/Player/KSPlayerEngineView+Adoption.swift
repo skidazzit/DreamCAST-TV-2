@@ -20,7 +20,7 @@ extension KSPlayerEngineView {
         onStateChanged: @escaping (KSPlayerLayer, KSPlayerState) -> Void,
         onPlay: @escaping (TimeInterval, TimeInterval) -> Void
     ) -> some View {
-        #if os(tvOS)
+        #if os(tvOS) || os(iOS)
             if isAdoptedSession {
                 KSHostedPlayerSurface(
                     coordinator: coordinator,
@@ -53,7 +53,7 @@ extension KSPlayerEngineView {
     /// from the layer's current state instead. Call after the startup watchdog
     /// is armed, so a session caught mid-rebuffer still has one.
     func seedAdoptedSessionState() {
-        #if os(tvOS)
+        #if os(tvOS) || os(iOS)
             guard isAdoptedSession else { return }
             // The preview held the TV's display mode back; full screen is
             // where the session matches it.
@@ -62,7 +62,9 @@ extension KSPlayerEngineView {
             let state = coordinator.state
             isPlaying = state == .bufferFinished
             updateLoadingState(state)
-            engine.syncState(state)
+            #if os(tvOS)
+                engine.syncState(state)
+            #endif
         #endif
     }
 }
