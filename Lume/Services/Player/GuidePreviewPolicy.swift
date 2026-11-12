@@ -10,9 +10,7 @@
 import Foundation
 
 /// How the tvOS Guide's now-playing hero appears above the timeline.
-/// `small` and `large` play the muted preview (Lume Pro); without Pro, or
-/// with the system's video autoplay off, they keep their size and show the
-/// channel's logo instead.
+/// Small and large play live video with audio; info-only shows the logo.
 nonisolated enum GuidePreviewMode: String, CaseIterable {
     /// The default: a short hero, leaving the guide two more rows.
     case small
@@ -48,9 +46,9 @@ nonisolated enum GuidePreviewMode: String, CaseIterable {
 }
 
 nonisolated enum GuidePreviewPolicy {
-    /// Never open an IPTV stream just by entering or browsing the Guide.
-    /// The selected channel starts only through the explicit Play action.
-    static let autoplayStreamsInGuide = false
+    /// Entering the Guide starts the last watched live channel in its mini-player.
+    /// Moving focus alone never retunes that live feed.
+    static let autoplayStreamsInGuide = true
 
     /// How long focus has to rest on a channel before its preview starts. Also
     /// gates the Stalker `create_link` resolve, so browsing never spends one.
