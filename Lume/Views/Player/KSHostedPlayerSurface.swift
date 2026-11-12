@@ -86,7 +86,8 @@
         }
 
         static func dismantleUIView(_: UIView, coordinator host: Host) {
-            if host.resetsOnDismantle, host.returnHandle?.owner != .preview {
+            if host.resetsOnDismantle,
+               host.returnHandle?.owner != .preview && host.returnHandle?.owner != .returning {
                 host.player.resetPlayer()
             }
         }
