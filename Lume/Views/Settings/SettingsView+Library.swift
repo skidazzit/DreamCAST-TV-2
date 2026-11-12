@@ -153,7 +153,9 @@ private func libraryTabsFooter(_ scope: CatalogScope, activePlaylist: Playlist?)
                             ))
                         }
                     }
+                    #if !os(iOS)
                     Toggle("Sports", isOn: $sportsTabEnabled)
+                    #endif
                 } header: {
                     Text("Tabs")
                 } footer: {
