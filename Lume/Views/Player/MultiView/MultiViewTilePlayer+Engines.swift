@@ -222,7 +222,7 @@ struct MultiViewAVTile: View {
     @StateObject private var coordinator = AVPlayerCoordinator(isEmbedded: true)
 
     var body: some View {
-        MultiViewAVSurface(coordinator: coordinator)
+        MultiViewAVSurface(coordinator: coordinator, handle: role.previewHandle)
             .onAppear {
                 if role.mixesWithOtherAudio {
                     MultiViewTileAudioSession.configureMixing()
@@ -452,6 +452,7 @@ enum MultiViewTileAudioSession {
 #else
     private struct MultiViewAVSurface: UIViewRepresentable {
         let coordinator: AVPlayerCoordinator
+        let handle: PreviewPlayerHandle?
 
         func makeUIView(context _: Context) -> MultiViewAVHostView {
             let view = MultiViewAVHostView()
@@ -460,7 +461,13 @@ enum MultiViewTileAudioSession {
             return view
         }
 
-        func updateUIView(_: MultiViewAVHostView, context _: Context) {}
+        func updateUIView(_ view: MultiViewAVHostView, context _: Context) {
+            // Returning from full-screen must reconnect the display layer,
+            // not the provider stream or the AVPlayer item.
+            if handle?.owner == .preview, view.playerLayer.player !== coordinator.player {
+                coordinator.attach(layer: view.playerLayer)
+            }
+        }
     }
 
     private final class MultiViewAVHostView: UIView {
