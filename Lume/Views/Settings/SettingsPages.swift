@@ -28,7 +28,7 @@
                     .pickerStyle(.inline)
                     .labelsHidden()
                 } footer: {
-                    Text("Follow the device appearance, or keep Lume always in Dark or Light Mode.")
+                    Text("Follow the device appearance, or keep DreamCAST TV always in Dark or Light Mode.")
                 }
             }
             .platformNavigationTitle("Appearance")
