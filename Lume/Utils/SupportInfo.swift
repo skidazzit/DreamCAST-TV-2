@@ -11,43 +11,46 @@
 import Foundation
 
 nonisolated enum SupportInfo {
-    static let website = "https://getlume.org"
-    static let email = "support@getlume.org"
-    static let discord = "https://discord.gg/DMnQfr69Ug"
+    static let website = "https://github.com/skidazzit/DreamCAST-TV-2"
+    static let issues = "https://github.com/skidazzit/DreamCAST-TV-2/issues"
+    static let email = "" // No DreamCAST TV support email is configured.
+    static let discord = "" // Do not route fork users to the upstream community.
 
     /// App Store listing, and the deep link that opens straight to the
     /// write-a-review composer (`?action=write-review`).
-    static let appStore = "https://apps.apple.com/app/id6779551584"
-    static let appStoreReview = "https://apps.apple.com/app/id6779551584?action=write-review"
+    static let appStore = "" // Original Lume App Store listing is not this fork.
+    static let appStoreReview = ""
 
     /// How to install and run a LumeRecorder server, linked from the Recording
     /// Server settings.
-    static let recorderGuide = "https://getlume.org/recorder"
+    static let recorderGuide = "https://github.com/bilipp/LumeRecorder"
 
     /// Scheme-stripped forms for compact on-screen display.
-    static let websiteDisplay = "GetLume.org"
-    static let discordDisplay = "discord.gg/DMnQfr69Ug"
-    static let appStoreDisplay = "App Store"
-    static let recorderGuideDisplay = "getlume.org/recorder"
+    static let websiteDisplay = "github.com/skidazzit/DreamCAST-TV-2"
+    static let discordDisplay = ""
+    static let appStoreDisplay = ""
+    static let recorderGuideDisplay = "Recorder setup guide"
 
     static var websiteURL: URL? {
         URL(string: website)
     }
+
+    static var issuesURL: URL? { URL(string: issues) }
 
     static var recorderGuideURL: URL? {
         URL(string: recorderGuide)
     }
 
     static var discordURL: URL? {
-        URL(string: discord)
+        discord.isEmpty ? nil : URL(string: discord)
     }
 
     static var emailURL: URL? {
-        URL(string: "mailto:\(email)")
+        email.isEmpty ? nil : URL(string: "mailto:\(email)")
     }
 
     static var appStoreReviewURL: URL? {
-        URL(string: appStoreReview)
+        appStoreReview.isEmpty ? nil : URL(string: appStoreReview)
     }
 
     /// Marketing version (`CFBundleShortVersionString`, e.g. "2.1.0"), sourced
