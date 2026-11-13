@@ -46,6 +46,11 @@ struct EPGGridScroller: View {
     private let now = Date()
 
     @State var sync = EPGScrollSync()
+    #if os(iOS)
+        /// The channel rail drives the SAME vertical position as the
+        /// programme grid, rather than scrolling a second, independent list.
+        @State private var channelDragStartY: CGFloat?
+    #endif
     @State private var selection: EPGSelection?
     @State private var scrollRequest: EPGScrollRequest?
     #if os(tvOS)
@@ -104,6 +109,33 @@ struct EPGGridScroller: View {
                     onSelectChannel: { onPlay($0.stream) },
                     onStartMultiView: { onStartMultiView($0.stream) }
                 )
+                #if os(iOS)
+                    .contentShape(Rectangle())
+                    // A drag on a channel name moves the same ScrollPosition
+                    // as a drag on programme cells. Keep button taps and
+                    // long-press menus working via simultaneous recognition.
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 10)
+                            .onChanged { value in
+                                let startY = channelDragStartY ?? sync.offset.y
+                                if channelDragStartY == nil {
+                                    channelDragStartY = startY
+                                }
+                                scrollGuideFromChannelRail(
+                                    startY: startY,
+                                    translationY: value.translation.height
+                                )
+                            }
+                            .onEnded { value in
+                                let startY = channelDragStartY ?? sync.offset.y
+                                channelDragStartY = nil
+                                scrollGuideFromChannelRail(
+                                    startY: startY,
+                                    translationY: value.translation.height
+                                )
+                            }
+                    )
+                #endif
 
                 grid
             }
@@ -194,6 +226,23 @@ struct EPGGridScroller: View {
             onPlay(row.stream)
         }
     }
+
+    #if os(iOS)
+        /// A vertical channel-rail drag routes through the grid's existing
+        /// scroll request. Its measured offset then updates both frozen panes.
+        /// Clamp at the last channel so the rail can't overscroll the grid.
+        private func scrollGuideFromChannelRail(startY: CGFloat, translationY: CGFloat) {
+            let contentHeight = metrics.contentHeight(rowCount: rows.count)
+            let lastY = max(0, contentHeight - sync.viewport.height)
+            let nextY = min(lastY, max(0, startY - translationY))
+            let point = CGPoint(x: sync.offset.x, y: nextY)
+            scrollRequest = EPGScrollRequest(
+                token: (scrollRequest?.token ?? 0) + 1,
+                point: point,
+                animated: false
+            )
+        }
+    #endif
 
     /// Scroll offset that parks `date` `metrics.nowLeadInMinutes` inside the
     /// grid's leading edge.
