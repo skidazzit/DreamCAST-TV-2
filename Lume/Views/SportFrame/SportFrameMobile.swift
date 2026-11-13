@@ -129,8 +129,7 @@ struct SportFrameMobile: View {
                 VStack(alignment: .leading, spacing: 20) {
                     header
                     switch page {
-                    case 1: channelsPage
-                    case 2: settingsPage
+                    case 1: settingsPage
                     default: matchesPage
                     }
                 }
@@ -177,8 +176,7 @@ struct SportFrameMobile: View {
         VStack(alignment: .leading, spacing: 14) {
             Picker("SportsZone section", selection: $page) {
                 Text("Sports").tag(0)
-                Text("Channels").tag(1)
-                Text("Settings").tag(2)
+                Text("Settings").tag(1)
             }
             .pickerStyle(.segmented)
             .accessibilityLabel("SportsZone section")
@@ -240,13 +238,26 @@ struct SportFrameMobile: View {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 10) {
                         if let first = groups[league]?.first {
-                            AsyncImage(url: catalog.badgeURL(for: league,
-                                      sport: fixtures.eventSports[first.idEvent] ?? "")) {
-                                $0.resizable().scaledToFit()
+                            // Fixture art is often available even when the
+                            // all-leagues catalog omits a badge.
+                            let sport = fixtures.eventSports[first.idEvent] ?? first.strSport ?? ""
+                            let logoURL = first.leagueBadge ?? catalog.badgeURL(
+                                for: league, sport: sport, idLeague: first.idLeague
+                            )
+                            AsyncImage(url: logoURL) { image in
+                                image.resizable().scaledToFit()
                             } placeholder: {
-                                Image(systemName: "shield").foregroundStyle(.secondary)
+                                Image(systemName: "sportscourt")
+                                    .foregroundStyle(.secondary)
                             }
-                            .frame(width: 32, height: 32)
+                            .frame(width: 36, height: 36)
+                            .task(id: first.idLeague ?? league) {
+                                if first.leagueBadge == nil {
+                                    await catalog.loadBadge(
+                                        for: league, sport: sport, idLeague: first.idLeague
+                                    )
+                                }
+                            }
                         }
                         Text(league).font(.headline).lineLimit(2)
                     }
@@ -299,16 +310,6 @@ struct SportFrameMobile: View {
             }
             .frame(width: 28, height: 28)
             Text(name).font(.subheadline.weight(.medium)).lineLimit(2)
-        }
-    }
-
-    private var channelsPage: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Match channels").font(.title2.bold())
-            Text("Select a match in Sports. Pick a broadcaster to search your IPTV channels. EPG match results appear below.")
-                .foregroundStyle(.secondary)
-            Button("Browse matches") { page = 0 }
-                .buttonStyle(.borderedProminent)
         }
     }
 
