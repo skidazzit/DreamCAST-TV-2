@@ -569,6 +569,7 @@ struct SettingsView: View {
                     case .connectedServices:
                         TVConnectedServicesView()
                     case .storage:
+                        TVLocalBackupSettingsPane()
                         StorageManagementView()
                     case .help:
                         tvHelpDetail
