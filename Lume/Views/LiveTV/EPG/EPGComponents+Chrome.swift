@@ -168,7 +168,7 @@ struct EPGChannelCell: View {
             @Environment(\.isFocused) private var isFocused
 
             var body: some View {
-                let highlighted = isFocused || isPressed
+                let highlighted = isFocused || isPressed || selected
                 EPGChannelCell(row: row, metrics: metrics, highlight: highlighted ? .hub : .none, selected: selected)
                     .contentShape(Rectangle())
                     .animation(.easeOut(duration: 0.15), value: highlighted)
