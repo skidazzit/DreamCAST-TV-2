@@ -66,6 +66,8 @@ nonisolated struct SportsZoneESPNStanding: Sendable, Identifiable {
     let losses: String
     let difference: String
     let points: String
+    let winPercent: String
+    let gamesBehind: String
 }
 
 nonisolated struct SportsZoneESPNMatch: Sendable, Identifiable {
@@ -114,18 +116,26 @@ nonisolated enum SportsZoneESPNDecoder {
                         ?? team["logo"] as? String
                     let teamID = team["id"] as? String ?? title
                     let rank = stat(["rank", "playoffseed", "seed"])
+                    let wins = stat(["wins", "w"])
+                    let losses = stat(["losses", "l"])
+                    let ties = stat(["ties", "draws", "d", "t"])
+                    let games = stat(["gamesplayed", "gp", "played"])
+                    let played = games != "-" ? games
+                        : String((Int(wins) ?? 0) + (Int(losses) ?? 0) + (Int(ties) ?? 0))
                     result.append(.init(
                         id: "\(name)|\(teamID)",
                         group: name,
                         name: title,
                         logo: logoText.flatMap(URL.init(string:)),
                         rank: rank == "-" ? String(position + 1) : rank,
-                        played: stat(["gamesplayed", "gp", "played"]),
-                        wins: stat(["wins", "w"]),
-                        draws: stat(["ties", "draws", "d", "t"]),
-                        losses: stat(["losses", "l"]),
+                        played: played,
+                        wins: wins,
+                        draws: ties,
+                        losses: losses,
                         difference: stat(["pointdifferential", "goaldifference", "gd", "diff"]),
-                        points: stat(["points", "pts", "p"])
+                        points: stat(["points", "pts", "p"]),
+                        winPercent: stat(["winpercent", "pct", "winpercentage"]),
+                        gamesBehind: stat(["gamesbehind", "gb"])
                     ))
                 }
             }
