@@ -353,6 +353,12 @@ struct MainTabView: View {
                     }
                 }
 
+                // SportsZone stays second on the iPhone bottom dock.
+                // The Apple TV tab order is defined in a separate tvOS branch.
+                Tab("SportsZone", systemImage: "sportscourt", value: AppTab.sports) {
+                    IdleUnmountingTab(isSelected: selection.wrappedValue == .sports) { SportFrameMobile() }
+                }
+
                 if tabs.showsTab(.movies) {
                     Tab("Movies", systemImage: "film", value: AppTab.movies) {
                         IdleUnmountingTab(isSelected: selection.wrappedValue == .movies) { MoviesView() }
@@ -363,13 +369,6 @@ struct MainTabView: View {
                     Tab("Shows", systemImage: "tv", value: AppTab.series) {
                         IdleUnmountingTab(isSelected: selection.wrappedValue == .series) { SeriesView() }
                     }
-                }
-
-                // Always expose SportsZone on iOS, including installs that
-                // saved the old Sports Hub preference as disabled. The TV and
-                // other platforms keep their existing user toggle.
-                Tab("SportsZone", systemImage: "sportscourt", value: AppTab.sports) {
-                    IdleUnmountingTab(isSelected: selection.wrappedValue == .sports) { SportFrameMobile() }
                 }
 
                 // Use a regular fifth tab, not the special search role. This
