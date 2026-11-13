@@ -32,6 +32,8 @@ struct EPGGuideView: View {
     let scope: LiveChannelScope
     let catalogScope: CatalogScope
     let onPlay: (LiveStream) -> Void
+    /// iPhone third tap opens full screen; normal guide playback stays separate.
+    let onPlayFullScreen: ((LiveStream) -> Void)?
     let onPlayCatchup: (LiveStream, EPGProgramCell) -> Void
     /// Seeds Multi-View from a channel's long-press menu in the column.
     let onStartMultiView: (LiveStream) -> Void
@@ -74,6 +76,7 @@ struct EPGGuideView: View {
         catalogScope: CatalogScope,
         sort: ContentSortOption,
         onPlay: @escaping (LiveStream) -> Void,
+        onPlayFullScreen: ((LiveStream) -> Void)? = nil,
         onPlayCatchup: @escaping (LiveStream, EPGProgramCell) -> Void = { _, _ in },
         onStartMultiView: @escaping (LiveStream) -> Void = { _ in },
         focusToken: Int = 0,
@@ -83,6 +86,7 @@ struct EPGGuideView: View {
         self.scope = scope
         self.catalogScope = catalogScope
         self.onPlay = onPlay
+        self.onPlayFullScreen = onPlayFullScreen
         self.onPlayCatchup = onPlayCatchup
         self.onStartMultiView = onStartMultiView
         self.focusToken = focusToken
@@ -119,6 +123,7 @@ struct EPGGuideView: View {
                     timeline: timeline,
                     dataVersion: dataVersion,
                     onPlay: onPlay,
+                    onPlayFullScreen: onPlayFullScreen,
                     onPlayCatchup: onPlayCatchup,
                     onStartMultiView: onStartMultiView,
                     focusToken: focusToken,
