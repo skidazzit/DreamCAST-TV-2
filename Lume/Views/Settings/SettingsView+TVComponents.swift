@@ -132,6 +132,7 @@ import SwiftUI
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
 
                 TVSettingsValueRow("Source", value: CreditsInfo.sourceCode)
+                TVSettingsValueRow("Original Project", value: CreditsInfo.upstreamSource)
             }
         }
 
