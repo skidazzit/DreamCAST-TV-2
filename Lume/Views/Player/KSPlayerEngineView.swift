@@ -527,7 +527,12 @@ struct KSPlayerEngineView: View {
                 cancelStallWatchdog()
                 PlaybackQoE.shared.endSession()
                 NowPlayingService.shared.detachTransport(owner: coordinator)
-                coordinator.resetPlayer()
+                // Full screen adopted the Guide's existing decoder. Returning
+                // to the mini-player must not reset that live KSPlayerLayer:
+                // doing so freezes the picture despite a successful handoff.
+                if returnHandle == nil || returnHandle?.owner == .released {
+                    coordinator.resetPlayer()
+                }
             }
             #if os(iOS)
             .onChange(of: scenePhase) { oldPhase, phase in
