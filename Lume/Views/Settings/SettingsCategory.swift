@@ -60,6 +60,10 @@ enum SettingsCategory: String, CaseIterable, Identifiable {
     /// iOS / macOS tool. Help & Feedback and About are sidebar panes on tvOS
     /// only; iOS / macOS show their rows on the root list itself.
     var isAvailableOnPlatform: Bool {
+        // DreamCAST TV uses local settings backups instead of remote cloud sync.
+        #if os(tvOS)
+        if self == .iCloud { return false }
+        #endif
         switch self {
         case .help, .about:
             #if os(tvOS)
