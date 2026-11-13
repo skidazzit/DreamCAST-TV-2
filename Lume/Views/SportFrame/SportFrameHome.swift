@@ -2,6 +2,60 @@
 import SwiftData
 import SwiftUI
 
+/// Connection result for the currently selected TheSportsDB tier.
+/// A stored key means Premium is configured, not that the key is valid.
+private enum SportsZoneAPIConnectionStatus: Equatable {
+    case unchecked
+    case checking
+    case connected
+    case invalidKey
+    case rateLimited
+    case unavailable
+    case unexpectedResponse
+
+    var title: String {
+        switch self {
+        case .unchecked: "Not checked"
+        case .checking: "Checking connection…"
+        case .connected: "Connected"
+        case .invalidKey: "Premium key rejected"
+        case .rateLimited: "Rate limit reached"
+        case .unavailable: "Connection failed"
+        case .unexpectedResponse: "Unexpected API response"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .unchecked: "Test access to TheSportsDB."
+        case .checking: "Contacting TheSportsDB…"
+        case .connected: "The selected API returned valid sports data."
+        case .invalidKey: "Check your key or remove it to switch to Free."
+        case .rateLimited: "Too many requests. Try again shortly."
+        case .unavailable: "Check your connection and try again."
+        case .unexpectedResponse: "The server returned data we could not verify."
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .connected: "checkmark.circle.fill"
+        case .checking: "arrow.clockwise"
+        case .unchecked: "questionmark.circle"
+        case .invalidKey, .rateLimited, .unexpectedResponse: "exclamationmark.triangle.fill"
+        case .unavailable: "wifi.exclamationmark"
+        }
+    }
+
+    var tint: Color {
+        switch self {
+        case .connected: .green
+        case .checking, .unchecked: .secondary
+        case .invalidKey, .rateLimited, .unexpectedResponse, .unavailable: .orange
+        }
+    }
+}
+
 /// DreamCAST's SportsFrame presentation, using Lume's own playback and EPG index.
 struct SportFrameHome: View {
     @Environment(\.modelContext) private var modelContext
@@ -20,6 +74,10 @@ struct SportFrameHome: View {
     @State private var playingMedia: PlayableMedia?
     @State private var premiumKeyInput = ""
     @State private var keyMessage: String?
+    @State private var apiConnectionStatus: SportsZoneAPIConnectionStatus = .unchecked
+    @State private var apiLastChecked: Date?
+    /// A new ID cancels the previous test when changing or checking the key.
+    @State private var apiCheckID = 0
     @FocusState private var focusedControl: FocusControl?
 
     private enum FocusControl: Hashable {
@@ -289,6 +347,9 @@ struct SportFrameHome: View {
 
     private var settingsPage: some View {
         VStack(alignment: .leading, spacing: 22) {
+            sportsDBAPISettings
+            Divider()
+
             Text("Which sports you follow").font(.largeTitle.bold())
             HStack {
                 Button("Select All") { followedValue = sportOrder.joined(separator: "|") }
@@ -373,16 +434,143 @@ struct SportFrameHome: View {
                     }
                 }
             }
-            Text("TheSportsDB Premium API key (optional)").font(.title2.bold())
-            SecureField("API key", text: $premiumKeyInput)
-            HStack {
-                Button("Save Key") {
-                    keyMessage = SportsDBAccess.save(premiumKeyInput) ? "Key saved securely." : "Could not save the key."
-                    premiumKeyInput = ""
-                }
-                Button("Remove Key") { SportsDBAccess.remove(); keyMessage = "Key removed." }
+        }
+    }
+
+    /// First section of the tvOS SportsZone settings page. It tests the
+    /// selected tier rather than treating a saved key as proof of access.
+    private var sportsDBAPISettings: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 20) {
+                Label("TheSportsDB API", systemImage: "network")
+                    .font(.largeTitle.bold())
+                Spacer()
+                Text(SportsDBAccess.hasPremiumKey ? "Premium" : "Free")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(accent)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 10)
+                    .background(accent.opacity(0.18), in: Capsule())
             }
-            if let keyMessage { Text(keyMessage).foregroundStyle(.secondary) }
+
+            HStack(alignment: .center, spacing: 16) {
+                Image(systemName: apiConnectionStatus.symbol)
+                    .font(.title2)
+                    .foregroundStyle(apiConnectionStatus.tint)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(apiConnectionStatus.title)
+                        .font(.title3.weight(.semibold))
+                    Text(apiConnectionStatus.detail)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                if apiConnectionStatus == .checking { ProgressView() }
+            }
+
+            if let apiLastChecked {
+                Text("Last checked: \(apiLastChecked.formatted(date: .abbreviated, time: .shortened))")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text(SportsDBAccess.hasPremiumKey
+                 ? "A Premium key is saved. The status above checks whether v2 access works."
+                 : "Using the public Free API. Save a Premium key to test v2 access.")
+                .foregroundStyle(.secondary)
+
+            SecureField("Premium API key", text: $premiumKeyInput)
+                .textContentType(.password)
+
+            HStack(spacing: 16) {
+                Button("Save Key") {
+                    if SportsDBAccess.save(premiumKeyInput) {
+                        premiumKeyInput = ""
+                        keyMessage = "Premium key saved."
+                        apiCheckID += 1
+                    } else {
+                        keyMessage = "Enter a valid Premium API key."
+                    }
+                }
+                Button("Remove Key") {
+                    SportsDBAccess.remove()
+                    premiumKeyInput = ""
+                    keyMessage = "Premium key removed. Using Free API."
+                    apiCheckID += 1
+                }
+                Button("Test Connection") {
+                    apiCheckID += 1
+                }
+                .disabled(apiConnectionStatus == .checking)
+            }
+            .buttonStyle(SportsZonePillStyle())
+            .focusSection()
+
+            if let keyMessage {
+                Text(keyMessage).foregroundStyle(.secondary)
+            }
+        }
+        .padding(24)
+        .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 20))
+        // The panel is mounted only on the Settings page. Re-test on entry,
+        // and after Save, Remove, or an explicit Test Connection action.
+        .task(id: apiCheckID) {
+            await checkSportsDBConnection()
+        }
+    }
+
+    @MainActor
+    private func checkSportsDBConnection() async {
+        apiConnectionStatus = .checking
+        apiLastChecked = nil
+
+        // The public v1 API uses key 123. Premium v2 requires a private key
+        // in the X-API-KEY header. Never show or log the saved key.
+        let isPremium = SportsDBAccess.hasPremiumKey
+        let endpoint = isPremium
+            ? "https://www.thesportsdb.com/api/v2/json/all/sports"
+            : "https://www.thesportsdb.com/api/v1/json/123/all_sports.php"
+        guard let url = URL(string: endpoint) else {
+            apiConnectionStatus = .unavailable
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 12
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        if isPremium {
+            request.setValue(SportsDBAccess.apiKey, forHTTPHeaderField: "X-API-KEY")
+        }
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard !Task.isCancelled else { return }
+            guard let response = response as? HTTPURLResponse else {
+                apiConnectionStatus = .unexpectedResponse
+                apiLastChecked = .now
+                return
+            }
+
+            switch response.statusCode {
+            case 200:
+                let payload = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+                // Reject error messages and empty payloads even if the server
+                // replied 200. Both tiers return a list of sports.
+                let hasSports = payload?.values.contains {
+                    ($0 as? [[String: Any]])?.isEmpty == false
+                } == true
+                apiConnectionStatus = hasSports ? .connected : .unexpectedResponse
+            case 401, 403:
+                apiConnectionStatus = isPremium ? .invalidKey : .unavailable
+            case 429:
+                apiConnectionStatus = .rateLimited
+            default:
+                apiConnectionStatus = .unavailable
+            }
+            apiLastChecked = .now
+        } catch {
+            guard !Task.isCancelled else { return }
+            apiConnectionStatus = .unavailable
+            apiLastChecked = .now
         }
     }
 
