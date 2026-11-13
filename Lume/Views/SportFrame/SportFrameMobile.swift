@@ -36,6 +36,13 @@ struct SportFrameMobile: View {
         return sports.filter { chosen.contains($0) }
     }
 
+    /// Read the stored choices directly. The settings editor must not lose a
+    /// followed sport when the online catalog refreshes its sport list.
+    private var followedSportsForLeagueEditor: [String] {
+        Array(Set(followedValue.split(separator: "|").map(String.init)))
+            .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+    }
+
     private var leagueChoices: [String: [String]] {
         guard let data = leaguesValue.data(using: .utf8) else { return [:] }
         return (try? JSONDecoder().decode([String: [String]].self, from: data)) ?? [:]
@@ -247,12 +254,16 @@ struct SportFrameMobile: View {
     }
 
     private var settingsPage: some View {
-        LazyVStack(alignment: .leading, spacing: 16) {
+        // An eager outer stack keeps the sports editor and its league headers
+        // in sync. Only the expanded sport creates its lazy list of leagues.
+        VStack(alignment: .leading, spacing: 16) {
             Text("Which sports you follow").font(.title2.bold())
             HStack {
                 Button("Select All") { followedValue = sports.joined(separator: "|") }
                 Button("Select None") { followedValue = "" }
-            }.buttonStyle(.bordered)
+            }
+            .buttonStyle(.bordered)
+
             ForEach(sports, id: \.self) { sport in
                 Toggle(sport, isOn: Binding(
                     get: { followed.contains(sport) },
@@ -264,33 +275,20 @@ struct SportFrameMobile: View {
                 ))
                 .tint(.cyan)
             }
+
             Divider()
             Text("Which leagues you follow").font(.title2.bold())
+            Text("Tap a followed sport to choose its leagues.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
             if let message = catalog.message { Text(message).foregroundStyle(.orange) }
-            ForEach(followed, id: \.self) { sport in
-                let available = catalog.leagues(for: sport)
-                DisclosureGroup(sport, isExpanded: Binding(
-                    get: { expandedSport == sport },
-                    set: { expandedSport = $0 ? sport : nil }
-                )) {
-                    HStack {
-                        Button("Select All") { saveLeagues(nil, for: sport) }
-                        Button("Select None") { saveLeagues([], for: sport) }
-                    }.buttonStyle(.bordered)
-                    ForEach(available) { league in
-                        Toggle(league.strLeague, isOn: Binding(
-                            get: { leagueChoices[sport]?.contains(league.strLeague) ?? true },
-                            set: { enabled in
-                                var chosen = Set(leagueChoices[sport] ?? available.map(\.strLeague))
-                                if enabled { chosen.insert(league.strLeague) }
-                                else { chosen.remove(league.strLeague) }
-                                saveLeagues(chosen.count == available.count ? nil : chosen.sorted(), for: sport)
-                            }
-                        ))
-                        .tint(.cyan)
-                    }
-                }
+
+            // Use the saved set as the source of truth, not a catalog-filtered
+            // array. Every checked sport, including Soccer, gets a header.
+            ForEach(followedSportsForLeagueEditor, id: \.self) { sport in
+                leagueEditor(for: sport)
             }
+
             Divider()
             Text("TheSportsDB Premium API key (optional)").font(.headline)
             SecureField("API key", text: $premiumKey)
@@ -305,9 +303,69 @@ struct SportFrameMobile: View {
                     SportsDBAccess.remove()
                     keyStatus = "Key removed."
                 }
-            }.buttonStyle(.bordered)
+            }
+            .buttonStyle(.bordered)
             if let keyStatus { Text(keyStatus).font(.caption) }
         }
+    }
+
+    @ViewBuilder
+    private func leagueEditor(for sport: String) -> some View {
+        let available = catalog.leagues(for: sport)
+        VStack(alignment: .leading, spacing: 12) {
+            Button {
+                expandedSport = expandedSport == sport ? nil : sport
+            } label: {
+                HStack(spacing: 12) {
+                    Text(sport)
+                        .font(.headline)
+                    Spacer(minLength: 6)
+                    if available.isEmpty {
+                        Text("No leagues")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Image(systemName: expandedSport == sport ? "chevron.up" : "chevron.down")
+                }
+                .contentShape(Rectangle())
+                .padding(.vertical, 8)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(sport) leagues")
+            .accessibilityAddTraits(.isButton)
+
+            if expandedSport == sport {
+                if available.isEmpty {
+                    Text("No leagues available for this sport yet. Try Refresh.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else {
+                    HStack {
+                        Button("Select All") { saveLeagues(nil, for: sport) }
+                        Button("Select None") { saveLeagues([], for: sport) }
+                    }
+                    .buttonStyle(.bordered)
+
+                    LazyVStack(alignment: .leading, spacing: 10) {
+                        ForEach(available) { league in
+                            Toggle(league.strLeague, isOn: Binding(
+                                get: { leagueChoices[sport]?.contains(league.strLeague) ?? true },
+                                set: { enabled in
+                                    var chosen = Set(leagueChoices[sport] ?? available.map(\.strLeague))
+                                    if enabled { chosen.insert(league.strLeague) }
+                                    else { chosen.remove(league.strLeague) }
+                                    saveLeagues(chosen.count == available.count ? nil : chosen.sorted(), for: sport)
+                                }
+                            ))
+                            .tint(.cyan)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
     }
 
     private func saveLeagues(_ leagues: [String]?, for sport: String) {
