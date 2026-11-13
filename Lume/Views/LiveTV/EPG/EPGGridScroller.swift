@@ -136,6 +136,14 @@ struct EPGGridScroller: View {
             }
         }
         .reportsGuideFocus(surfaceFocused)
+        .onChange(of: preview.controller?.preferredStreamID, initial: true) { _, id in
+            // Give the restored last-watched row its guide highlight without
+            // stealing actual remote focus from the Live TV tab or category
+            // rail. The existing focus entry still handles remote movement.
+            guard virtualFocus == nil, let id,
+                  let index = rows.firstIndex(where: { $0.id == id }) else { return }
+            virtualFocus = .channel(rowIndex: index)
+        }
         #else
         // The channel cards are inset like the tvOS column beside its rail,
         // rather than running into the window edge.
