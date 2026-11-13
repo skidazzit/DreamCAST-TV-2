@@ -715,22 +715,20 @@ private struct SportFrameFixtureBroadcasters: View {
     }
 }
 
-/// Search the actual IPTV channel list. EPG matches are handled separately.
+/// Search the actual IPTV channel list, excluding unrelated sister networks.
+/// Match only the selected network plus safe region/quality feed labels.
 nonisolated private enum SportsZoneBroadcasterSearch {
     static func find(name: String, container: ModelContainer, restriction: ContentRestriction) async -> [ResolvedChannel] {
-        let needle = SportsMatcher.normalize(name).trimmingCharacters(in: .whitespaces)
-        guard !needle.isEmpty else { return [] }
+        guard let lookup = SportsZoneBroadcasterMatcher.Lookup(broadcaster: name) else { return [] }
         return await Task.detached(priority: .userInitiated) {
             let context = ModelContext(container)
             let descriptor = SportsChannelResolver.candidateStreamDescriptor(restriction: restriction)
             let streams = (try? context.fetch(descriptor)) ?? []
-            var results: [(channel: ResolvedChannel, exact: Bool)] = []
+            var results: [(channel: ResolvedChannel, match: SportsZoneBroadcasterMatcher.Match)] = []
             for stream in streams {
                 if Task.isCancelled { return [ResolvedChannel]() }
-                let channelName = SportsMatcher.normalize(stream.name).trimmingCharacters(in: .whitespaces)
-                guard channelName.contains(needle),
+                guard let match = lookup.match(channelName: stream.name),
                       let playlistID = UUID(uuidString: String(stream.id.prefix(36))) else { continue }
-                let exact = channelName == needle
                 results.append((
                     ResolvedChannel(
                         stream: ResolvedStreamSummary(id: stream.id, name: stream.name,
@@ -738,14 +736,14 @@ nonisolated private enum SportsZoneBroadcasterSearch {
                         playlistID: playlistID,
                         matchedTitle: nil,
                         matchedStart: nil,
-                        score: exact ? 100 : 50,
+                        score: match.score,
                         source: .channelName,
                         isConfident: false
-                    ), exact
+                    ), match
                 ))
             }
             return results.sorted {
-                if $0.exact != $1.exact { return $0.exact }
+                if $0.match.score != $1.match.score { return $0.match.score > $1.match.score }
                 return $0.channel.stream.name.localizedStandardCompare($1.channel.stream.name) == .orderedAscending
             }.map(\.channel)
         }.value
@@ -835,7 +833,7 @@ struct SportFrameMatchSheet: View {
                                         .font(.system(size: 27, weight: .bold)).lineLimit(2)
                                     if searchingBroadcaster { ProgressView("Searching IPTV channels…") }
                                     else if broadcasterMatches.isEmpty {
-                                        Text("No matching channel in your playlist.").foregroundStyle(.secondary)
+                                        Text("No matching network found. Check the other game matches below.").foregroundStyle(.secondary)
                                     }
                                     ForEach(broadcasterMatches) { channel in channelRow(channel) }
                                 } else {
