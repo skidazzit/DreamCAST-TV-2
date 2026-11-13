@@ -120,6 +120,7 @@ struct LiveTVView: View {
                     catalogScope: catalogScope,
                     sort: contentSort,
                     onPlay: { handleGuideChannel($0, scope: section.scope) },
+                    onPlayFullScreen: { openGuideChannelFullScreen($0, scope: section.scope) },
                     onPlayCatchup: { playCatchup($0, cell: $1) },
                     onStartMultiView: { startMultiView(with: $0) }
                 )
@@ -561,35 +562,42 @@ struct LiveTVView: View {
             : sections.first
     }
 
-    /// On iPhone, first selection tunes the guide's live preview. A second
-    /// selection of the same channel takes it full screen. Other platforms
-    /// keep their original selection flow.
+    /// Stage two of an iPhone guide selection tunes the mini-player.
+    /// Keep a restored last-watched session when it is already this channel.
     private func handleGuideChannel(_ stream: LiveStream, scope: LiveChannelScope?) {
         #if os(iOS)
             guard let media = PlayableMedia.from(
                 stream: stream, ownedByOneOf: playlists,
                 scope: scope, surfScope: LiveSurfScope(catalogScope)
             ) else { return }
-            // With preview disabled, one tap should still open the channel.
             if GuidePreviewMode(storedValue: guideMiniModeRaw) == .off {
                 present(media)
                 return
             }
-            if guideMiniMedia?.id == media.id {
-                // Reuse the running decoder only when it has started and is
-                // compatible with full screen. Unsupported players fall back.
-                if guideMiniHandle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) {
-                    guideMiniHandle.handOffToFullScreen()
-                } else {
-                    guideMiniHandle.stopPreview()
-                }
-                present(media)
+            guard guideMiniMedia?.id != media.id else { return }
+            guideMiniHandle.stopPreview()
+            guideMiniFailed = false
+            guideMiniMedia = media
+            LiveChannelHistory.record(media)
+        #else
+            playChannel(stream, scope: scope)
+        #endif
+    }
+
+    /// Stage three opens the selected channel in full screen and adopts the
+    /// running mini-player decoder when the engine supports live handoff.
+    private func openGuideChannelFullScreen(_ stream: LiveStream, scope: LiveChannelScope?) {
+        #if os(iOS)
+            guard let media = PlayableMedia.from(
+                stream: stream, ownedByOneOf: playlists,
+                scope: scope, surfScope: LiveSurfScope(catalogScope)
+            ) else { return }
+            if guideMiniHandle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) {
+                guideMiniHandle.handOffToFullScreen()
             } else {
                 guideMiniHandle.stopPreview()
-                guideMiniFailed = false
-                guideMiniMedia = media
-                LiveChannelHistory.record(media)
             }
+            present(media)
         #else
             playChannel(stream, scope: scope)
         #endif
