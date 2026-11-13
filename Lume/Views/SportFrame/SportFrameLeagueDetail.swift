@@ -228,13 +228,15 @@ final class SportFrameLeagueDetailStore: ObservableObject {
             let replacement = await SportsZoneESPNFallback.shared.standings(for: espn)
             guard !Task.isCancelled else { return }
             if replacement.count > standings.count {
+                let recordTable = ["basketball", "baseball", "football"].contains(espn.sport)
                 standings = replacement.map { row in
                     SportFrameLeagueStanding(
                         idStanding: row.id, idTeam: nil, strTeam: row.name,
                         strBadge: row.logo?.absoluteString, strGroup: row.group,
                         strSeason: nil, intRank: row.rank, intPlayed: row.played,
                         intWin: row.wins, intDraw: row.draws, intLoss: row.losses,
-                        intGoalDifference: row.difference, intPoints: row.points
+                        intGoalDifference: recordTable ? row.winPercent : row.difference,
+                        intPoints: recordTable ? row.gamesBehind : row.points
                     )
                 }
                 standingsSource = "ESPN"
