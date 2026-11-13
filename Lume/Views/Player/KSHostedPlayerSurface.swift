@@ -75,8 +75,11 @@
                 // full screen.
                 guard handle.owner == .preview else { return }
                 attachCallbacks()
-                // Full screen temporarily moved this same running video view.
-                // Reparent it into the guide without reloading the live URL.
+                // SwiftUI calls updateUIView for unrelated state changes.
+                // Do not call makeView again while this host already owns
+                // the running surface. Only reclaim it after full screen
+                // moved the video view out, leaving the preview host empty.
+                if !container.subviews.isEmpty { return }
                 host(coordinator.makeView(url: url, options: options), in: container)
             case .adopted:
                 attachCallbacks()
