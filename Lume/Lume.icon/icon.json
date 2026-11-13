@@ -48,8 +48,8 @@
           ],
           "glass" : false,
           "hidden" : false,
-          "image-name" : "lume-bw.svg",
-          "name" : "lume-bw",
+          "image-name" : "dreamcast-tv-icon.png",
+          "name" : "dreamcast-tv-icon",
           "position" : {
             "scale" : 2,
             "translation-in-points" : [
@@ -101,8 +101,8 @@
           ],
           "glass" : false,
           "hidden" : true,
-          "image-name" : "lume-bw.svg",
-          "name" : "lume-bw",
+          "image-name" : "dreamcast-tv-icon.png",
+          "name" : "dreamcast-tv-icon",
           "position" : {
             "scale" : 2,
             "translation-in-points" : [
