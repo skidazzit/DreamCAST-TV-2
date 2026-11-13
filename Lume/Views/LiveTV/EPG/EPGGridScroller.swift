@@ -50,6 +50,8 @@ struct EPGGridScroller: View {
         /// The channel rail drives the SAME vertical position as the
         /// programme grid, rather than scrolling a second, independent list.
         @State private var channelDragStartY: CGFloat?
+        /// A drag must never become a channel-select tap on release.
+        @State private var lastChannelDragEndedAt: TimeInterval = -.infinity
     #endif
     @State private var selection: EPGSelection?
     @State private var scrollRequest: EPGScrollRequest?
@@ -106,15 +108,25 @@ struct EPGGridScroller: View {
                     metrics: metrics,
                     sync: sync,
                     virtualFocus: gridVirtualFocus,
-                    onSelectChannel: { onPlay($0.stream) },
+                    onSelectChannel: { row in
+                        #if os(iOS)
+                            // Some iOS versions deliver the Button release
+                            // after the rail's drag ends. Ignore that tap,
+                            // but leave a new deliberate tap responsive.
+                            guard channelDragStartY == nil,
+                                  ProcessInfo.processInfo.systemUptime - lastChannelDragEndedAt > 0.25
+                            else { return }
+                        #endif
+                        onPlay(row.stream)
+                    },
                     onStartMultiView: { onStartMultiView($0.stream) }
                 )
                 #if os(iOS)
                     .contentShape(Rectangle())
-                    // A drag on a channel name moves the same ScrollPosition
-                    // as a drag on programme cells. Keep button taps and
-                    // long-press menus working via simultaneous recognition.
-                    .simultaneousGesture(
+                    // Once a drag begins, it takes priority over the channel
+                    // Button. A quick stationary tap still tunes the channel;
+                    // a long press can still open its actions menu.
+                    .highPriorityGesture(
                         DragGesture(minimumDistance: 10)
                             .onChanged { value in
                                 let startY = channelDragStartY ?? sync.offset.y
@@ -128,6 +140,7 @@ struct EPGGridScroller: View {
                             }
                             .onEnded { value in
                                 let startY = channelDragStartY ?? sync.offset.y
+                                lastChannelDragEndedAt = ProcessInfo.processInfo.systemUptime
                                 channelDragStartY = nil
                                 scrollGuideFromChannelRail(
                                     startY: startY,
