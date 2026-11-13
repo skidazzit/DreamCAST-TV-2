@@ -25,6 +25,11 @@ import SwiftUI
                         Label("Website", systemImage: "globe")
                     }
                 }
+                if let url = SupportInfo.issuesURL {
+                    Link(destination: url) {
+                        Label("Report an Issue", systemImage: "exclamationmark.bubble")
+                    }
+                }
                 if let url = SupportInfo.emailURL {
                     Link(destination: url) {
                         Label("Email", systemImage: "envelope")
@@ -94,20 +99,22 @@ extension SettingsView {
             VStack(alignment: .leading, spacing: 16) {
                 TVSettingsSectionLabel("Support")
 
-                Text("Scan the code with your phone to open our Discord.")
+                Text("Scan the code with your phone to open DreamCAST TV help on GitHub.")
                     .font(.system(size: 22))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
 
                 HStack(alignment: .top, spacing: 40) {
-                    supportQRCode(caption: "Discord", value: SupportInfo.discordDisplay, link: SupportInfo.discord)
+                    supportQRCode(caption: "GitHub Issues", value: "DreamCAST TV", link: SupportInfo.issues)
                 }
                 .padding(.horizontal, TVSettingsMetrics.rowHPadding)
                 .padding(.top, 4)
 
                 VStack(spacing: 2) {
                     TVSettingsValueRow("Website", value: SupportInfo.websiteDisplay)
-                    TVSettingsValueRow("Email", value: SupportInfo.email)
+                    if !SupportInfo.email.isEmpty {
+                        TVSettingsValueRow("Email", value: SupportInfo.email)
+                    }
                 }
                 .padding(.top, 8)
             }
