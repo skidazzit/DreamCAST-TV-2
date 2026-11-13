@@ -23,22 +23,37 @@ nonisolated enum SportsZoneBroadcasterMatcher {
         "br", "nl", "mx", "eu", "latam"
     ]
 
-    static func match(broadcaster: String, channelName: String) -> Match? {
-        let expected = networkTokens(broadcaster)
-        guard !expected.isEmpty else { return nil }
-        var candidate = networkTokens(channelName)
-        if candidate == expected { return .exact }
+    /// Prepare once when searching a large IPTV playlist. This avoids folding
+    /// the selected broadcaster name for every channel.
+    struct Lookup: Sendable {
+        private let expected: [String]
 
-        // Region labels may be before the network. Quality labels and region
-        // tags may follow it in any order, as with "US: ESPN FHD [1080p]".
-        while let first = candidate.first, regionLabels.contains(first) {
-            candidate.removeFirst()
+        init?(broadcaster: String) {
+            let expected = SportsZoneBroadcasterMatcher.networkTokens(broadcaster)
+            guard !expected.isEmpty else { return nil }
+            self.expected = expected
         }
-        while let last = candidate.last,
-              feedLabels.contains(last) || regionLabels.contains(last) {
-            candidate.removeLast()
+
+        func match(channelName: String) -> Match? {
+            var candidate = SportsZoneBroadcasterMatcher.networkTokens(channelName)
+            if candidate == expected { return .exact }
+
+            // Region labels may be before the network. Quality labels and region
+            // tags may follow it in any order, as with "US: ESPN FHD [1080p]".
+            while let first = candidate.first, SportsZoneBroadcasterMatcher.regionLabels.contains(first) {
+                candidate.removeFirst()
+            }
+            while let last = candidate.last,
+                  SportsZoneBroadcasterMatcher.feedLabels.contains(last)
+                    || SportsZoneBroadcasterMatcher.regionLabels.contains(last) {
+                candidate.removeLast()
+            }
+            return candidate == expected ? .feedVariant : nil
         }
-        return candidate == expected ? .feedVariant : nil
+    }
+
+    static func match(broadcaster: String, channelName: String) -> Match? {
+        Lookup(broadcaster: broadcaster)?.match(channelName: channelName)
     }
 
     private static func networkTokens(_ raw: String) -> [String] {
