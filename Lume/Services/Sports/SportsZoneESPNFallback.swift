@@ -228,22 +228,49 @@ actor SportsZoneESPNFallback {
     }
 
     func matches(for league: SportsZoneESPNLeague) async -> [SportsZoneESPNMatch] {
+        // ESPN Site v2 sometimes rejects YYYYMMDD-YYYYMMDD with HTTP 400.
+        // Single-day dates are more reliable across NBA, MLB and football.
+        // Fetch in small parallel batches, deduplicate, and cache for 5 min.
         let date = DateFormatter()
         date.locale = Locale(identifier: "en_US_POSIX")
         date.timeZone = TimeZone(secondsFromGMT: 0)
         date.dateFormat = "yyyyMMdd"
-        let start = Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: .now) ?? .now
-        let end = Calendar(identifier: .gregorian).date(byAdding: .day, value: 7, to: .now) ?? .now
-        guard var url = URLComponents(string:
-            "https://site.api.espn.com/apis/site/v2/sports/\(league.sport)/\(league.league)/scoreboard"
-        ) else { return [] }
-        url.queryItems = [
-            URLQueryItem(name: "dates", value: "\(date.string(from: start))-\(date.string(from: end))"),
-            URLQueryItem(name: "limit", value: "250")
-        ]
-        guard let endpoint = url.url,
-              let data = await get(endpoint, ttl: 5 * 60) else { return [] }
-        let matches = SportsZoneESPNDecoder.matches(data)
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let days = (-1...7).compactMap { offset -> String? in
+            guard let day = calendar.date(byAdding: .day, value: offset, to: .now) else { return nil }
+            return date.string(from: day)
+        }
+        let base = "https://site.api.espn.com/apis/site/v2/sports/\(league.sport)/\(league.league)/scoreboard"
+        var matches: [SportsZoneESPNMatch] = []
+        var seen = Set<String>()
+        for start in stride(from: 0, to: days.count, by: 3) {
+            guard !Task.isCancelled else { return [] }
+            let current = days[start..<min(start + 3, days.count)]
+            let endpoints: [URL] = current.compactMap { day in
+                guard var parts = URLComponents(string: base) else { return nil }
+                parts.queryItems = [
+                    URLQueryItem(name: "dates", value: day),
+                    URLQueryItem(name: "limit", value: "250")
+                ]
+                return parts.url
+            }
+            let data = await withTaskGroup(of: Data?.self, returning: [Data].self) { group in
+                for endpoint in endpoints {
+                    group.addTask { await self.get(endpoint, ttl: 5 * 60) }
+                }
+                var received: [Data] = []
+                for await response in group {
+                    if let response { received.append(response) }
+                }
+                return received
+            }
+            for item in data {
+                for match in SportsZoneESPNDecoder.matches(item) {
+                    if seen.insert(match.id).inserted { matches.append(match) }
+                }
+            }
+        }
         return matches.sorted {
             if $0.isLive != $1.isLive { return $0.isLive }
             return $0.start < $1.start
