@@ -329,7 +329,13 @@ struct LiveTVView: View {
                     if mode.playsVideo {
                         ZStack {
                             Color.black
-                            if playingMedia == nil && !guideMiniFailed {
+                            if !guideMiniFailed &&
+                               (playingMedia == nil || guideMiniHandle.owner != .released) {
+                                // Keep the tile mounted while full screen owns
+                                // its decoder. Removing it loses its isPlaying
+                                // latch and shows a second startup spinner.
+                                // A fallback release is the only case where a
+                                // new tile must be built on return.
                                 MultiViewTilePlayer(
                                     media: media,
                                     isMuted: false,
@@ -345,8 +351,6 @@ struct LiveTVView: View {
                                 Label("Preview unavailable", systemImage: "exclamationmark.triangle")
                                     .font(.caption)
                                     .foregroundStyle(.white)
-                            } else {
-                                ProgressView()
                             }
                         }
                         .frame(height: mode == .large ? 210 : 124)
