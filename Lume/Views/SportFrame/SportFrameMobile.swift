@@ -70,6 +70,7 @@ struct SportFrameMobile: View {
     @State private var selectedSport = "All Sports"
     @State private var selectedLeague = "All Leagues"
     @State private var expandedSport: String?
+    @State private var sportsFollowExpanded = false
     @State private var selectedEvent: SportEvent?
     /// Hold the tapped channel until the match sheet has fully dismissed.
     /// This replaces a fixed delay before full-screen playback.
@@ -318,24 +319,7 @@ struct SportFrameMobile: View {
             sportsDBAPISettings
             Divider()
 
-            Text("Which sports you follow").font(.title2.bold())
-            HStack {
-                Button("Select All") { followedValue = sports.joined(separator: "|") }
-                Button("Select None") { followedValue = "" }
-            }
-            .buttonStyle(.bordered)
-
-            ForEach(sports, id: \.self) { sport in
-                Toggle(sport, isOn: Binding(
-                    get: { followed.contains(sport) },
-                    set: { enabled in
-                        var selected = Set(followed)
-                        if enabled { selected.insert(sport) } else { selected.remove(sport) }
-                        followedValue = sports.filter { selected.contains($0) }.joined(separator: "|")
-                    }
-                ))
-                .tint(.cyan)
-            }
+            sportsFollowEditor
 
             Divider()
             Text("Which leagues you follow").font(.title2.bold())
@@ -351,6 +335,59 @@ struct SportFrameMobile: View {
             }
 
         }
+    }
+
+    /// Keep the full sport list hidden until requested, like the league picker.
+    /// The saved followedValue remains the source of truth while collapsed.
+    private var sportsFollowEditor: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Button {
+                sportsFollowExpanded.toggle()
+            } label: {
+                HStack(spacing: 12) {
+                    Text("Which sports you follow")
+                        .font(.title2.bold())
+                    Spacer(minLength: 6)
+                    Text("\(followed.count) selected")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Image(systemName: sportsFollowExpanded ? "chevron.up" : "chevron.down")
+                        .foregroundStyle(.secondary)
+                }
+                .contentShape(Rectangle())
+                .padding(.vertical, 8)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Which sports you follow, \(followed.count) selected")
+            .accessibilityHint(sportsFollowExpanded ? "Collapse sports list" : "Expand sports list")
+            .accessibilityAddTraits(.isButton)
+
+            if sportsFollowExpanded {
+                HStack {
+                    Button("Select All") { followedValue = sports.joined(separator: "|") }
+                    Button("Select None") { followedValue = "" }
+                }
+                .buttonStyle(.bordered)
+
+                LazyVStack(alignment: .leading, spacing: 10) {
+                    ForEach(sports, id: \.self) { sport in
+                        Toggle(sport, isOn: Binding(
+                            get: { followed.contains(sport) },
+                            set: { enabled in
+                                var selected = Set(followed)
+                                if enabled { selected.insert(sport) }
+                                else { selected.remove(sport) }
+                                followedValue = sports.filter { selected.contains($0) }.joined(separator: "|")
+                            }
+                        ))
+                        .tint(.cyan)
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
     }
 
     private var sportsDBAPISettings: some View {
