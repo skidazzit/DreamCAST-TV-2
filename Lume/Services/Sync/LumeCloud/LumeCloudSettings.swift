@@ -24,7 +24,7 @@ nonisolated struct LumeCloudSettings {
 
     /// SIDE_LOAD builds have no CloudKit, so they start Off.
     static var defaultBackend: SyncBackendSelection {
-        #if SIDE_LOAD
+        #if SIDE_LOAD || os(tvOS)
             .off
         #else
             .icloud
