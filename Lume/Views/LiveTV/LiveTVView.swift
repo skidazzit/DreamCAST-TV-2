@@ -110,6 +110,16 @@ struct LiveTVView: View {
         LiveTVLayoutMode(storedValue: layoutModeRaw)
     }
 
+    /// Stream ID of the already-restored mini-player. The guide uses it for
+    /// initial row selection; it never opens a second playback session.
+    private var guideSelectedStreamID: String? {
+        #if os(iOS)
+            guard let media = guideMiniMedia else { return nil }
+            if case let .live(streamID) = media.contentRef { return streamID }
+        #endif
+        return nil
+    }
+
     /// The channel detail area for the selected section, honouring the current
     /// layout mode. Shared by every platform's layout.
     private func detail(for section: LiveTVSection) -> some View {
@@ -119,6 +129,7 @@ struct LiveTVView: View {
                     scope: section.scope,
                     catalogScope: catalogScope,
                     sort: contentSort,
+                    preferredStreamID: guideSelectedStreamID,
                     onPlay: { handleGuideChannel($0, scope: section.scope) },
                     onPlayFullScreen: { openGuideChannelFullScreen($0, scope: section.scope) },
                     onPlayCatchup: { playCatchup($0, cell: $1) },
@@ -179,6 +190,15 @@ struct LiveTVView: View {
                     ) { groups in
                         layout(for: groups)
                             .task(id: catalogScope.token) { seedSelection(from: groups.allSections) }
+                            #if os(iOS)
+                            // The tab can stay mounted briefly when switching
+                            // destinations. Re-read history each time Live TV
+                            // becomes active, without relying on a fresh task.
+                            .onChange(of: tabRouter?.selectedTab) { _, tab in
+                                guard tab == .liveTV else { return }
+                                seedSelection(from: groups.allSections)
+                            }
+                            #endif
                     }
                 }
             }
@@ -539,8 +559,13 @@ struct LiveTVView: View {
                 // Only restore a channel in the current, visible playlist
                 // scope; an old profile or different playlist must not autoplay.
                 selectedSection = match
-                guideMiniMedia = lastMedia
-                guideMiniFailed = false
+                if guideMiniMedia?.id != lastMedia.id {
+                    guideMiniHandle.stopPreview()
+                    guideMiniMedia = lastMedia
+                    guideMiniFailed = false
+                }
+                seededScopeToken = catalogScope.token
+                return
             }
         #endif
         if seededScopeToken != nil, seededScopeToken != catalogScope.token {
