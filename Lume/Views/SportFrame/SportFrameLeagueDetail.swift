@@ -228,13 +228,15 @@ final class SportFrameLeagueDetailStore: ObservableObject {
             let replacement = await SportsZoneESPNFallback.shared.standings(for: espn)
             guard !Task.isCancelled else { return }
             if replacement.count > standings.count {
+                let recordTable = ["basketball", "baseball", "football"].contains(espn.sport)
                 standings = replacement.map { row in
                     SportFrameLeagueStanding(
                         idStanding: row.id, idTeam: nil, strTeam: row.name,
                         strBadge: row.logo?.absoluteString, strGroup: row.group,
                         strSeason: nil, intRank: row.rank, intPlayed: row.played,
                         intWin: row.wins, intDraw: row.draws, intLoss: row.losses,
-                        intGoalDifference: row.difference, intPoints: row.points
+                        intGoalDifference: recordTable ? row.winPercent : row.difference,
+                        intPoints: recordTable ? row.gamesBehind : row.points
                     )
                 }
                 standingsSource = "ESPN"
@@ -477,6 +479,11 @@ struct SportFrameLeagueDetail: View {
         }
     }
 
+    private var usesRecordColumns: Bool {
+        store.standingsSource == "ESPN" &&
+            ["Basketball", "Baseball", "American Football"].contains(sport)
+    }
+
     private var tableHeading: some View {
         HStack(spacing: 6) {
             Text("#").frame(width: 24)
@@ -485,8 +492,8 @@ struct SportFrameLeagueDetail: View {
             Text("W").frame(width: 26)
             Text("D").frame(width: 26)
             Text("L").frame(width: 26)
-            Text("GD").frame(width: 30)
-            Text("Pts").frame(width: 34)
+            Text(usesRecordColumns ? "PCT" : "GD").frame(width: 30)
+            Text(usesRecordColumns ? "GB" : "Pts").frame(width: 34)
         }
         .font(.caption.bold())
         .foregroundStyle(.secondary)
