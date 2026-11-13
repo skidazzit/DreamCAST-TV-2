@@ -138,7 +138,16 @@ struct EPGGrid: View, Equatable {
         }
         .onChange(of: initialRowOffset) { _, newY in
             guard didInitialScroll else { return }
-            position.scrollTo(point: CGPoint(x: sync.offset.x, y: newY))
+            // A saved channel can resolve after the first guide layout.
+            // Keep the "now" time position and replace any pending initial
+            // scroll so its retry cannot jump back to the top row.
+            let x = sync.viewport.width > 0 ? sync.offset.x : nowTarget
+            let target = CGPoint(x: x, y: newY)
+            #if !os(tvOS)
+                pendingInitialScroll = target
+                initialScrollReplays = 0
+            #endif
+            position.scrollTo(point: target)
         }
         .onChange(of: scrollRequest) { _, request in
             guard let request else { return }
