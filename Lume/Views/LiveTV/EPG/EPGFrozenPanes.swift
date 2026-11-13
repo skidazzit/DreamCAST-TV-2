@@ -23,9 +23,7 @@ struct EPGFrozenColumn: View {
     let sync: EPGScrollSync
     /// The guide's virtual focus, which highlights its row's channel (tvOS).
     let virtualFocus: EPGVirtualFocus?
-    #if os(iOS)
-        var selectedChannelID: String? = nil
-    #endif
+    var selectedChannelID: String? = nil
     /// Touch/pointer: tapping a channel plays it live — the same action the
     /// tvOS channel hub performs on select. Unused on tvOS, where the focus
     /// strip owns activation.
@@ -48,9 +46,7 @@ struct EPGFrozenColumn: View {
                     metrics: metrics,
                     sync: sync,
                     virtualFocus: virtualFocus,
-                    #if os(iOS)
-                        selectedChannelID: selectedChannelID,
-                    #endif
+                    selectedChannelID: selectedChannelID,
                     onSelectChannel: onSelectChannel,
                     onStartMultiView: onStartMultiView
                 )
@@ -75,9 +71,7 @@ struct EPGColumnCells: View, Equatable {
     /// Observed for `rowWindow` only (per-property tracking).
     let sync: EPGScrollSync
     let virtualFocus: EPGVirtualFocus?
-    #if os(iOS)
-        var selectedChannelID: String? = nil
-    #endif
+    var selectedChannelID: String? = nil
     #if !os(tvOS)
         /// For the long-press menu's favourite toggle.
         @Environment(\.modelContext) private var modelContext
@@ -92,9 +86,7 @@ struct EPGColumnCells: View, Equatable {
             && lhs.rows.first?.id == rhs.rows.first?.id
             && lhs.rows.last?.id == rhs.rows.last?.id
             && lhs.virtualFocus == rhs.virtualFocus
-            #if os(iOS)
-                && lhs.selectedChannelID == rhs.selectedChannelID
-            #endif
+            && lhs.selectedChannelID == rhs.selectedChannelID
     }
 
     private struct IndexedRow: Identifiable {
@@ -145,11 +137,7 @@ struct EPGColumnCells: View, Equatable {
             }
             .buttonStyle(EPGChannelButtonStyle(
                 row: entry.row, metrics: metrics,
-                #if os(iOS)
-                    selected: selectedChannelID == entry.row.id
-                #else
-                    selected: false
-                #endif
+                selected: selectedChannelID == entry.row.id
             ))
             .accessibilityLabel(Text(entry.row.name))
             .liveChannelMenu(
