@@ -72,24 +72,24 @@ enum SettingsCategory: String, CaseIterable, Identifiable {
         switch self {
         case .help, .about:
             #if os(tvOS)
-                true
+                return true
             #else
-                false
+                return false
             #endif
         case .appearance, .downloads:
             #if os(tvOS)
-                false
+                return false
             #else
-                true
+                return true
             #endif
         case .developer:
             #if DEBUG && !SIDE_LOAD && !os(tvOS)
-                true
+                return true
             #else
-                false
+                return false
             #endif
         default:
-            true
+            return true
         }
     }
 
