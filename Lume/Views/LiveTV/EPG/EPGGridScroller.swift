@@ -163,6 +163,7 @@ struct EPGGridScroller: View {
             sync: sync,
             dataVersion: dataVersion,
             nowTarget: nowScrollTarget,
+            initialRowOffset: preferredGuideRowOffset,
             scrollRequest: scrollRequest,
             virtualFocus: gridVirtualFocus,
             onPlay: { row, cell in playCell(row, cell) },
@@ -193,6 +194,16 @@ struct EPGGridScroller: View {
         } else {
             onPlay(row.stream)
         }
+    }
+
+    /// The existing guide controller restores the last channel and starts its
+    /// preview. Start the grid at that same row instead of showing the top
+    /// channels while last-watched video plays in the hero.
+    private var preferredGuideRowOffset: CGFloat {
+        guard let streamID = preview.controller?.preferredStreamID,
+              let index = rows.firstIndex(where: { $0.id == streamID })
+        else { return 0 }
+        return metrics.rowOriginY(index)
     }
 
     /// Scroll offset that parks `date` `metrics.nowLeadInMinutes` inside the
