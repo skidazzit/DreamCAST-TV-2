@@ -17,6 +17,9 @@ struct SportFrameMobile: View {
     @State private var selectedLeague = "All Leagues"
     @State private var expandedSport: String?
     @State private var selectedEvent: SportEvent?
+    /// Hold the tapped channel until the match sheet has fully dismissed.
+    /// This replaces a fixed delay before full-screen playback.
+    @State private var pendingPlaybackMedia: PlayableMedia?
     @State private var playingMedia: PlayableMedia?
     @State private var premiumKey = ""
     @State private var keyStatus: String?
@@ -80,14 +83,17 @@ struct SportFrameMobile: View {
                     .accessibilityLabel("Refresh SportsZone")
                 }
             }
-            .sheet(item: $selectedEvent) { event in
+            .sheet(item: $selectedEvent, onDismiss: {
+                // Start playback at the earliest safe point, when the sheet
+                // has finished closing. No arbitrary 350 ms timer is needed.
+                guard let media = pendingPlaybackMedia else { return }
+                pendingPlaybackMedia = nil
+                playingMedia = media
+            }) { event in
                 SportFrameMobileMatchSheet(event: event, restriction: restriction) { channel in
                     guard let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
+                    pendingPlaybackMedia = media
                     selectedEvent = nil
-                    Task { @MainActor in
-                        try? await Task.sleep(for: .milliseconds(350))
-                        playingMedia = media
-                    }
                 }
             }
             .fullScreenCover(item: $playingMedia) { FullScreenPlayerView(media: $0) }
