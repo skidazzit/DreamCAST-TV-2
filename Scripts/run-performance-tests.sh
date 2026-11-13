@@ -71,7 +71,7 @@ set +e
 # `${arr[@]+"${arr[@]}"}` rather than `"${arr[@]}"`: macOS ships bash 3.2, where
 # expanding an empty array under `set -u` is an "unbound variable" error.
 xcodebuild test \
-    -project Lume.xcodeproj \
+    -project DreamCAST-tvOS.xcodeproj \
     -scheme LumePerformance \
     -destination "$DESTINATION" \
     -derivedDataPath "$DERIVED_DATA" \

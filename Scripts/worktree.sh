@@ -41,7 +41,7 @@ grep -qF "$MAIN/.build/lefthook/" "$HOOK" 2>/dev/null || Scripts/setup.sh
 DD="/tmp/lume-dd-$(basename "$PWD")"
 # FFmpeg.xcframework (LumeEngine) ships arm64 slices only, so pin the arch —
 # a bare `generic/platform=iOS Simulator` also builds x86_64 and fails to link.
-xcodebuild build -scheme Lume -sdk iphonesimulator \
+xcodebuild build -scheme DreamCAST-tvOS -sdk iphonesimulator \
   -destination 'generic/platform=iOS Simulator' ARCHS=arm64 \
   -derivedDataPath "$DD" \
   -clonedSourcePackagesDirPath ~/Library/Developer/Lume-SharedSPM -quiet

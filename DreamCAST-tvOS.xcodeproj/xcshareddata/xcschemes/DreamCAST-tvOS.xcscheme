@@ -18,7 +18,7 @@
                BlueprintIdentifier = "C67C02BF2F880F2200842DBA"
                BuildableName = "Lume.app"
                BlueprintName = "Lume"
-               ReferencedContainer = "container:Lume.xcodeproj">
+               ReferencedContainer = "container:DreamCAST-tvOS.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -38,7 +38,7 @@
                BlueprintIdentifier = "C67C02D02F880F2400842DBA"
                BuildableName = "LumeTests.xctest"
                BlueprintName = "LumeTests"
-               ReferencedContainer = "container:Lume.xcodeproj">
+               ReferencedContainer = "container:DreamCAST-tvOS.xcodeproj">
             </BuildableReference>
          </TestableReference>
          <TestableReference
@@ -49,7 +49,7 @@
                BlueprintIdentifier = "C67C02DA2F880F2400842DBA"
                BuildableName = "LumeUITests.xctest"
                BlueprintName = "LumeUITests"
-               ReferencedContainer = "container:Lume.xcodeproj">
+               ReferencedContainer = "container:DreamCAST-tvOS.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -72,7 +72,7 @@
             BlueprintIdentifier = "C67C02BF2F880F2200842DBA"
             BuildableName = "Lume.app"
             BlueprintName = "Lume"
-            ReferencedContainer = "container:Lume.xcodeproj">
+            ReferencedContainer = "container:DreamCAST-tvOS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <StoreKitConfigurationFileReference
@@ -92,7 +92,7 @@
             BlueprintIdentifier = "C67C02BF2F880F2200842DBA"
             BuildableName = "Lume.app"
             BlueprintName = "Lume"
-            ReferencedContainer = "container:Lume.xcodeproj">
+            ReferencedContainer = "container:DreamCAST-tvOS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

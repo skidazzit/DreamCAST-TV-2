@@ -404,7 +404,7 @@ build/scripts/build-ffmpeg.sh macos-arm64      # + ios-arm64 / tvos-arm64 for de
 build/scripts/make-xcframework.sh
 
 cd ../Lume
-open Lume.xcodeproj
+open DreamCAST-tvOS.xcodeproj
 ```
 
 Select the **Lume** scheme and a target destination (iPhone, Mac, Apple TV, or Vision
@@ -505,8 +505,8 @@ Run the full suite:
 
 ```bash
 xcodebuild test \
-  -project Lume.xcodeproj \
-  -scheme Lume \
+  -project DreamCAST-tvOS.xcodeproj \
+  -scheme DreamCAST-tvOS \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
@@ -514,12 +514,12 @@ Run a single target:
 
 ```bash
 # Unit / integration tests only
-xcodebuild test -project Lume.xcodeproj -scheme Lume \
+xcodebuild test -project DreamCAST-tvOS.xcodeproj -scheme DreamCAST-tvOS \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:LumeTests
 
 # UI tests only
-xcodebuild test -project Lume.xcodeproj -scheme Lume \
+xcodebuild test -project DreamCAST-tvOS.xcodeproj -scheme DreamCAST-tvOS \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:LumeUITests
 ```

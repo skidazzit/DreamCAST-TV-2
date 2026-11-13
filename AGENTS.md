@@ -8,11 +8,11 @@ Lume is a native, multi-platform IPTV player (iOS 18+, macOS 15+, tvOS 18+, visi
 
 ```bash
 # Open in Xcode
-open Lume.xcodeproj   # pick scheme "Lume", any destination
+open DreamCAST-tvOS.xcodeproj   # pick scheme "DreamCAST-tvOS", any destination
 
 # CLI build (iOS Simulator)
 xcodebuild build \
-  -project Lume.xcodeproj -scheme Lume \
+  -project DreamCAST-tvOS.xcodeproj -scheme DreamCAST-tvOS \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -clonedSourcePackagesDirPath ~/Library/Developer/Lume-SharedSPM
 ```
@@ -50,16 +50,16 @@ Tests deploy to **iOS 26.4+ Simulator only** — never tvOS. Use an iPhone 17 Pr
 SPM=(-clonedSourcePackagesDirPath ~/Library/Developer/Lume-SharedSPM)
 
 # Full suite
-xcodebuild test -project Lume.xcodeproj -scheme Lume "${SPM[@]}" \
+xcodebuild test -project DreamCAST-tvOS.xcodeproj -scheme DreamCAST-tvOS "${SPM[@]}" \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 
 # Unit tests only
-xcodebuild test -project Lume.xcodeproj -scheme Lume "${SPM[@]}" \
+xcodebuild test -project DreamCAST-tvOS.xcodeproj -scheme DreamCAST-tvOS "${SPM[@]}" \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:LumeTests
 
 # UI tests only
-xcodebuild test -project Lume.xcodeproj -scheme Lume "${SPM[@]}" \
+xcodebuild test -project DreamCAST-tvOS.xcodeproj -scheme DreamCAST-tvOS "${SPM[@]}" \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -only-testing:LumeUITests
 ```
