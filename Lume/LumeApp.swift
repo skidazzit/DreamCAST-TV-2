@@ -238,7 +238,7 @@ struct LumeApp: App {
     /// store stays local and the reconcile engine still runs (just no sync).
     /// Real, properly-signed builds get full CloudKit sync.
     static let isCloudKitEnvironment: Bool = {
-        #if SIDE_LOAD
+        #if SIDE_LOAD || os(tvOS)
             // Sideloaded / self-compiled builds are re-signed with an identity that
             // doesn't own the `iCloud.bilipp.Lume` container, so the CloudKit
             // entitlement is stripped at install time. Touching CloudKit then hard-
