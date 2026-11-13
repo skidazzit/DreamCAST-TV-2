@@ -35,6 +35,9 @@
             let player: KSVideoPlayer.Coordinator
             let resetsOnDismantle: Bool
             let returnHandle: PreviewPlayerHandle?
+            // Hold the exact KSPlayer render UIView while full screen borrows
+            // it. Calling makeView again after Back may reinitialize playback.
+            var retainedView: UIView?
 
             init(player: KSVideoPlayer.Coordinator, resetsOnDismantle: Bool, returnHandle: PreviewPlayerHandle?) {
                 self.player = player
@@ -56,14 +59,14 @@
             return Host(player: coordinator, resetsOnDismantle: mode.resetsOnDismantle, returnHandle: returnHandle)
         }
 
-        func makeUIView(context _: Context) -> UIView {
+        func makeUIView(context: Context) -> UIView {
             let container = UIView()
             container.backgroundColor = .black
             container.clipsToBounds = true
             attachCallbacks()
-            // `makeView` hands back the running player view untouched when the
-            // URL matches; it never re-prepares a live session.
-            host(coordinator.makeView(url: url, options: options), in: container)
+            let surface = coordinator.makeView(url: url, options: options)
+            context.coordinator.retainedView = surface
+            host(surface, in: container)
             return container
         }
 
@@ -80,11 +83,22 @@
                 // the running surface. Only reclaim it after full screen
                 // moved the video view out, leaving the preview host empty.
                 if !container.subviews.isEmpty { return }
-                host(coordinator.makeView(url: url, options: options), in: container)
+                // Reparent the *same* render view and decoder. A fresh
+                // makeView on return can restart KSPlayer's pipeline and
+                // produce hardware-decoder errors on some live streams.
+                if let retained = context.coordinator.retainedView {
+                    host(retained, in: container)
+                } else {
+                    let surface = coordinator.makeView(url: url, options: options)
+                    context.coordinator.retainedView = surface
+                    host(surface, in: container)
+                }
             case .adopted:
                 attachCallbacks()
                 guard coordinator.playerLayer?.url != url else { return }
-                host(coordinator.makeView(url: url, options: options), in: container)
+                let surface = coordinator.makeView(url: url, options: options)
+                context.coordinator.retainedView = surface
+                host(surface, in: container)
             }
         }
 
