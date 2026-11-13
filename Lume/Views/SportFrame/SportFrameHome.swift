@@ -74,6 +74,7 @@ struct SportFrameHome: View {
     @State private var selectedEvent: SportEvent?
     @State private var openedLeague: SportFrameLeagueRoute?
     @State private var playingMedia: PlayableMedia?
+    @State private var pendingMedia: PlayableMedia?
     @State private var premiumKeyInput = ""
     @State private var keyMessage: String?
     @State private var apiConnectionStatus: SportsZoneAPIConnectionStatus = .unchecked
@@ -179,16 +180,8 @@ struct SportFrameHome: View {
         .fullScreenCover(item: $openedLeague) { league in
             SportFrameLeagueDetailTV(league: league)
         }
-        .fullScreenCover(item: $selectedEvent) { event in
-            SportFrameMatchSheet(event: event, onPlay: { channel in
-                guard let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
-                selectedEvent = nil
-                // Present after the previous sheet has finished dismissing.
-                Task { @MainActor in
-                    try? await Task.sleep(for: .milliseconds(350))
-                    playingMedia = media
-                }
-            })
+        .fullScreenCover(item: $selectedEvent, onDismiss: presentPendingMedia) { event in
+            SportFrameMatchSheet(event: event, onPlay: queueChannelPlayback)
         }
         .fullScreenCover(item: $playingMedia) { FullScreenPlayerView(media: $0) }
         .task { await catalog.refresh() }
@@ -615,6 +608,26 @@ struct SportFrameHome: View {
             apiConnectionStatus = .unavailable
             apiLastChecked = .now
         }
+    }
+
+    /// Live TV and SportsZone both resolve channels through PlayableMedia.
+    /// Wait for the match sheet's real dismissal rather than a fixed timer:
+    /// presenting during dismissal can start the same stream twice.
+    private func queueChannelPlayback(_ channel: ResolvedChannel) {
+        guard pendingMedia == nil,
+              let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
+        if ExternalPlayback.open(media) {
+            selectedEvent = nil
+            return
+        }
+        pendingMedia = media
+        selectedEvent = nil
+    }
+
+    private func presentPendingMedia() {
+        guard let media = pendingMedia else { return }
+        pendingMedia = nil
+        playingMedia = media
     }
 
     private func refresh() async {
