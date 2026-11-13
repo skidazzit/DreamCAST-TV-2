@@ -32,6 +32,7 @@ struct EPGGridScroller: View {
     /// subtree is `Equatable`-gated on it.
     let dataVersion: Int
     let onPlay: (LiveStream) -> Void
+    var onPlayFullScreen: ((LiveStream) -> Void)? = nil
     let onPlayCatchup: (LiveStream, EPGProgramCell) -> Void
     /// Seeds Multi-View from a channel's long-press menu in the column.
     var onStartMultiView: (LiveStream) -> Void = { _ in }
@@ -52,6 +53,8 @@ struct EPGGridScroller: View {
         @State private var channelDragStartY: CGFloat?
         /// A drag must never become a channel-select tap on release.
         @State private var lastChannelDragEndedAt: TimeInterval = -.infinity
+        /// 0: none, 1: highlighted, 2: mini-player, 3: full screen.
+        @State private var channelTapStage = 0
     #endif
     /// Tracks the tapped channel for the iPhone name marquee.
     /// Other platforms ignore this value.
@@ -121,10 +124,7 @@ struct EPGGridScroller: View {
                                   ProcessInfo.processInfo.systemUptime - lastChannelDragEndedAt > 0.25
                             else { return }
                         #endif
-                        #if os(iOS)
-                            selectedChannelID = row.id
-                        #endif
-                        onPlay(row.stream)
+                        activateChannel(row)
                     },
                     onStartMultiView: { onStartMultiView($0.stream) }
                 )
@@ -243,8 +243,30 @@ struct EPGGridScroller: View {
         {
             onPlayCatchup(row.stream, cell)
         } else {
-            onPlay(row.stream)
+            activateChannel(row)
         }
+    }
+
+    /// iPhone channel taps follow the TV guide's three-stage flow.
+    /// Stage one moves only the highlight, with no stream request.
+    /// Stage two tunes the mini-player, and stage three opens full screen.
+    private func activateChannel(_ row: EPGChannelRow) {
+        #if os(iOS)
+            if selectedChannelID != row.id {
+                selectedChannelID = row.id
+                channelTapStage = 1
+                return
+            }
+            if channelTapStage < 2 {
+                channelTapStage = 2
+                onPlay(row.stream)
+            } else {
+                channelTapStage = 3
+                (onPlayFullScreen ?? onPlay)(row.stream)
+            }
+        #else
+            onPlay(row.stream)
+        #endif
     }
 
     #if os(iOS)
