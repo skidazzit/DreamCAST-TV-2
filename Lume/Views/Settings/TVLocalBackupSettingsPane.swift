@@ -16,13 +16,13 @@ final class DreamCASTTVLocalTransfer {
     private(set) var hasPendingRestore = false
     private(set) var resultText: String?
 
-    private var listener: NWListener?
-    private var connections: [ObjectIdentifier: NWConnection] = [:]
-    private var requests: [ObjectIdentifier: Data] = [:]
-    private var sessionExpiry: Task<Void, Never>?
-    private var pendingRestoreData: Data?
-    private var token = UUID().uuidString.replacingOccurrences(of: "-", with: "")
-    private let headerMarker = Data([13, 10, 13, 10])
+    @ObservationIgnored private var listener: NWListener?
+    @ObservationIgnored private var connections: [ObjectIdentifier: NWConnection] = [:]
+    @ObservationIgnored private var requests: [ObjectIdentifier: Data] = [:]
+    @ObservationIgnored private var sessionExpiry: Task<Void, Never>?
+    @ObservationIgnored private var pendingRestoreData: Data?
+    @ObservationIgnored private var token = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+    @ObservationIgnored private let headerMarker = Data([13, 10, 13, 10])
     private let maxHeaderBytes = 16_384
 
     func start() {
@@ -42,7 +42,7 @@ final class DreamCASTTVLocalTransfer {
                     guard let self else { return }
                     switch state {
                     case .ready:
-                        guard let port = listener.port else {
+                        guard let port = listener?.port else {
                             self.statusText = "Could not open the transfer port."
                             self.stop()
                             return
