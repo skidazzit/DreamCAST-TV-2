@@ -147,7 +147,11 @@ struct MultiViewTilePlayer: View {
 
             if loadFailed || resolveFailed {
                 failureBadge
-            } else if !isPlaying {
+            } else if !isPlaying &&
+                        !(role.previewHandle?.hasStarted == true &&
+                          role.previewHandle?.owner == .preview) {
+                // The retained guide decoder is already showing video.
+                // Do not hide it behind a startup spinner after handoff.
                 ProgressView()
                     .progressViewStyle(.circular)
                     .tint(.white)
