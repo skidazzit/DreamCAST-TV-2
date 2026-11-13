@@ -212,6 +212,11 @@ struct SportFrameLeagueDetailTV: View {
         }
     }
 
+    private var usesRecordColumns: Bool {
+        store.standingsSource == "ESPN" &&
+            ["Basketball", "Baseball", "American Football"].contains(league.sport)
+    }
+
     private var tableHeader: some View {
         HStack(spacing: 14) {
             Text("#").frame(width: 45)
@@ -220,8 +225,8 @@ struct SportFrameLeagueDetailTV: View {
             Text("W").frame(width: 55)
             Text("D").frame(width: 55)
             Text("L").frame(width: 55)
-            Text("GD").frame(width: 65)
-            Text("Pts").frame(width: 70)
+            Text(usesRecordColumns ? "PCT" : "GD").frame(width: 65)
+            Text(usesRecordColumns ? "GB" : "Pts").frame(width: 70)
         }
         .font(.subheadline.bold()).foregroundStyle(.secondary)
     }
