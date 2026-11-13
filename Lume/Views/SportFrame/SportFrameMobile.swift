@@ -391,7 +391,7 @@ struct SportFrameMobile: View {
             }
 
             Text(SportsDBAccess.hasPremiumKey
-                 ? "Using your saved Premium key. Live scores use the Premium API."
+                 ? "A Premium key is saved. The status above checks whether v2 access works."
                  : "Using the public Free API. Add a Premium key to unlock Premium access.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -405,7 +405,7 @@ struct SportFrameMobile: View {
                 Button("Save Key") {
                     if SportsDBAccess.save(premiumKey) {
                         premiumKey = ""
-                        keyStatus = "Key saved. Checking Premium access."
+                        keyStatus = "Premium key saved."
                         apiCheckID += 1
                     } else {
                         keyStatus = "Enter a valid Premium API key."
@@ -417,13 +417,16 @@ struct SportFrameMobile: View {
                     keyStatus = "Premium key removed. Using Free API."
                     apiCheckID += 1
                 }
-                Button("Test Connection") {
-                    apiCheckID += 1
-                }
-                .disabled(apiConnectionStatus == .checking)
             }
-            .font(.subheadline)
             .buttonStyle(.bordered)
+            Button {
+                apiCheckID += 1
+            } label: {
+                Label("Test Connection", systemImage: "arrow.clockwise")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .disabled(apiConnectionStatus == .checking)
 
             if let keyStatus {
                 Text(keyStatus)
