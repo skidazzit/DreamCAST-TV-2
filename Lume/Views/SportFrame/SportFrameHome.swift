@@ -70,6 +70,7 @@ struct SportFrameHome: View {
     @State private var selectedSport = "All Sports"
     @State private var selectedLeague = "All Leagues"
     @State private var expandedLeagueSport: String?
+    @State private var sportsFollowExpanded = false
     @State private var selectedEvent: SportEvent?
     @State private var openedLeague: SportFrameLeagueRoute?
     @State private var playingMedia: PlayableMedia?
@@ -105,6 +106,12 @@ struct SportFrameHome: View {
     private var followedSports: [String] {
         let saved = Set(followedValue.split(separator: "|").map(String.init))
         return sportOrder.filter { saved.contains($0) }
+    }
+
+    // Honor saved sports even if TheSportsDB has not loaded their catalog data.
+    private var followedSportsForLeagueEditor: [String] {
+        Array(Set(followedValue.split(separator: "|").map(String.init)))
+            .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
     }
 
     private var leagueSelections: [String: [String]] {
@@ -161,8 +168,7 @@ struct SportFrameHome: View {
                 VStack(alignment: .leading, spacing: 26) {
                     header
                     switch page {
-                    case 1: channelPage
-                    case 2: settingsPage
+                    case 1: settingsPage
                     default: matchesPage
                     }
                 }
@@ -217,8 +223,7 @@ struct SportFrameHome: View {
                 Spacer()
                 HStack(spacing: 24) {
                     pageButton("Sports", index: 0)
-                    pageButton("Channels", index: 1)
-                    pageButton("Settings", index: 2)
+                    pageButton("Settings", index: 1)
                 }
                 Spacer()
             }
@@ -363,55 +368,65 @@ struct SportFrameHome: View {
         }
     }
 
-    private var channelPage: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Match channels").font(.largeTitle.bold())
-            Text("Open a fixture in Sports to see TheSportsDB broadcasters first, followed by IPTV guide matches.")
-                .foregroundStyle(.secondary)
-            Text("Your Live TV channels remain managed by Lume.").foregroundStyle(.secondary)
-        }
-        .padding(26)
-    }
-
     private var settingsPage: some View {
         VStack(alignment: .leading, spacing: 22) {
             sportsDBAPISettings
             Divider()
 
-            Text("Which sports you follow").font(.largeTitle.bold())
-            HStack {
-                Button("Select All") { followedValue = sportOrder.joined(separator: "|") }
-                    .buttonStyle(SportsZonePillStyle())
-                    .focused($focusedControl, equals: .selectAll)
-                Button("Select None") { followedValue = "" }
-                    .buttonStyle(SportsZonePillStyle())
-                    .focused($focusedControl, equals: .selectNone)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .focusSection()
-            LazyVGrid(columns: [.init(.flexible()), .init(.flexible()), .init(.flexible())], spacing: 12) {
-                ForEach(sportOrder, id: \.self) { sport in
-                    let selected = followedSports.contains(sport)
-                    Button {
-                        var saved = Set(followedValue.split(separator: "|").map(String.init))
-                        if selected { saved.remove(sport) } else { saved.insert(sport) }
-                        followedValue = sportOrder.filter { saved.contains($0) }.joined(separator: "|")
-                    } label: {
-                        Label(sport, systemImage: selected ? "checkmark.circle.fill" : "circle")
-                            .frame(maxWidth: .infinity, alignment: .leading).padding(8)
-                    }
-                    .buttonStyle(SportsZonePillStyle())
-                    .focused($focusedControl, equals: .sportSetting(sport))
+            Button {
+                sportsFollowExpanded.toggle()
+                // When collapsing, remove focus from any child now hidden.
+                if !sportsFollowExpanded { focusedControl = nil }
+            } label: {
+                HStack(spacing: 18) {
+                    Text("Which sports you follow").font(.largeTitle.bold())
+                    Spacer()
+                    Text("\(followedSports.count) selected")
+                        .font(.title3).foregroundStyle(.secondary)
+                    Image(systemName: sportsFollowExpanded ? "chevron.up" : "chevron.down")
+                        .font(.title2)
                 }
+                .padding(15)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .buttonStyle(SportsZonePillStyle())
             .focusSection()
+
+            if sportsFollowExpanded {
+                HStack {
+                    Button("Select All") { followedValue = sportOrder.joined(separator: "|") }
+                        .buttonStyle(SportsZonePillStyle())
+                        .focused($focusedControl, equals: .selectAll)
+                    Button("Select None") { followedValue = "" }
+                        .buttonStyle(SportsZonePillStyle())
+                        .focused($focusedControl, equals: .selectNone)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .focusSection()
+                LazyVGrid(columns: [.init(.flexible()), .init(.flexible()), .init(.flexible())], spacing: 12) {
+                    ForEach(sportOrder, id: \.self) { sport in
+                        let selected = followedSports.contains(sport)
+                        Button {
+                            var saved = Set(followedValue.split(separator: "|").map(String.init))
+                            if selected { saved.remove(sport) } else { saved.insert(sport) }
+                            followedValue = sportOrder.filter { saved.contains($0) }.joined(separator: "|")
+                        } label: {
+                            Label(sport, systemImage: selected ? "checkmark.circle.fill" : "circle")
+                                .frame(maxWidth: .infinity, alignment: .leading).padding(8)
+                        }
+                        .buttonStyle(SportsZonePillStyle())
+                        .focused($focusedControl, equals: .sportSetting(sport))
+                    }
+                }
+                .focusSection()
+            }
             Text("Which leagues you follow").font(.largeTitle.bold()).padding(.top, 22)
             Text("Choose a sport to pick its leagues. All leagues are followed until you change them.")
                 .foregroundStyle(.secondary)
             if let message = catalog.message {
                 Text(message).foregroundStyle(.orange)
             }
-            ForEach(followedSports, id: \.self) { sport in
+            ForEach(followedSportsForLeagueEditor, id: \.self) { sport in
                 let leagues = catalog.leagues(for: sport)
                 VStack(alignment: .leading, spacing: 12) {
                     Button {
