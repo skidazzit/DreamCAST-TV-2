@@ -19,6 +19,7 @@ struct SportFrameLeagueDetailTV: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedMatch: SportEvent?
     @State private var playingMedia: PlayableMedia?
+    @State private var pendingMedia: PlayableMedia?
     @Environment(\.openURL) private var openURL
 
     private let background = Color(red: 0.025, green: 0.055, blue: 0.11)
@@ -37,15 +38,8 @@ struct SportFrameLeagueDetailTV: View {
                 .padding(.vertical, 45)
             }
         }
-        .fullScreenCover(item: $selectedMatch) { event in
-            SportFrameMatchSheet(event: event, onPlay: { channel in
-                guard let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
-                selectedMatch = nil
-                Task { @MainActor in
-                    try? await Task.sleep(for: .milliseconds(350))
-                    playingMedia = media
-                }
-            })
+        .fullScreenCover(item: $selectedMatch, onDismiss: presentPendingMedia) { event in
+            SportFrameMatchSheet(event: event, onPlay: queueChannelPlayback)
         }
         .fullScreenCover(item: $playingMedia) { FullScreenPlayerView(media: $0) }
         .task(id: league.id) {
@@ -54,6 +48,25 @@ struct SportFrameLeagueDetailTV: View {
                 sport: league.sport
             )
         }
+    }
+
+    /// Uses the same PlayableMedia and full-screen engine as Live TV.
+    /// Present when the match sheet finishes closing to avoid a double-start.
+    private func queueChannelPlayback(_ channel: ResolvedChannel) {
+        guard pendingMedia == nil,
+              let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
+        if ExternalPlayback.open(media) {
+            selectedMatch = nil
+            return
+        }
+        pendingMedia = media
+        selectedMatch = nil
+    }
+
+    private func presentPendingMedia() {
+        guard let media = pendingMedia else { return }
+        pendingMedia = nil
+        playingMedia = media
     }
 
     private var header: some View {
