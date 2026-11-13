@@ -657,6 +657,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Lume/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Lume needs access to your local network to find TVs, Cast devices and Philips Hue Bridges, and to reach media servers, WebDAV shares and recording servers running on it.";
@@ -721,6 +722,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Lume/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Lume needs access to your local network to find TVs, Cast devices and Philips Hue Bridges, and to reach media servers, WebDAV shares and recording servers running on it.";
@@ -1059,6 +1061,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Lume/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Lume needs access to your local network to find TVs, Cast devices and Philips Hue Bridges, and to reach media servers, WebDAV shares and recording servers running on it.";
@@ -1161,7 +1164,7 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeWidgets/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
@@ -1193,7 +1196,7 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeWidgets/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
@@ -1226,7 +1229,7 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeWidgets/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
@@ -1258,7 +1261,7 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeTopShelf/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
@@ -1289,7 +1292,7 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeTopShelf/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
@@ -1320,7 +1323,7 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeTopShelf/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
@@ -1351,7 +1354,7 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeTopShelf/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
@@ -1551,6 +1554,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Lume/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Lume needs access to your local network to find TVs, Cast devices and Philips Hue Bridges, and to reach media servers, WebDAV shares and recording servers running on it.";
@@ -1653,7 +1657,7 @@
 				DEVELOPMENT_TEAM = CHG45F8MCL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeWidgets/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV 2";
+				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@executable_path/Frameworks",
