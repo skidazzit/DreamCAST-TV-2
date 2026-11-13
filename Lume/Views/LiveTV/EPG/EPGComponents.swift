@@ -246,11 +246,12 @@ struct EPGMetrics {
             }
             // Give iPhone channel names 45% more space across every
             // guide-width preset while leaving tvOS/macOS unchanged.
-            let columnWidth: CGFloat = 1.45 * (switch columnPreset {
+            let baseColumnWidth: CGFloat = switch columnPreset {
                 case .compact: 100
                 case .medium: 116
                 case .wide: 140
-            })
+            }
+            let columnWidth = baseColumnWidth * 1.45
             return EPGMetrics(
                 pointsPerMinute: design == .dreamcast ? 3.0 : 2.8,
                 rowHeight: rowHeight,
