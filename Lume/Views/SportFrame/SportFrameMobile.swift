@@ -628,7 +628,7 @@ private struct SportFrameMobileMatchSheet: View {
                         Text("Channels matching \(selectedBroadcaster)").font(.headline)
                         if searching { ProgressView("Searching IPTV channels…") }
                         if matchingBroadcasterChannels.isEmpty && !searching {
-                            Text("No matching IPTV channel.").foregroundStyle(.secondary)
+                            Text("No matching network found. Check the guide matches below.").foregroundStyle(.secondary)
                         }
                         ForEach(matchingBroadcasterChannels) { channel in channelRow(channel) }
                     }
@@ -671,25 +671,32 @@ private struct SportFrameMobileMatchSheet: View {
             searching = true
             let container = modelContext.container
             let restriction = restriction
-            let needle = SportsMatcher.normalize(selectedBroadcaster)
+            guard let lookup = SportsZoneBroadcasterMatcher.Lookup(broadcaster: selectedBroadcaster) else {
+                searching = false
+                return
+            }
             let channels = await Task.detached(priority: .userInitiated) {
                 let context = ModelContext(container)
                 let descriptor = SportsChannelResolver.candidateStreamDescriptor(restriction: restriction)
                 let streams = (try? context.fetch(descriptor)) ?? []
-                return streams.compactMap { stream -> ResolvedChannel? in
-                    let name = SportsMatcher.normalize(stream.name)
-                    guard !needle.isEmpty, name.contains(needle),
-                          let playlistID = UUID(uuidString: String(stream.id.prefix(36))) else { return nil }
-                    return ResolvedChannel(
+                var results: [ResolvedChannel] = []
+                for stream in streams {
+                    if Task.isCancelled { return [ResolvedChannel]() }
+                    guard let match = lookup.match(channelName: stream.name),
+                          let playlistID = UUID(uuidString: String(stream.id.prefix(36))) else { continue }
+                    results.append(ResolvedChannel(
                         stream: ResolvedStreamSummary(id: stream.id, name: stream.name,
                             streamIcon: stream.streamIcon, epgChannelId: stream.epgChannelId),
                         playlistID: playlistID,
                         matchedTitle: nil, matchedStart: nil,
-                        score: name == needle ? 100 : 50,
+                        score: match.score,
                         source: .channelName, isConfident: false
-                    )
+                    ))
                 }
-                .sorted { $0.score > $1.score }
+                return results.sorted {
+                    if $0.score != $1.score { return $0.score > $1.score }
+                    return $0.stream.name.localizedStandardCompare($1.stream.name) == .orderedAscending
+                }
             }.value
             if Task.isCancelled { return }
             matchingBroadcasterChannels = channels
