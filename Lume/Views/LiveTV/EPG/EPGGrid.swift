@@ -27,6 +27,8 @@ struct EPGGrid: View, Equatable {
     let sync: EPGScrollSync
     let dataVersion: Int
     let nowTarget: CGFloat
+    /// Initial vertical position of the last-watched channel, if visible.
+    let initialRowOffset: CGFloat
     let scrollRequest: EPGScrollRequest?
     let virtualFocus: EPGVirtualFocus?
     let onPlay: (EPGChannelRow, EPGProgramCell) -> Void
@@ -37,6 +39,7 @@ struct EPGGrid: View, Equatable {
         lhs.dataVersion == rhs.dataVersion
             && lhs.rows.count == rhs.rows.count
             && lhs.nowTarget == rhs.nowTarget
+            && lhs.initialRowOffset == rhs.initialRowOffset
             && lhs.scrollRequest == rhs.scrollRequest
             && lhs.virtualFocus == rhs.virtualFocus
             && lhs.timeline == rhs.timeline
@@ -119,19 +122,25 @@ struct EPGGrid: View, Equatable {
                 blockLength: 30 * metrics.pointsPerMinute
             )
             sync.rowWindow = EPGRealizeWindow.around(
-                offset: 0,
+                offset: initialRowOffset,
                 viewport: 1400,
                 blockLength: 2 * (metrics.rowHeight + metrics.rowSpacing)
             )
             var transaction = Transaction()
             transaction.disablesAnimations = true
             withTransaction(transaction) {
-                sync.mirror = CGPoint(x: nowTarget, y: 0)
+                sync.mirror = CGPoint(x: nowTarget, y: initialRowOffset)
             }
             #if !os(tvOS)
-                pendingInitialScroll = CGPoint(x: nowTarget, y: 0)
+                pendingInitialScroll = CGPoint(x: nowTarget, y: initialRowOffset)
             #endif
-            position.scrollTo(point: CGPoint(x: nowTarget, y: 0))
+            position.scrollTo(point: CGPoint(x: nowTarget, y: initialRowOffset))
+        }
+        .onChange(of: initialRowOffset) { _, newY in
+            guard didInitialScroll else { return }
+            // The parent can resolve the history/category after first layout.
+            // Follow that one new target without reopening the video player.
+            position.scrollTo(point: CGPoint(x: sync.offset.x, y: newY))
         }
         .onChange(of: scrollRequest) { _, request in
             guard let request else { return }
