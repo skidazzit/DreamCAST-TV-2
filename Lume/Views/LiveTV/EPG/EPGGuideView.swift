@@ -31,6 +31,9 @@ struct EPGGuidePreviewInputs {
 struct EPGGuideView: View {
     let scope: LiveChannelScope
     let catalogScope: CatalogScope
+    /// Existing last-watched mini-player's channel. Used to highlight
+    /// and locate its row without starting a second stream.
+    let preferredStreamID: String?
     let onPlay: (LiveStream) -> Void
     /// iPhone third tap opens full screen; normal guide playback stays separate.
     let onPlayFullScreen: ((LiveStream) -> Void)?
@@ -75,6 +78,7 @@ struct EPGGuideView: View {
         scope: LiveChannelScope,
         catalogScope: CatalogScope,
         sort: ContentSortOption,
+        preferredStreamID: String? = nil,
         onPlay: @escaping (LiveStream) -> Void,
         onPlayFullScreen: ((LiveStream) -> Void)? = nil,
         onPlayCatchup: @escaping (LiveStream, EPGProgramCell) -> Void = { _, _ in },
@@ -85,6 +89,7 @@ struct EPGGuideView: View {
     ) {
         self.scope = scope
         self.catalogScope = catalogScope
+        self.preferredStreamID = preferredStreamID
         self.onPlay = onPlay
         self.onPlayFullScreen = onPlayFullScreen
         self.onPlayCatchup = onPlayCatchup
@@ -122,6 +127,7 @@ struct EPGGuideView: View {
                     rows: buildRows(for: channels),
                     timeline: timeline,
                     dataVersion: dataVersion,
+                    preferredStreamID: preferredStreamID,
                     onPlay: onPlay,
                     onPlayFullScreen: onPlayFullScreen,
                     onPlayCatchup: onPlayCatchup,
