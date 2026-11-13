@@ -50,6 +50,9 @@
         let url: URL
         let options: KSOptions
         let mode: Mode
+        /// A changing value makes SwiftUI update the existing UIKit host on
+        /// return from full screen, without replacing the decoder or view.
+        var returnGeneration: Int = 0
         let onStateChanged: (KSPlayerLayer, KSPlayerState) -> Void
         var onPlay: ((TimeInterval, TimeInterval) -> Void)?
 
@@ -77,6 +80,7 @@
                 // full screen's hierarchy, and pulling it back would blank
                 // full screen.
                 guard handle.owner == .preview else { return }
+                _ = returnGeneration // Explicitly consume the handoff revision.
                 attachCallbacks()
                 // SwiftUI calls updateUIView for unrelated state changes.
                 // Do not call makeView again while this host already owns
