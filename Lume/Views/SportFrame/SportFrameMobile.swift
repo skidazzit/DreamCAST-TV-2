@@ -236,34 +236,48 @@ struct SportFrameMobile: View {
             let groups = Dictionary(grouping: shownEvents, by: \.league)
             ForEach(groups.keys.sorted(), id: \.self) { league in
                 VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 10) {
-                        if let first = groups[league]?.first {
-                            // Fixture art is often available even when the
-                            // all-leagues catalog omits a badge.
-                            let sport = fixtures.eventSports[first.idEvent] ?? first.strSport ?? ""
-                            let logoURL = first.leagueBadge ?? catalog.badgeURL(
-                                for: league, sport: sport, idLeague: first.idLeague
+                    if let first = groups[league]?.first {
+                        let sport = fixtures.eventSports[first.idEvent] ?? first.strSport ?? ""
+                        let logoURL = first.leagueBadge ?? catalog.badgeURL(
+                            for: league, sport: sport, idLeague: first.idLeague
+                        )
+                        NavigationLink {
+                            SportFrameLeagueDetail(
+                                leagueID: first.idLeague ?? catalog.leagueID(for: league, sport: sport),
+                                leagueName: league,
+                                sport: sport,
+                                initialBadge: logoURL,
+                                onSelectEvent: { selectedEvent = $0 }
                             )
-                            AsyncImage(url: logoURL) { image in
-                                image.resizable().scaledToFit()
-                            } placeholder: {
-                                Image(systemName: "sportscourt")
-                                    .foregroundStyle(.secondary)
-                            }
-                            .frame(width: 36, height: 36)
-                            .task(id: first.idLeague ?? league) {
-                                if first.leagueBadge == nil {
-                                    await catalog.loadBadge(
-                                        for: league, sport: sport, idLeague: first.idLeague
-                                    )
+                        } label: {
+                            HStack(spacing: 10) {
+                                AsyncImage(url: logoURL) { image in
+                                    image.resizable().scaledToFit()
+                                } placeholder: {
+                                    Image(systemName: "sportscourt")
+                                        .foregroundStyle(.secondary)
                                 }
+                                .frame(width: 36, height: 36)
+                                Text(league).font(.headline).lineLimit(2)
+                                Spacer(minLength: 4)
+                                Image(systemName: "chevron.right")
+                                    .font(.subheadline).foregroundStyle(.secondary)
+                            }
+                            .padding(12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(.cyan.opacity(0.22), in: RoundedRectangle(cornerRadius: 12))
+                            .contentShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Open \(league) league page")
+                        .task(id: first.idLeague ?? league) {
+                            if first.leagueBadge == nil {
+                                await catalog.loadBadge(
+                                    for: league, sport: sport, idLeague: first.idLeague
+                                )
                             }
                         }
-                        Text(league).font(.headline).lineLimit(2)
                     }
-                    .padding(12)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.cyan.opacity(0.22), in: RoundedRectangle(cornerRadius: 12))
 
                     ForEach(Array((groups[league] ?? []).prefix(5))) { event in
                         Button { selectedEvent = event } label: {
