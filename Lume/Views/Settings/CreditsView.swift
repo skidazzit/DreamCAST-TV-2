@@ -33,6 +33,11 @@
                         Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
                 }
+                if let url = CreditsInfo.upstreamSourceURL {
+                    Link(destination: url) {
+                        Label("Original Open-Source Project", systemImage: "arrow.up.right.square")
+                    }
+                }
                 if let url = CreditsInfo.licenseURL {
                     Link(destination: url) {
                         HStack {
