@@ -37,7 +37,7 @@ final class DreamCASTTVLocalTransfer {
             token = UUID().uuidString.replacingOccurrences(of: "-", with: "")
             statusText = "Starting local transfer…"
             resultText = nil
-            listener.stateUpdateHandler = { [weak self] state in
+            listener.stateUpdateHandler = { [weak self, weak listener] state in
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     switch state {
@@ -268,7 +268,7 @@ final class DreamCASTTVLocalTransfer {
     #message{white-space:pre-wrap}</style></head>
     <body><h1>DreamCAST TV</h1><p>Local settings backup &amp; restore</p>
     <section><h2>Back Up Settings</h2><p>Save the JSON file to this phone or computer.</p>
-    <a href="./download" download>Download Settings</a></section>
+    <a id="download" href="#" download>Download Settings</a></section>
     <section><h2>Restore Settings</h2>
     <p>Choose a DreamCAST TV settings JSON file. You must approve it on the TV.</p>
     <input id="file" type="file" accept=".json,application/json"><br>
@@ -276,6 +276,7 @@ final class DreamCASTTVLocalTransfer {
     <p>Passwords, account keys, playlists and watch history are not in this file.
     Close this page and stop the transfer on Apple TV when finished.</p>
     <script>
+    document.getElementById('download').href=location.pathname+'/download';
     document.getElementById('restore').onclick=async()=>{
       const file=document.getElementById('file').files[0];
       const message=document.getElementById('message');
@@ -352,7 +353,6 @@ struct TVLocalBackupSettingsPane: View {
                             .font(.headline)
                         Text(verbatim: transfer.transferURL ?? "")
                             .font(.system(size: 22, weight: .semibold, design: .monospaced))
-                            .textSelection(.enabled)
                         Text("Use the web page to download or upload your settings JSON.")
                             .foregroundStyle(.secondary)
                     }
