@@ -164,9 +164,13 @@ final class DreamCASTTVLocalTransfer {
         let contentLength = lengthLine.flatMap {
             Int($0.dropFirst("content-length:".count).trimmingCharacters(in: .whitespaces))
         }
-        if method == "POST" && (contentLength == nil || contentLength! > DreamCASTLocalSettingsBackup.maxBytes || contentLength! < 1) {
-            respond(connection, status: "413 Payload Too Large", text: "Invalid file size.")
-            return
+        if method == "POST" {
+            guard let contentLength,
+                  contentLength > 0,
+                  contentLength <= DreamCASTLocalSettingsBackup.maxBytes else {
+                respond(connection, status: "413 Payload Too Large", text: "Invalid file size.")
+                return
+            }
         }
         let length = method == "POST" ? (contentLength ?? 0) : 0
         let needed = marker.upperBound + length
