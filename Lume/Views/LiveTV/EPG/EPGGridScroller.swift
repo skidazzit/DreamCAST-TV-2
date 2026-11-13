@@ -52,8 +52,10 @@ struct EPGGridScroller: View {
         @State private var channelDragStartY: CGFloat?
         /// A drag must never become a channel-select tap on release.
         @State private var lastChannelDragEndedAt: TimeInterval = -.infinity
-        @State private var selectedChannelID: String?
     #endif
+    /// Tracks the tapped channel for the iPhone name marquee.
+    /// Other platforms ignore this value.
+    @State private var selectedChannelID: String?
     @State private var selection: EPGSelection?
     @State private var scrollRequest: EPGScrollRequest?
     #if os(tvOS)
@@ -109,9 +111,7 @@ struct EPGGridScroller: View {
                     metrics: metrics,
                     sync: sync,
                     virtualFocus: gridVirtualFocus,
-                    #if os(iOS)
-                        selectedChannelID: selectedChannelID,
-                    #endif
+                    selectedChannelID: selectedChannelID,
                     onSelectChannel: { row in
                         #if os(iOS)
                             // Some iOS versions deliver the Button release
