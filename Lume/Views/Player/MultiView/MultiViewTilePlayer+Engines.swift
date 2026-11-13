@@ -124,13 +124,15 @@ struct MultiViewKSTile: View {
                     )
                     .id(previewHandle.returnGeneration)
                 #else
-                    // Keep the exact same host on iPhone, even after Back.
-                    // updateUIView reattaches the retained render view.
+                    // A new return revision updates this same UIKit host.
+                    // Do not use .id(): that destroys the host and can freeze
+                    // the retained decoder after the full-screen cover closes.
                     KSHostedPlayerSurface(
                         coordinator: coordinator,
                         url: media.url,
                         options: makeOptions(),
                         mode: .preview(previewHandle),
+                        returnGeneration: previewHandle.returnGeneration,
                         onStateChanged: stateChanged
                     )
                 #endif
