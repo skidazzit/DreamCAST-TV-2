@@ -71,6 +71,7 @@ struct SportFrameHome: View {
     @State private var selectedLeague = "All Leagues"
     @State private var expandedLeagueSport: String?
     @State private var selectedEvent: SportEvent?
+    @State private var openedLeague: SportFrameLeagueRoute?
     @State private var playingMedia: PlayableMedia?
     @State private var premiumKeyInput = ""
     @State private var keyMessage: String?
@@ -168,6 +169,9 @@ struct SportFrameHome: View {
                 .padding(.horizontal, 55)
                 .padding(.vertical, 36)
             }
+        }
+        .fullScreenCover(item: $openedLeague) { league in
+            SportFrameLeagueDetailTV(league: league)
         }
         .fullScreenCover(item: $selectedEvent) { event in
             SportFrameMatchSheet(event: event, onPlay: { channel in
@@ -304,23 +308,47 @@ struct SportFrameHome: View {
                       alignment: .leading, spacing: 24) {
                 ForEach(visibleLeagues, id: \.0) { league, events in
                     VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 17) {
-                            AsyncImage(url: catalog.badgeURL(for: league,
-                                                              sport: fixtures.eventSports[events[0].idEvent] ?? "")) {
-                                image in image.resizable().scaledToFit()
-                            } placeholder: {
-                                Image(systemName: "shield.lefthalf.filled")
+                        let first = events[0]
+                        let sport = fixtures.eventSports[first.idEvent] ?? first.strSport ?? ""
+                        let leagueID = first.idLeague ?? catalog.leagueID(for: league, sport: sport)
+                        let logoURL = first.leagueBadge ?? catalog.badgeURL(
+                            for: league, sport: sport, idLeague: leagueID
+                        )
+                        Button {
+                            openedLeague = SportFrameLeagueRoute(
+                                leagueID: leagueID, leagueName: league,
+                                sport: sport, badgeURL: logoURL
+                            )
+                        } label: {
+                            HStack(spacing: 17) {
+                                AsyncImage(url: logoURL) { image in
+                                    image.resizable().scaledToFit()
+                                } placeholder: {
+                                    Image(systemName: "shield.lefthalf.filled")
+                                }
+                                .frame(width: 62, height: 62)
+                                Text(league).font(.system(size: 30, weight: .bold)).lineLimit(1)
+                                Spacer(minLength: 0)
+                                Image(systemName: "chevron.right").font(.title3)
                             }
-                            .frame(width: 62, height: 62)
-                            Text(league).font(.system(size: 30, weight: .bold)).lineLimit(1)
-                            Spacer(minLength: 0)
+                            .padding(.horizontal, 22)
+                            .frame(height: 92)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(
+                                LinearGradient(
+                                    colors: [accent.opacity(0.67), .blue.opacity(0.16)],
+                                    startPoint: .leading, endPoint: .trailing
+                                ),
+                                in: RoundedRectangle(cornerRadius: 18)
+                            )
                         }
-                        .padding(.horizontal, 22)
-                        .frame(height: 92)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(LinearGradient(colors: [accent.opacity(0.67), .blue.opacity(0.16)],
-                                                   startPoint: .leading, endPoint: .trailing),
-                                    in: RoundedRectangle(cornerRadius: 18))
+                        .buttonStyle(TVCardButtonStyle(focusScale: 1.02))
+                        .accessibilityLabel("Open \(league) league page")
+                        .task(id: leagueID ?? league) {
+                            if first.leagueBadge == nil {
+                                await catalog.loadBadge(for: league, sport: sport, idLeague: leagueID)
+                            }
+                        }
 
                         ForEach(events) { event in
                             Button { selectedEvent = event } label: { SportFrameFixtureCard(event: event) }
