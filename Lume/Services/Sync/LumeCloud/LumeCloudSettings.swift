@@ -41,11 +41,17 @@ nonisolated struct LumeCloudSettings {
     /// iCloud.
     var backend: SyncBackendSelection {
         get {
-            let stored = defaults.string(forKey: Key.backend).flatMap(SyncBackendSelection.init(rawValue:)) ?? Self.defaultBackend
-            #if SIDE_LOAD
-                return stored == .icloud ? .off : stored
+            #if os(tvOS)
+                // DreamCAST TV on Apple TV uses local storage only.
+                // Do not delete any past cloud account or its remote data.
+                return .off
             #else
-                return stored
+                let stored = defaults.string(forKey: Key.backend).flatMap(SyncBackendSelection.init(rawValue:)) ?? Self.defaultBackend
+                #if SIDE_LOAD
+                    return stored == .icloud ? .off : stored
+                #else
+                    return stored
+                #endif
             #endif
         }
         nonmutating set { defaults.set(newValue.rawValue, forKey: Key.backend) }
