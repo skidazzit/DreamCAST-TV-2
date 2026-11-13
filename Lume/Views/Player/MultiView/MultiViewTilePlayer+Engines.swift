@@ -114,20 +114,25 @@ struct MultiViewKSTile: View {
     private var surface: some View {
         #if os(tvOS) || os(iOS)
             if let previewHandle = role.previewHandle {
-                KSHostedPlayerSurface(
-                    coordinator: coordinator,
-                    url: media.url,
-                    options: makeOptions(),
-                    mode: .preview(previewHandle),
-                    onStateChanged: stateChanged
-                )
-                // On iPhone keep the SAME UIViewRepresentable host across
-                // fullscreen dismissal. Recreating it can trigger another
-                // makeView/prepare pass and reload the provider stream.
-                // The host's updateUIView reattaches the existing video view
-                // when full screen gives it back.
                 #if os(tvOS)
+                    KSHostedPlayerSurface(
+                        coordinator: coordinator,
+                        url: media.url,
+                        options: makeOptions(),
+                        mode: .preview(previewHandle),
+                        onStateChanged: stateChanged
+                    )
                     .id(previewHandle.returnGeneration)
+                #else
+                    // Keep the exact same host on iPhone, even after Back.
+                    // updateUIView reattaches the retained render view.
+                    KSHostedPlayerSurface(
+                        coordinator: coordinator,
+                        url: media.url,
+                        options: makeOptions(),
+                        mode: .preview(previewHandle),
+                        onStateChanged: stateChanged
+                    )
                 #endif
             } else {
                 videoPlayer
