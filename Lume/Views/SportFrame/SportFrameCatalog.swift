@@ -48,6 +48,10 @@ final class SportFrameCatalog: ObservableObject {
             .sorted { $0.strLeague.localizedStandardCompare($1.strLeague) == .orderedAscending }
     }
 
+    func leagueID(for leagueName: String, sport: String) -> String? {
+        matchingLeague(leagueName, sport: sport)?.idLeague
+    }
+
     func badgeURL(for leagueName: String, sport: String, idLeague: String? = nil) -> URL? {
         if let idLeague, let cached = badgeURLs[idLeague] { return cached }
         guard let league = matchingLeague(leagueName, sport: sport, idLeague: idLeague) else { return nil }
