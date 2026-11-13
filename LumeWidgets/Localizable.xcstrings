@@ -599,58 +599,64 @@
       "comment" : "Empty on-now widget",
       "extractionState" : "manual",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No favorite channels. Favorite channels in DreamCAST TV to see their guide here."
+          }
+        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "لا توجد قنوات مفضلة. أضف قنوات إلى المفضلة في Lume لرؤية دليل برامجها هنا."
+            "value" : "لا توجد قنوات مفضلة. أضف قنوات إلى المفضلة في DreamCAST TV لرؤية دليل برامجها هنا."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keine Favoritensender. Füge in Lume Sender zu deinen Favoriten hinzu, um hier ihr Programm zu sehen."
+            "value" : "Keine Favoritensender. Füge in DreamCAST TV Sender zu deinen Favoriten hinzu, um hier ihr Programm zu sehen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No hay canales favoritos. Añade canales a favoritos en Lume para ver aquí su guía."
+            "value" : "No hay canales favoritos. Añade canales a favoritos en DreamCAST TV para ver aquí su guía."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aucune chaîne favorite. Ajoutez des chaînes aux favoris dans Lume pour voir leur guide ici."
+            "value" : "Aucune chaîne favorite. Ajoutez des chaînes aux favoris dans DreamCAST TV pour voir leur guide ici."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nessun canale preferito. Aggiungi canali ai preferiti in Lume per vedere qui la loro guida."
+            "value" : "Nessun canale preferito. Aggiungi canali ai preferiti in DreamCAST TV per vedere qui la loro guida."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "お気に入りのチャンネルがありません。Lumeでチャンネルをお気に入りに追加すると、ここに番組表が表示されます。"
+            "value" : "お気に入りのチャンネルがありません。DreamCAST TVでチャンネルをお気に入りに追加すると、ここに番組表が表示されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "즐겨찾는 채널이 없습니다. Lume에서 채널을 즐겨찾기에 추가하면 여기에 편성표가 표시됩니다."
+            "value" : "즐겨찾는 채널이 없습니다. DreamCAST TV에서 채널을 즐겨찾기에 추가하면 여기에 편성표가 표시됩니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sem canais favoritos. Adicione canais aos favoritos no Lume para ver aqui o guia."
+            "value" : "Sem canais favoritos. Adicione canais aos favoritos no DreamCAST TV para ver aqui o guia."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有收藏的频道。在 Lume 中收藏频道即可在此查看节目单。"
+            "value" : "没有收藏的频道。在 DreamCAST TV 中收藏频道即可在此查看节目单。"
           }
         }
       }
@@ -659,58 +665,64 @@
       "comment" : "Empty favorites widget",
       "extractionState" : "manual",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No favorites yet. Mark titles and channels as favorites in DreamCAST TV."
+          }
+        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "لا توجد عناصر مفضلة بعد. أضف عناوين وقنوات إلى المفضلة في Lume."
+            "value" : "لا توجد عناصر مفضلة بعد. أضف عناوين وقنوات إلى المفضلة في DreamCAST TV."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Noch keine Favoriten. Markiere Titel und Sender in Lume als Favoriten."
+            "value" : "Noch keine Favoriten. Markiere Titel und Sender in DreamCAST TV als Favoriten."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aún no hay favoritos. Marca títulos y canales como favoritos en Lume."
+            "value" : "Aún no hay favoritos. Marca títulos y canales como favoritos en DreamCAST TV."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aucun favori pour l'instant. Ajoutez des titres et des chaînes aux favoris dans Lume."
+            "value" : "Aucun favori pour l'instant. Ajoutez des titres et des chaînes aux favoris dans DreamCAST TV."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ancora nessun preferito. Aggiungi titoli e canali ai preferiti in Lume."
+            "value" : "Ancora nessun preferito. Aggiungi titoli e canali ai preferiti in DreamCAST TV."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "お気に入りはまだありません。Lumeで作品やチャンネルをお気に入りに追加しましょう。"
+            "value" : "お気に入りはまだありません。DreamCAST TVで作品やチャンネルをお気に入りに追加しましょう。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "아직 즐겨찾기가 없습니다. Lume에서 콘텐츠와 채널을 즐겨찾기에 추가하세요."
+            "value" : "아직 즐겨찾기가 없습니다. DreamCAST TV에서 콘텐츠와 채널을 즐겨찾기에 추가하세요."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ainda sem favoritos. Marque títulos e canais como favoritos no Lume."
+            "value" : "Ainda sem favoritos. Marque títulos e canais como favoritos no DreamCAST TV."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "还没有收藏。在 Lume 中将内容和频道加入收藏。"
+            "value" : "还没有收藏。在 DreamCAST TV 中将内容和频道加入收藏。"
           }
         }
       }
@@ -779,58 +791,64 @@
       "comment" : "Empty continue-watching widget",
       "extractionState" : "manual",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing in progress. Open DreamCAST TV and start watching."
+          }
+        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "لا يوجد شيء قيد المشاهدة. افتح Lume وابدأ المشاهدة."
+            "value" : "لا يوجد شيء قيد المشاهدة. افتح DreamCAST TV وابدأ المشاهدة."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nichts angefangen. Öffne Lume und starte die Wiedergabe."
+            "value" : "Nichts angefangen. Öffne DreamCAST TV und starte die Wiedergabe."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nada en curso. Abre Lume y empieza a ver algo."
+            "value" : "Nada en curso. Abre DreamCAST TV y empieza a ver algo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rien en cours. Ouvrez Lume et lancez une lecture."
+            "value" : "Rien en cours. Ouvrez DreamCAST TV et lancez une lecture."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nessun contenuto in corso. Apri Lume e inizia a guardare."
+            "value" : "Nessun contenuto in corso. Apri DreamCAST TV e inizia a guardare."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "視聴中の作品はありません。Lumeを開いて視聴を始めましょう。"
+            "value" : "視聴中の作品はありません。DreamCAST TVを開いて視聴を始めましょう。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "시청 중인 콘텐츠가 없습니다. Lume을 열고 시청을 시작하세요."
+            "value" : "시청 중인 콘텐츠가 없습니다. DreamCAST TV을 열고 시청을 시작하세요."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nada em curso. Abra o Lume e comece a assistir."
+            "value" : "Nada em curso. Abra o DreamCAST TV e comece a assistir."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有观看中的内容。打开 Lume 开始观看。"
+            "value" : "没有观看中的内容。打开 DreamCAST TV 开始观看。"
           }
         }
       }
