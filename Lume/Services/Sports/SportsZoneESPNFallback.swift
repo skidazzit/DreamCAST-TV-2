@@ -8,8 +8,8 @@ nonisolated struct SportsZoneESPNLeague: Sendable {
     let league: String
 
     static func map(name: String, sport: String) -> Self? {
-        let key = ChannelMatcher.normalize(name)
-        let requestedSport = ChannelMatcher.normalize(sport)
+        let key = SportsMatcher.normalize(name).trimmingCharacters(in: .whitespaces)
+        let requestedSport = SportsMatcher.normalize(sport).trimmingCharacters(in: .whitespaces)
         let mappings: [String: (String, String)] = [
             "nba": ("basketball", "nba"),
             "national basketball association": ("basketball", "nba"),
