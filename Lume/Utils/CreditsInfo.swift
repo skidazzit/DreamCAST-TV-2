@@ -125,8 +125,11 @@ nonisolated enum CreditsInfo {
     // MARK: - Lume
 
     static let licenseName = "GNU AGPL v3"
-    static let sourceCode = "https://github.com/bilipp/Lume"
-    static let licenseURLString = "https://github.com/bilipp/Lume/blob/main/LICENSE"
+    static let sourceCode = "https://github.com/skidazzit/DreamCAST-TV-2"
+    static let upstreamSource = "https://github.com/bilipp/Lume"
+    static let licenseURLString = "https://github.com/skidazzit/DreamCAST-TV-2/blob/main/LICENSE"
+
+    static var upstreamSourceURL: URL? { URL(string: upstreamSource) }
 
     static var sourceCodeURL: URL? {
         URL(string: sourceCode)
