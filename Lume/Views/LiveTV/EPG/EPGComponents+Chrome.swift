@@ -27,6 +27,7 @@ struct EPGChannelCell: View {
     let row: EPGChannelRow
     let metrics: EPGMetrics
     var highlight = EPGChannelCellHighlight.none
+    var selected = false
 
     private var isHub: Bool {
         highlight == .hub
@@ -36,11 +37,25 @@ struct EPGChannelCell: View {
         let shape = RoundedRectangle(cornerRadius: metrics.channelCornerRadius, style: .continuous)
         HStack(spacing: metrics.channelCellSpacing) {
             logo
-            Text(row.name)
-                .font(metrics.channelNameFont)
-                .foregroundStyle(isHub ? EPGColors.cardText : .primary)
-                .lineLimit(metrics.channelNameLineLimit)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            #if os(iOS)
+                if selected {
+                    EPGSelectedChannelName(name: row.name, font: metrics.channelNameFont)
+                        .foregroundStyle(isHub ? EPGColors.cardText : .primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    Text(row.name)
+                        .font(metrics.channelNameFont)
+                        .foregroundStyle(isHub ? EPGColors.cardText : .primary)
+                        .lineLimit(metrics.channelNameLineLimit)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            #else
+                Text(row.name)
+                    .font(metrics.channelNameFont)
+                    .foregroundStyle(isHub ? EPGColors.cardText : .primary)
+                    .lineLimit(metrics.channelNameLineLimit)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            #endif
             if row.catchupCapable {
                 CatchupBadge(days: nil)
                     .font(metrics.catchupGlyphFont)
@@ -79,26 +94,82 @@ struct EPGChannelCell: View {
     }
 }
 
+#if os(iOS)
+    /// Only a tapped channel runs this light, single-line marquee. Unselected
+    /// rows remain plain Text, avoiding 30fps work across a long channel list.
+    private struct EPGSelectedChannelName: View {
+        let name: String
+        let font: Font
+        @State private var fullWidth: CGFloat = 0
+        @State private var startedAt = Date()
+
+        var body: some View {
+            GeometryReader { geometry in
+                let overflow = max(0, fullWidth - geometry.size.width)
+                TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: overflow <= 1)) { timeline in
+                    Text(name)
+                        .font(font)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .offset(x: -travelOffset(at: timeline.date, distance: overflow))
+                        .frame(width: geometry.size.width, alignment: .leading)
+                        .clipped()
+                }
+            }
+            .background {
+                Text(name)
+                    .font(font)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .hidden()
+                    .background {
+                        GeometryReader { measured in
+                            Color.clear
+                                .onAppear { fullWidth = measured.size.width }
+                                .onChange(of: measured.size.width) { _, width in fullWidth = width }
+                        }
+                    }
+            }
+            .frame(height: 22)
+            .accessibilityLabel(Text(name))
+        }
+
+        /// Pause at each end so long station names remain easy to read.
+        private func travelOffset(at date: Date, distance: CGFloat) -> CGFloat {
+            guard distance > 1 else { return 0 }
+            let seconds = distance / 35
+            let cycle = 1.0 + seconds + 1.0 + seconds
+            let phase = date.timeIntervalSince(startedAt).truncatingRemainder(dividingBy: cycle)
+            if phase < 1 { return 0 }
+            if phase < 1 + seconds { return (phase - 1) * 35 }
+            if phase < 2 + seconds { return distance }
+            return max(0, distance - (phase - 2 - seconds) * 35)
+        }
+    }
+#endif
+
 #if !os(tvOS)
     /// Draws a channel button as its cell: the hub card while pressed or under
     /// keyboard focus.
     struct EPGChannelButtonStyle: ButtonStyle {
         let row: EPGChannelRow
         let metrics: EPGMetrics
+        var selected = false
 
         func makeBody(configuration: Configuration) -> some View {
-            StyleBody(row: row, metrics: metrics, isPressed: configuration.isPressed)
+            StyleBody(row: row, metrics: metrics, selected: selected, isPressed: configuration.isPressed)
         }
 
         private struct StyleBody: View {
             let row: EPGChannelRow
             let metrics: EPGMetrics
+            let selected: Bool
             let isPressed: Bool
             @Environment(\.isFocused) private var isFocused
 
             var body: some View {
                 let highlighted = isFocused || isPressed
-                EPGChannelCell(row: row, metrics: metrics, highlight: highlighted ? .hub : .none)
+                EPGChannelCell(row: row, metrics: metrics, highlight: highlighted ? .hub : .none, selected: selected)
                     .contentShape(Rectangle())
                     .animation(.easeOut(duration: 0.15), value: highlighted)
             }
