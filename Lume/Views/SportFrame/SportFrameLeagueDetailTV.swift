@@ -102,6 +102,7 @@ struct SportFrameLeagueDetailTV: View {
     private var fixtures: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Live & upcoming matches").font(.system(size: 38, weight: .bold))
+                .focusable()
             if store.loadingMatches { ProgressView("Loading league matches…") }
             if let error = store.matchError {
                 Text(error).foregroundStyle(.orange)
@@ -123,6 +124,7 @@ struct SportFrameLeagueDetailTV: View {
             }
             if !store.recentResults.isEmpty {
                 Text("Recent results").font(.title2.bold()).foregroundStyle(.secondary)
+                    .focusable()
                 LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 16) {
                     ForEach(store.recentResults) { event in
                         Button { selectedMatch = event } label: { sportsDBFixture(event) }
@@ -197,6 +199,7 @@ struct SportFrameLeagueDetailTV: View {
         VStack(alignment: .leading, spacing: 18) {
             HStack {
                 Text("League standings").font(.system(size: 38, weight: .bold))
+                    .focusable()
                 Spacer()
                 if !store.standings.isEmpty {
                     Text("Source: \(store.standingsSource)")
@@ -211,6 +214,7 @@ struct SportFrameLeagueDetailTV: View {
             ForEach(store.tableGroups) { group in
                 VStack(alignment: .leading, spacing: 12) {
                     Text(group.name).font(.title3.bold())
+                        .focusable()
                     tableHeader
                     ForEach(group.standings) { row in standing(row) }
                 }
@@ -223,6 +227,7 @@ struct SportFrameLeagueDetailTV: View {
                     .foregroundStyle(.secondary).font(.subheadline)
             }
         }
+        .focusSection()
     }
 
     private var usesRecordColumns: Bool {
@@ -264,6 +269,7 @@ struct SportFrameLeagueDetailTV: View {
         }
         .font(.system(size: 22))
         .padding(.vertical, 7)
+        .focusable()
         .overlay(alignment: .top) {
             Rectangle().fill(.white.opacity(0.1)).frame(height: 1)
         }
@@ -272,6 +278,7 @@ struct SportFrameLeagueDetailTV: View {
     private var highlights: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Recent match highlights").font(.system(size: 38, weight: .bold))
+                .focusable()
             if store.loadingHighlights { ProgressView("Loading highlights…") }
             if let error = store.highlightError { Text(error).foregroundStyle(.orange) }
             if !store.loadingHighlights && store.highlights.isEmpty && store.highlightError == nil {
@@ -306,6 +313,7 @@ struct SportFrameLeagueDetailTV: View {
 
     private func missing(_ label: String) -> some View {
         Text(label).font(.title3).foregroundStyle(.secondary).padding(20)
+            .focusable()
     }
 }
 #endif
