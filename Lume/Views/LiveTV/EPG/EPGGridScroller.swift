@@ -31,6 +31,8 @@ struct EPGGridScroller: View {
     /// Bumped by `EPGGuideView` when the underlying cells change; the grid
     /// subtree is `Equatable`-gated on it.
     let dataVersion: Int
+    /// Saved stream highlighted on re-entering the Live TV guide.
+    var preferredStreamID: String? = nil
     let onPlay: (LiveStream) -> Void
     var onPlayFullScreen: ((LiveStream) -> Void)? = nil
     let onPlayCatchup: (LiveStream, EPGProgramCell) -> Void
@@ -55,6 +57,8 @@ struct EPGGridScroller: View {
         @State private var lastChannelDragEndedAt: TimeInterval = -.infinity
         /// 0: none, 1: highlighted, 2: mini-player, 3: full screen.
         @State private var channelTapStage = 0
+        @AppStorage(PlayerSettings.tvGuidePreviewModeKey)
+        private var guidePreviewModeRaw = PlayerSettings.tvGuidePreviewModeDefault.rawValue
     #endif
     /// Tracks the tapped channel for the iPhone name marquee.
     /// Other platforms ignore this value.
@@ -204,6 +208,15 @@ struct EPGGridScroller: View {
             )
             .recordActionFlow(toastPlacement: .sheet)
         }
+        #if os(iOS)
+            .onChange(of: preferredStreamID, initial: true) { _, restoredID in
+                // Mini-player playback is already managed by LiveTVView.
+                // Mark this row as selected, without calling onPlay twice.
+                guard let restoredID, rows.contains(where: { $0.id == restoredID }) else { return }
+                selectedChannelID = restoredID
+                channelTapStage = GuidePreviewMode(storedValue: guidePreviewModeRaw).playsVideo ? 2 : 1
+            }
+        #endif
     }
 
     private var grid: some View {
@@ -215,6 +228,7 @@ struct EPGGridScroller: View {
             sync: sync,
             dataVersion: dataVersion,
             nowTarget: nowScrollTarget,
+            initialRowOffset: preferredGuideRowOffset,
             scrollRequest: scrollRequest,
             virtualFocus: gridVirtualFocus,
             onPlay: { row, cell in playCell(row, cell) },
@@ -285,6 +299,15 @@ struct EPGGridScroller: View {
             )
         }
     #endif
+
+    /// Locate the already-playing mini-player's row in the frozen channel
+    /// column; EPGGrid uses this as its initial vertical scroll offset.
+    private var preferredGuideRowOffset: CGFloat {
+        guard let streamID = preferredStreamID,
+              let index = rows.firstIndex(where: { $0.id == streamID })
+        else { return 0 }
+        return metrics.rowOriginY(index)
+    }
 
     /// Scroll offset that parks `date` `metrics.nowLeadInMinutes` inside the
     /// grid's leading edge.
