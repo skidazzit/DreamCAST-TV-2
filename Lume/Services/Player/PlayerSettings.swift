@@ -23,7 +23,7 @@ nonisolated enum PlayerEngineKind: String, CaseIterable, Identifiable {
         case .vlcKit: "VLCKit"
         case .ksPlayer: "KSPlayer"
         case .avPlayer: "AVPlayer"
-        case .lumeEngine: "Lume Engine"
+        case .lumeEngine: "DreamCAST TV Engine"
         case .aetherEngine: "AetherEngine"
         }
     }
