@@ -114,16 +114,16 @@ struct MultiViewKSTile: View {
     private var surface: some View {
         #if os(tvOS)
             if let previewHandle = role.previewHandle {
+                // Keep one UIKit host and the same decoder across full-screen
+                // return. A new generation updates the existing view, not .id.
                 KSHostedPlayerSurface(
                     coordinator: coordinator,
                     url: media.url,
                     options: makeOptions(),
                     mode: .preview(previewHandle),
+                    returnGeneration: previewHandle.returnGeneration,
                     onStateChanged: stateChanged
                 )
-                // Rebuild only the UIView host after full-screen closes.
-                // The owning KS coordinator stays alive, so no URL reload.
-                .id(previewHandle.returnGeneration)
             } else {
                 videoPlayer
             }
