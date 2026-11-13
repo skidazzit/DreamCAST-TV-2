@@ -52,6 +52,7 @@ struct EPGGridScroller: View {
         @State private var channelDragStartY: CGFloat?
         /// A drag must never become a channel-select tap on release.
         @State private var lastChannelDragEndedAt: TimeInterval = -.infinity
+        @State private var selectedChannelID: String?
     #endif
     @State private var selection: EPGSelection?
     @State private var scrollRequest: EPGScrollRequest?
@@ -108,6 +109,9 @@ struct EPGGridScroller: View {
                     metrics: metrics,
                     sync: sync,
                     virtualFocus: gridVirtualFocus,
+                    #if os(iOS)
+                        selectedChannelID: selectedChannelID,
+                    #endif
                     onSelectChannel: { row in
                         #if os(iOS)
                             // Some iOS versions deliver the Button release
@@ -116,6 +120,9 @@ struct EPGGridScroller: View {
                             guard channelDragStartY == nil,
                                   ProcessInfo.processInfo.systemUptime - lastChannelDragEndedAt > 0.25
                             else { return }
+                        #endif
+                        #if os(iOS)
+                            selectedChannelID = row.id
                         #endif
                         onPlay(row.stream)
                     },
