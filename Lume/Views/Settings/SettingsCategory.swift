@@ -37,7 +37,12 @@ enum SettingsCategory: String, CaseIterable, Identifiable {
         case .downloads: "Downloads"
         case .iCloud: "Sync"
         case .connectedServices: "Connected Services"
-        case .storage: "Storage & Cache"
+        case .storage:
+            #if os(tvOS)
+                "Backup & Storage"
+            #else
+                "Storage & Cache"
+            #endif
         case .help: "Help & Feedback"
         case .about: "About"
         case .developer: "Developer"
