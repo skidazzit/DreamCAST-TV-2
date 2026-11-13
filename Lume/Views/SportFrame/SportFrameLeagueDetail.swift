@@ -85,6 +85,8 @@ final class SportFrameLeagueDetailStore: ObservableObject {
     @Published private(set) var liveUpcoming: [SportEvent] = []
     @Published private(set) var recentResults: [SportEvent] = []
     @Published private(set) var standings: [SportFrameLeagueStanding] = []
+    @Published private(set) var standingsSource = "TheSportsDB"
+    @Published private(set) var espnMatches: [SportsZoneESPNMatch] = []
     @Published private(set) var highlights: [SportFrameLeagueHighlight] = []
     @Published private(set) var season: String?
     @Published private(set) var badgeURL: URL?
@@ -105,15 +107,16 @@ final class SportFrameLeagueDetailStore: ObservableObject {
         }
     }
 
-    func refresh(leagueID: String?) async {
+    func refresh(leagueID: String?, leagueName: String, sport: String) async {
         guard let leagueID, !leagueID.isEmpty else {
             matchError = "TheSportsDB has no league ID for this competition."
             tableError = "No league standings available."
             highlightError = "No league highlights available."
             return
         }
-        async let schedule: Void = loadMatches(leagueID: leagueID)
-        async let table: Void = loadStandings(leagueID: leagueID)
+        let espn = SportsZoneESPNLeague.map(name: leagueName, sport: sport)
+        async let schedule: Void = loadMatches(leagueID: leagueID, espn: espn)
+        async let table: Void = loadStandings(leagueID: leagueID, espn: espn)
         async let video: Void = loadHighlights(leagueID: leagueID)
         _ = await (schedule, table, video)
     }
@@ -133,7 +136,7 @@ final class SportFrameLeagueDetailStore: ObservableObject {
         return data
     }
 
-    private func loadMatches(leagueID: String) async {
+    private func loadMatches(leagueID: String, espn: SportsZoneESPNLeague?) async {
         loadingMatches = true
         matchError = nil
         defer { loadingMatches = false }
@@ -172,12 +175,30 @@ final class SportFrameLeagueDetailStore: ObservableObject {
             .filter { !$0.isLive && !$0.isUpcoming }
             .sorted { ($0.startDate ?? .distantPast) > ($1.startDate ?? .distantPast) }
             .prefix(4).map { $0 }
-        if today == nil && next == nil && past == nil {
+        espnMatches = []
+        // The Free API may return one next match. Fill sparse fixtures from
+        // ESPN without changing TheSportsDB IDs used for broadcaster lookups.
+        if liveUpcoming.count < 4, let espn {
+            let other = await SportsZoneESPNFallback.shared.matches(for: espn)
+            guard !Task.isCancelled else { return }
+            espnMatches = other.filter { $0.isLive || $0.isUpcoming }
+                .filter { match in
+                    !liveUpcoming.contains { event in
+                        let home = ChannelMatcher.normalize(event.strHomeTeam ?? "")
+                        let away = ChannelMatcher.normalize(event.strAwayTeam ?? "")
+                        let sameTeams = home == ChannelMatcher.normalize(match.home)
+                            && away == ChannelMatcher.normalize(match.away)
+                        let sameKickoff = abs((event.startDate ?? .distantPast).timeIntervalSince(match.start)) < 4 * 3600
+                        return sameTeams && sameKickoff
+                    }
+                }.prefix(10).map { $0 }
+        }
+        if today == nil && next == nil && past == nil && espnMatches.isEmpty {
             matchError = "Could not load league matches. Pull down to retry."
         }
     }
 
-    private func loadStandings(leagueID: String) async {
+    private func loadStandings(leagueID: String, espn: SportsZoneESPNLeague?) async {
         loadingStandings = true
         tableError = nil
         defer { loadingStandings = false }
@@ -199,6 +220,26 @@ final class SportFrameLeagueDetailStore: ObservableObject {
             season = info.strCurrentSeason
             badgeURL = [info.strBadge, info.strLogo].compactMap { $0 }
                 .first { !$0.isEmpty }.flatMap(URL.init(string:))
+        }
+        standingsSource = "TheSportsDB"
+        // Free API tables can stop at five entries. ESPN fills known leagues
+        // only when it returns a more complete set of teams.
+        if standings.count < 8, let espn {
+            let replacement = await SportsZoneESPNFallback.shared.standings(for: espn)
+            guard !Task.isCancelled else { return }
+            if replacement.count > standings.count {
+                standings = replacement.map { row in
+                    SportFrameLeagueStanding(
+                        idStanding: row.id, idTeam: nil, strTeam: row.name,
+                        strBadge: row.logo?.absoluteString, strGroup: row.group,
+                        strSeason: nil, intRank: row.rank, intPlayed: row.played,
+                        intWin: row.wins, intDraw: row.draws, intLoss: row.losses,
+                        intGoalDifference: row.difference, intPoints: row.points
+                    )
+                }
+                standingsSource = "ESPN"
+                tableError = nil
+            }
         }
         if season == nil { season = standings.first?.strSeason }
     }
@@ -302,15 +343,15 @@ struct SportFrameLeagueDetail: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    Task { await store.refresh(leagueID: leagueID) }
+                    Task { await store.refresh(leagueID: leagueID, leagueName: leagueName, sport: sport) }
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
                 .accessibilityLabel("Refresh league")
             }
         }
-        .task(id: leagueID) { await store.refresh(leagueID: leagueID) }
-        .refreshable { await store.refresh(leagueID: leagueID) }
+        .task(id: leagueID) { await store.refresh(leagueID: leagueID, leagueName: leagueName, sport: sport) }
+        .refreshable { await store.refresh(leagueID: leagueID, leagueName: leagueName, sport: sport) }
     }
 
     private var matchesSection: some View {
@@ -318,12 +359,17 @@ struct SportFrameLeagueDetail: View {
             sectionTitle("Live & upcoming matches", symbol: "play.circle")
             if store.loadingMatches { ProgressView("Loading league matches…") }
             if let error = store.matchError { Text(error).font(.subheadline).foregroundStyle(.orange) }
-            if !store.loadingMatches && store.liveUpcoming.isEmpty && store.matchError == nil {
+            if !store.loadingMatches && store.liveUpcoming.isEmpty && store.espnMatches.isEmpty && store.matchError == nil {
                 emptyMessage("No live or upcoming matches returned for this league.")
             }
             ForEach(store.liveUpcoming) { event in
                 Button { onSelectEvent(event) } label: { fixtureRow(event) }
                     .buttonStyle(.plain)
+            }
+            if !store.espnMatches.isEmpty {
+                Text("More fixtures from ESPN")
+                    .font(.subheadline.bold()).foregroundStyle(.secondary)
+                ForEach(store.espnMatches) { match in espnFixtureRow(match) }
             }
             if !store.recentResults.isEmpty {
                 Text("Recent results").font(.subheadline.bold()).foregroundStyle(.secondary)
@@ -362,6 +408,31 @@ struct SportFrameLeagueDetail: View {
         .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
     }
 
+    private func espnFixtureRow(_ match: SportsZoneESPNMatch) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 9) {
+                teamRow(match.home, image: match.homeLogo)
+                teamRow(match.away, image: match.awayLogo)
+            }
+            Spacer(minLength: 4)
+            VStack(alignment: .trailing, spacing: 5) {
+                if match.isLive || match.isFinal {
+                    Text("\(match.homeScore ?? "-") : \(match.awayScore ?? "-")")
+                        .font(.headline.monospacedDigit())
+                } else {
+                    Text(match.start.formatted(date: .omitted, time: .shortened))
+                        .font(.subheadline.weight(.semibold))
+                }
+                Text(match.isLive ? "LIVE" : match.status)
+                    .font(.caption).foregroundStyle(match.isLive ? .green : .secondary)
+                Text("ESPN • \(match.start.formatted(date: .abbreviated, time: .omitted))")
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+        }
+        .padding(12)
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+    }
+
     private func teamRow(_ name: String, image: URL?) -> some View {
         HStack(spacing: 9) {
             AsyncImage(url: image) { $0.resizable().scaledToFit() }
@@ -373,11 +444,17 @@ struct SportFrameLeagueDetail: View {
 
     private var standingsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionTitle("League standings", symbol: "list.number")
+            HStack {
+                sectionTitle("League standings", symbol: "list.number")
+                Spacer()
+                if !store.standings.isEmpty {
+                    Text(store.standingsSource).font(.caption).foregroundStyle(.secondary)
+                }
+            }
             if store.loadingStandings { ProgressView("Loading standings…") }
             if let error = store.tableError { Text(error).font(.subheadline).foregroundStyle(.orange) }
             if !store.loadingStandings && store.standings.isEmpty && store.tableError == nil {
-                emptyMessage("TheSportsDB has no standings for this league or API tier.")
+                emptyMessage("No standings available from TheSportsDB or ESPN for this league.")
             }
             ForEach(store.tableGroups) { group in
                 VStack(alignment: .leading, spacing: 9) {
@@ -393,7 +470,7 @@ struct SportFrameLeagueDetail: View {
                     .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
                 }
             }
-            if !store.standings.isEmpty && !SportsDBAccess.hasPremiumKey {
+            if !store.standings.isEmpty && store.standingsSource == "TheSportsDB" && !SportsDBAccess.hasPremiumKey {
                 Text("The Free API may show only the first five table rows.")
                     .font(.caption).foregroundStyle(.secondary)
             }
