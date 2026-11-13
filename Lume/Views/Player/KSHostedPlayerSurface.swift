@@ -70,7 +70,7 @@
             return container
         }
 
-        func updateUIView(_ container: UIView, context _: Context) {
+        func updateUIView(_ container: UIView, context: Context) {
             switch mode {
             case let .preview(handle):
                 // Never re-adds the player view: after a handoff it lives in
