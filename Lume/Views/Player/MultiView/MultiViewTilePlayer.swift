@@ -147,7 +147,12 @@ struct MultiViewTilePlayer: View {
 
             if loadFailed || resolveFailed {
                 failureBadge
-            } else if !isPlaying {
+            } else if !isPlaying &&
+                        !(role.previewHandle?.hasStarted == true &&
+                          role.previewHandle?.owner == .preview) {
+                // A retained guide decoder already produced frames. A new
+                // SwiftUI tile can appear before its started callback runs;
+                // never cover that live video with a fake loading spinner.
                 ProgressView()
                     .progressViewStyle(.circular)
                     .tint(.white)
