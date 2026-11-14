@@ -13,7 +13,11 @@ final class SportsZonePlaybackSession {
     var reloadToken = 0
 
     func tune(_ media: PlayableMedia, previewMode: GuidePreviewMode = .small) {
-        guard miniMedia?.id != media.id else { return }
+        guard miniMedia?.id != media.id else {
+            // Off has no mini-player control to reopen the same channel.
+            if previewMode == .off { openFullScreen() }
+            return
+        }
         handle.stopPreview()
         failedMediaID = nil
         reloadToken += 1
