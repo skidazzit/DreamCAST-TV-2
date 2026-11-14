@@ -78,7 +78,7 @@
 
 /* Begin PBXFileReference section */
 		C6339AC72FE20238008DDD93 /* Lume.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; name = "DreamCAST TV StoreKit"; path = Lume.storekit; sourceTree = "<group>"; };
-		C67C02C02F880F2200842DBA /* Lume.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "DreamCAST TV.app"; path = Lume.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C67C02C02F880F2200842DBA /* DreamCASTTV.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "DreamCAST TV.app"; path = DreamCASTTV.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C67C02D12F880F2400842DBA /* LumeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "DreamCAST TV Tests.xctest"; path = LumeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C67C02DB2F880F2400842DBA /* LumeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "DreamCAST TV UI Tests.xctest"; path = LumeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C6AA31012FDD00020000AB01 /* LumeWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; name = "DreamCAST TV Widgets.appex"; path = LumeWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -245,7 +245,7 @@
 		C67C02C12F880F2200842DBA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C67C02C02F880F2200842DBA /* Lume.app */,
+				C67C02C02F880F2200842DBA /* DreamCASTTV.app */,
 				C6AA31012FDD00020000AB01 /* LumeWidgets.appex */,
 				C67C02D12F880F2400842DBA /* LumeTests.xctest */,
 				C67C02DB2F880F2400842DBA /* LumeUITests.xctest */,
@@ -289,8 +289,8 @@
 				C6BB20022FDE00030000BB02 /* LumeRecorderKit */,
 				C6FF000B2FC5A59D00484602 /* VLCKit */,
 			);
-			productName = Lume;
-			productReference = C67C02C02F880F2200842DBA /* Lume.app */;
+			productName = DreamCASTTV;
+			productReference = C67C02C02F880F2200842DBA /* DreamCASTTV.app */;
 			productType = "com.apple.product-type.application";
 		};
 		C67C02D02F880F2400842DBA /* LumeTests */ = {
@@ -690,7 +690,8 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
-				PRODUCT_NAME = Lume;
+				PRODUCT_NAME = DreamCASTTV;
+				PRODUCT_MODULE_NAME = Lume;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -755,7 +756,8 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
-				PRODUCT_NAME = Lume;
+				PRODUCT_NAME = DreamCASTTV;
+				PRODUCT_MODULE_NAME = Lume;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -909,7 +911,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lume.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Lume";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DreamCASTTV.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DreamCASTTV";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
@@ -935,7 +937,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lume.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Lume";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DreamCASTTV.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DreamCASTTV";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Release;
@@ -1094,7 +1096,8 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
-				PRODUCT_NAME = Lume;
+				PRODUCT_NAME = DreamCASTTV;
+				PRODUCT_MODULE_NAME = Lume;
 				REGISTER_APP_GROUPS = NO;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1132,7 +1135,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lume.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Lume";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DreamCASTTV.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DreamCASTTV";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Sideload;
@@ -1404,7 +1407,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lume.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Lume";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DreamCASTTV.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DreamCASTTV";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
@@ -1430,7 +1433,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lume.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Lume";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DreamCASTTV.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DreamCASTTV";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Release;
@@ -1456,7 +1459,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lume.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Lume";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DreamCASTTV.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DreamCASTTV";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Sideload;
@@ -1482,7 +1485,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lume.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Lume";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DreamCASTTV.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DreamCASTTV";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Benchmark;
@@ -1587,7 +1590,8 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
-				PRODUCT_NAME = Lume;
+				PRODUCT_NAME = DreamCASTTV;
+				PRODUCT_MODULE_NAME = Lume;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1625,7 +1629,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lume.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Lume";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DreamCASTTV.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DreamCASTTV";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Benchmark;
