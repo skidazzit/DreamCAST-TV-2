@@ -225,6 +225,9 @@ struct KSPlayerEngineView: View {
                     // "Modifying state during view update" / "Publishing
                     // changes from within view updates" runtime warnings.
                     DispatchQueue.main.async {
+                        // The adopted decoder may already belong to the mini
+                        // player when queued full-screen callbacks arrive.
+                        guard returnHandle?.allowsFullScreenEngineCallbacks ?? true else { return }
                         isPlaying = (state == .bufferFinished)
                         updateLoadingState(state)
                         engine.syncState(state)
@@ -238,6 +241,9 @@ struct KSPlayerEngineView: View {
                     // which triggers "onChange updated multiple times per
                     // frame" warnings.
                     DispatchQueue.main.async {
+                        // Do not let the dismissed full-screen view's 10 Hz
+                        // clock callback rebuild a decoder now owned by preview.
+                        guard returnHandle?.allowsFullScreenEngineCallbacks ?? true else { return }
                         if !isSeeking {
                             if current.isFinite {
                                 clock.current = current
