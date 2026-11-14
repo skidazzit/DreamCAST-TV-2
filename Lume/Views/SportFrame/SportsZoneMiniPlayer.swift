@@ -21,14 +21,6 @@ final class SportsZonePlaybackSession {
     // Prevent repeated dismissal callbacks from restarting a live stream.
     private var isAwaitingFullScreenDismissal = false
 
-    init() {
-        #if os(tvOS)
-        // Use Live TV's controller with a fast surface transfer for sports.
-        // No HDMI refresh/HDR renegotiation on every short preview transition.
-        guidePreview.handle.prefersUninterruptedVideoHandoff = true
-        #endif
-    }
-
     func tune(_ media: PlayableMedia, previewMode: GuidePreviewMode = .small) {
         guard miniMedia?.id != media.id else {
             // Off has no mini-player control to reopen the same channel.
