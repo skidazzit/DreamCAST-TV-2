@@ -171,7 +171,6 @@ final class FixtureStore: ObservableObject {
         var lastSchedule = Date()
         var lastLive = Date()
         var lastPremium = Date()
-        var observedLiveIDs = Set(events.filter { isLive($0) }.map(\.idEvent))
         var verifiedFinalIDs = Set(events.filter {
             SportsZoneScoreRefreshPolicy.isFinal(score(for: $0).status)
         }.map(\.idEvent))
@@ -221,7 +220,6 @@ final class FixtureStore: ObservableObject {
                 await refreshScores(sports: sports, date: date)
                 guard !Task.isCancelled else { return }
             }
-            observedLiveIDs.formUnion(events.filter { isLive($0) }.map(\.idEvent))
         }
     }
 
