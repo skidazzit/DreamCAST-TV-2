@@ -47,12 +47,13 @@ extension FullScreenPlayerView {
         )
     }
 
-    /// The preview ran muted; the session switches to `.playback` before its
-    /// sound comes up. Synchronous, from `onAppear`, so it lands before the
-    /// first frame full screen shows.
+    /// Adopted KSPlayer/AVPlayer sessions already have an active audio route.
+    /// Reconfiguring AVAudioSession synchronously on the main thread during
+    /// the transition can stall the video view while audio keeps running.
+    /// Only change mute state here; fresh LumeEngine playback keeps its
+    /// existing audio-session setup in FullScreenPlayerView.
     func beginPreviewAdoption() {
         guard let adoption else { return }
-        configureAudioSessionForPlayback()
         adoption.coordinator.setMuted(false)
     }
 
