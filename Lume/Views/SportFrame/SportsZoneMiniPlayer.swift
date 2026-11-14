@@ -12,7 +12,7 @@ final class SportsZonePlaybackSession {
     var failedMediaID: String?
     var reloadToken = 0
 
-    func tune(_ media: PlayableMedia) {
+    func tune(_ media: PlayableMedia, previewMode: GuidePreviewMode = .small) {
         guard miniMedia?.id != media.id else { return }
         handle.stopPreview()
         failedMediaID = nil
@@ -22,9 +22,7 @@ final class SportsZonePlaybackSession {
 
         // Match the Live TV setting: "Off" means no inline preview.
         // Open the stream full screen rather than playing it off-screen.
-        let mode = GuidePreviewMode(storedValue:
-            UserDefaults.standard.string(forKey: PlayerSettings.tvGuidePreviewModeKey))
-        if mode == .off {
+        if previewMode == .off {
             openFullScreen()
         }
     }
