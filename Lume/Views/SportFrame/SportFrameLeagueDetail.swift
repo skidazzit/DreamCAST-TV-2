@@ -99,6 +99,7 @@ struct SportFrameLeagueHighlight: Identifiable {
               let away = event.strAwayTeam, !away.isEmpty else { return nil }
         let homeKey = ChannelMatcher.normalize(home)
         let awayKey = ChannelMatcher.normalize(away)
+        guard !homeKey.isEmpty, !awayKey.isEmpty else { return nil }
         return videos.first {
             $0.eventID == nil && $0.dateLabel == date &&
                 ChannelMatcher.normalize($0.title).contains(homeKey) &&
@@ -340,10 +341,10 @@ final class SportFrameLeagueDetailStore: ObservableObject {
             var request = URLRequest(url: url)
             request.timeoutInterval = 10
             request.setValue(SportsDBAccess.apiKey, forHTTPHeaderField: "X-API-KEY")
-            if let (data, response) = try? await URLSession.shared.data(for: request),
-               (response as? HTTPURLResponse)?.statusCode == 200 {
+            if let response = try? await URLSession.shared.data(for: request),
+               (response.1 as? HTTPURLResponse)?.statusCode == 200 {
                 let clips = SportFrameLeagueHighlight.decode(
-                    data, fallbackDate: event.dateEvent ?? ""
+                    response.0, fallbackDate: event.dateEvent ?? ""
                 )
                 if let video = clips.first(where: { SportFrameLeagueHighlight.isYouTubeVideo($0.videoURL) }) {
                     return video.videoURL
