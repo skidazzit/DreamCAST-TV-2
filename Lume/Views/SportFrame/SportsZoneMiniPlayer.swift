@@ -11,6 +11,8 @@ final class SportsZonePlaybackSession {
     var fullScreenMedia: PlayableMedia?
     var failedMediaID: String?
     var reloadToken = 0
+    // Prevent repeated dismissal callbacks from restarting a live stream.
+    private var isAwaitingFullScreenDismissal = false
 
     func tune(_ media: PlayableMedia, previewMode: GuidePreviewMode = .small) {
         guard miniMedia?.id != media.id else {
@@ -40,13 +42,15 @@ final class SportsZonePlaybackSession {
             // preview connection first, then let full screen start normally.
             handle.stopPreview()
         }
+        isAwaitingFullScreenDismissal = true
         fullScreenMedia = media
     }
 
     func returnedFromFullScreen() {
         // SwiftUI can report a previous cover's dismissal while a newer one
         // is opening. Never tear down the active decoder in that case.
-        guard fullScreenMedia == nil else { return }
+        guard isAwaitingFullScreenDismissal, fullScreenMedia == nil else { return }
+        isAwaitingFullScreenDismissal = false
 
         // The full-screen player and its dismiss callback both help return
         // the handle. If the decoder is already back, a duplicate dismissal
