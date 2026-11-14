@@ -26,6 +26,8 @@ import SwiftUI
 /// scrollable grid. Touch and pointer drag the grid directly; tvOS navigates
 /// it via the focus surface.
 struct EPGGridScroller: View {
+    /// Channel group currently being browsed, independent of the playing stream.
+    let scope: LiveChannelScope
     let rows: [EPGChannelRow]
     let timeline: EPGTimeline
     /// Bumped by `EPGGuideView` when the underlying cells change; the grid
@@ -136,6 +138,15 @@ struct EPGGridScroller: View {
             }
         }
         .reportsGuideFocus(surfaceFocused)
+        .onChange(of: scope) { _, _ in
+            // Changing the rail category changes the guide rows, not playback.
+            // Keep previewTarget and the decoder alive while resetting only
+            // the highlighted row and grid position.
+            selectedBeforeDeparture = false
+            preferredX = nil
+            virtualFocus = rows.isEmpty ? nil : .channel(rowIndex: 0)
+            requestScroll(to: CGPoint(x: scrollTarget(forNow: now), y: 0), animated: false)
+        }
         .onChange(of: preview.controller?.preferredStreamID, initial: true) { _, id in
             // Give the restored last-watched row its guide highlight without
             // stealing actual remote focus from the Live TV tab or category
