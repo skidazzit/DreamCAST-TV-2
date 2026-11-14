@@ -61,6 +61,7 @@ private enum SportsDBConnectionStatus: Equatable {
 struct SportFrameMobile: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.contentRestriction) private var restriction
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var fixtures = FixtureStore()
     @StateObject private var catalog = SportFrameCatalog()
     @AppStorage("sportFrameFollowedSportsV2") private var followedValue = "Soccer|Basketball|American Football"
@@ -179,7 +180,11 @@ struct SportFrameMobile: View {
             FullScreenPlayerView(media: media, adopting: sportsPlayback.handle)
         }
         .task { await catalog.refresh() }
-        .task(id: "\(dayOffset)|\(followedValue)|\(SportsDBAccess.apiKey)") { await refresh() }
+        .task(id: "\(dayOffset)|\(followedValue)|\(SportsDBAccess.apiKey)|\(page)|\(scenePhase == .active)") {
+            guard page == 0, scenePhase == .active else { return }
+            let date = Calendar.current.date(byAdding: .day, value: dayOffset, to: .now) ?? .now
+            await fixtures.pollSportsZone(sports: followed, date: date)
+        }
         .onChange(of: followedValue) { _, _ in
             if selectedSport != "All Sports" && !followed.contains(selectedSport) {
                 selectedSport = "All Sports"
@@ -314,21 +319,23 @@ struct SportFrameMobile: View {
     }
 
     private func mobileFixture(_ event: SportEvent) -> some View {
-        HStack(spacing: 10) {
+        let score = fixtures.score(for: event)
+        let isLive = fixtures.isLive(event)
+        return HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 10) {
                 mobileTeam(event.strHomeTeam ?? "Home", icon: event.homeBadge)
                 mobileTeam(event.strAwayTeam ?? "Away", icon: event.awayBadge)
             }
             Spacer(minLength: 4)
             VStack(alignment: .trailing, spacing: 5) {
-                if let home = event.intHomeScore, let away = event.intAwayScore {
+                if let home = score.home, let away = score.away {
                     Text("\(home) : \(away)").font(.headline.monospacedDigit())
                 } else {
                     Text(event.timeLabel).font(.subheadline.weight(.semibold))
                 }
-                Text(event.isLive ? "LIVE" : (event.strStatus ?? "Scheduled"))
+                Text(isLive ? "LIVE" : (score.status ?? "Scheduled"))
                     .font(.caption2)
-                    .foregroundStyle(event.isLive ? .green : .secondary)
+                    .foregroundStyle(isLive ? .green : .secondary)
                 Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
             }
         }
