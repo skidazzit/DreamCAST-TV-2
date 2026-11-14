@@ -53,6 +53,43 @@ struct SportFrameLeagueDetailTests {
         #expect(results[0].videoURL.host == "www.youtube.com")
     }
 
+    @Test func matchResultOpensTheRightYouTubeVideo() throws {
+        let match = try JSONDecoder().decode(SportEvent.self, from: Data("""
+        {"idEvent":"981","strHomeTeam":"Houston Rockets",
+         "strAwayTeam":"Utah Jazz","dateEvent":"2026-11-13","strTime":"20:30:00"}
+        """.utf8))
+        let clips = SportFrameLeagueHighlight.decode(Data("""
+        {"tvhighlights":[
+          {"idEvent":"999","strEvent":"Other game","dateEvent":"2026-11-13",
+           "strVideo":"https://www.youtube.com/watch?v=other"},
+          {"idEvent":"981","strEvent":"Houston Rockets vs Utah Jazz",
+           "dateEvent":"2026-11-13","strVideo":"https://youtu.be/correct"}
+        ]}
+        """.utf8), fallbackDate: "2026-11-13")
+        #expect(SportFrameLeagueHighlight.videoURL(for: match, in: clips)?.absoluteString
+                == "https://youtu.be/correct")
+    }
+
+    @Test func unknownHighlightsSearchByMatchAndDate() throws {
+        let match = try JSONDecoder().decode(SportEvent.self, from: Data("""
+        {"idEvent":"981","strHomeTeam":"Houston Rockets",
+         "strAwayTeam":"Utah Jazz","dateEvent":"2026-11-13","strTime":"20:30:00"}
+        """.utf8))
+        let clips = SportFrameLeagueHighlight.decode(Data("""
+        {"tvhighlights":[
+          {"idEvent":"999","strEvent":"Other game","dateEvent":"2026-11-13",
+           "strVideo":"https://www.youtube.com/watch?v=other"}
+        ]}
+        """.utf8), fallbackDate: "2026-11-13")
+        #expect(SportFrameLeagueHighlight.videoURL(for: match, in: clips) == nil)
+        let searchURL = SportFrameLeagueHighlight.searchURL(for: match)
+        #expect(searchURL.host == "www.youtube.com")
+        #expect(searchURL.path == "/results")
+        let term = URLComponents(url: searchURL, resolvingAgainstBaseURL: false)?
+            .queryItems?.first(where: { $0.name == "search_query" })?.value
+        #expect(term == "Houston Rockets vs Utah Jazz 2026-11-13 match highlights")
+    }
+
     @Test func highlightsHandlesEmptyAndMissingVideo() {
         let empty = Data(#"{"tvhighlights":null}"#.utf8)
         let missing = Data(#"{"tvhighlights":[{"strEvent":"No video"}]}"#.utf8)
