@@ -169,35 +169,39 @@ struct SportFrameHome: View {
                            startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 26) {
-                    header
-                    switch page {
-                    case 1: settingsPage
-                    default: matchesPage
+            VStack(spacing: 0) {
+                // A single player host remains mounted while the main page
+                // and league pages exchange their scrollable content.
+                // It occupies the same fixed, top position as the Live TV guide.
+                SportsZoneMiniPlayer(session: sportsPlayback)
+                    .padding(.horizontal, 55)
+
+                if let openedLeague {
+                    SportFrameLeagueDetailTV(
+                        league: openedLeague,
+                        playback: sportsPlayback,
+                        onBack: { self.openedLeague = nil }
+                    )
+                } else {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 26) {
+                            header
+                            switch page {
+                            case 1: settingsPage
+                            default: matchesPage
+                            }
+                        }
+                        .padding(.horizontal, 55)
+                        .padding(.vertical, 36)
                     }
                 }
-                .padding(.horizontal, 55)
-                .padding(.vertical, 36)
             }
-            .safeAreaInset(edge: .bottom) {
-                if page == 0 && openedLeague == nil && sportsPlayback.miniMedia != nil {
-                    SportsZoneMiniPlayer(session: sportsPlayback)
-                        .frame(maxWidth: 1100)
-                        .padding(.horizontal, 55)
-                        .padding(.bottom, 16)
-                }
-            }
-        }
-        .fullScreenCover(item: $openedLeague) { league in
-            SportFrameLeagueDetailTV(league: league, playback: sportsPlayback)
         }
         .fullScreenCover(item: $selectedEvent, onDismiss: presentPendingMedia) { event in
             SportFrameMatchSheet(event: event, onPlay: queueChannelPlayback)
         }
-        // The league page owns its topmost full-screen cover when it is open.
         .fullScreenCover(item: Binding(
-            get: { openedLeague == nil ? sportsPlayback.fullScreenMedia : nil },
+            get: { sportsPlayback.fullScreenMedia },
             set: { sportsPlayback.fullScreenMedia = $0 }
         ), onDismiss: {
             sportsPlayback.returnedFromFullScreen()
