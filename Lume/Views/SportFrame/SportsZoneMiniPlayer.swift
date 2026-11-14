@@ -116,6 +116,28 @@ struct SportsZoneMiniPlayer: View {
         GuidePreviewMode(storedValue: modeRaw)
     }
 
+    /// Live TV leaves the preview tile mounted during an adopted handoff.
+    /// Other suspensions remove playback but preserve the preview layout.
+    private var canShowVideoTile: Bool {
+        #if os(tvOS)
+        guard session.guidePreview.isSuspended else { return true }
+        return session.handle.owner == .fullScreen
+            || session.handle.owner == .returning
+        #else
+        return true
+        #endif
+    }
+
+    private func tileIdentity(for media: PlayableMedia) -> String {
+        #if os(tvOS)
+        // The Guide increments this only after a failed handoff's cooldown.
+        // Adopted decoders keep the exact same tile identity.
+        return "\(media.id)-\(session.reloadToken)-\(session.guidePreview.restartToken)"
+        #else
+        return "\(media.id)-\(session.reloadToken)"
+        #endif
+    }
+
     #if os(tvOS)
     @AppStorage(TVGuideDesign.storageKey)
     private var guideDesignRaw = TVGuideDesign.classic.rawValue
@@ -231,6 +253,10 @@ struct SportsZoneMiniPlayer: View {
                 } else {
                     Image(systemName: "tv").font(.largeTitle)
                 }
+            } else if !canShowVideoTile {
+                // Do not open a second provider connection behind full screen
+                // when the selected engine did not support decoder adoption.
+                Color.black
             } else if session.failedMediaID == media.id {
                 Label("Stream unavailable", systemImage: "exclamationmark.triangle")
                     .font(.caption)
@@ -245,11 +271,12 @@ struct SportsZoneMiniPlayer: View {
                         // video with a failure badge during full-screen handoff.
                         guard session.miniMedia?.id == media.id,
                               session.fullScreenMedia == nil,
-                              session.handle.owner == .preview else { return }
+                              session.handle.owner == .preview,
+                              canShowVideoTile else { return }
                         session.failedMediaID = media.id
                     }
                 )
-                .id("\(media.id)-\(session.reloadToken)")
+                .id(tileIdentity(for: media))
             }
         }
         .frame(maxWidth: .infinity)
