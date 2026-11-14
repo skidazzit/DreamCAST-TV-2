@@ -14,7 +14,11 @@ import Foundation
 nonisolated enum WidgetDataStore {
     /// Must match `com.apple.security.application-groups` in every target's
     /// entitlements (app, LumeWidgets, LumeTopShelf).
+    #if os(tvOS)
+    static let appGroupID = "group.com.skidazzit.dreamcasttv2"
+    #else
     static let appGroupID = "group.com.bilipp.lume"
+    #endif
 
     private static let snapshotFilename = "widget-snapshot.json"
 
