@@ -172,9 +172,6 @@ struct SportFrameHome: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 26) {
                     header
-                    if page == 0 && openedLeague == nil {
-                        SportsZoneMiniPlayer(session: sportsPlayback)
-                    }
                     switch page {
                     case 1: settingsPage
                     default: matchesPage
@@ -182,6 +179,14 @@ struct SportFrameHome: View {
                 }
                 .padding(.horizontal, 55)
                 .padding(.vertical, 36)
+            }
+            .safeAreaInset(edge: .bottom) {
+                if page == 0 && openedLeague == nil && sportsPlayback.miniMedia != nil {
+                    SportsZoneMiniPlayer(session: sportsPlayback)
+                        .frame(maxWidth: 1100)
+                        .padding(.horizontal, 55)
+                        .padding(.bottom, 16)
+                }
             }
         }
         .fullScreenCover(item: $openedLeague) { league in
