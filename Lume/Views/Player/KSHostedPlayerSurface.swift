@@ -150,9 +150,12 @@
 
         private func attachCallbacks() {
             coordinator.onStateChanged = onStateChanged
-            if let onPlay {
-                coordinator.onPlay = onPlay
-            }
+            // Full screen installed its 10 Hz clock callback on this shared
+            // coordinator. On Back, the mini-player has no progress handler,
+            // so explicitly replace the old callback. Leaving it installed
+            // lets a dismissed full-screen watchdog rebuild the preview's
+            // running stream long after decoder ownership has returned.
+            coordinator.onPlay = onPlay ?? { _, _ in }
         }
 
         private func host(_ playerView: UIView, in container: UIView) {
