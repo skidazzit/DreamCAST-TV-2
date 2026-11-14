@@ -36,6 +36,20 @@ struct SportsZoneMiniPlayerTests {
         #expect(session.reloadToken > originalToken)
     }
 
+    @Test func previewOffOpensFullScreenInsteadOfPlayingBehindThePage() {
+        let session = SportsZonePlaybackSession()
+        session.tune(media("a"), previewMode: .off)
+        #expect(session.miniMedia?.id == "a")
+        #expect(session.fullScreenMedia?.id == "a")
+    }
+
+    @Test func infoOnlyDoesNotForceFullScreen() {
+        let session = SportsZonePlaybackSession()
+        session.tune(media("a"), previewMode: .infoOnly)
+        #expect(session.miniMedia?.id == "a")
+        #expect(session.fullScreenMedia == nil)
+    }
+
     @Test func stoppingMiniPlayerClearsOnlyTheSportsSession() {
         let session = SportsZonePlaybackSession()
         session.tune(media("a"))
