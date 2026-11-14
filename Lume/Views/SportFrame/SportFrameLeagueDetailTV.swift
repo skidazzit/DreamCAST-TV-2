@@ -160,7 +160,7 @@ struct SportFrameLeagueDetailTV: View {
                                 Text("Result")
                             }
                         }
-                        .font(.title3.bold()).monospacedDigit()
+                        .font(.title3.bold().monospacedDigit())
                         .frame(width: 150)
 
                         VStack(alignment: .leading, spacing: 5) {
