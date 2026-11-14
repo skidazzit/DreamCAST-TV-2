@@ -651,7 +651,11 @@ struct SportFrameHome: View {
     private func presentPendingMedia() {
         guard let media = pendingMedia else { return }
         pendingMedia = nil
-        sportsPlayback.tune(media)
+        sportsPlayback.tune(
+            media,
+            previewMode: GuidePreviewMode(storedValue:
+                UserDefaults.standard.string(forKey: PlayerSettings.tvGuidePreviewModeKey))
+        )
     }
 
     private func refresh() async {
