@@ -29,6 +29,16 @@ struct SportEvent: Decodable, Identifiable {
         if left != right { return left > right }
         return lhs.idEvent < rhs.idEvent
     }
+
+    /// Sort by full kickoff date and time, earliest first.
+    /// Unknown kickoff dates stay last and IDs break ties consistently.
+    static func oldestFirst(_ lhs: SportEvent, _ rhs: SportEvent) -> Bool {
+        let left = lhs.startDate ?? .distantFuture
+        let right = rhs.startDate ?? .distantFuture
+        if left != right { return left < right }
+        return lhs.idEvent < rhs.idEvent
+    }
+
     var name: String { strEvent ?? "Upcoming event" }
     var league: String { strLeague ?? "Other league" }
     var leagueBadge: URL? { strLeagueBadge.flatMap(URL.init(string:)) }
