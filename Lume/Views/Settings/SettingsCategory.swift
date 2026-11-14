@@ -31,7 +31,12 @@ enum SettingsCategory: String, CaseIterable, Identifiable {
         case .library: "Library"
         case .home: "Home"
         case .liveTV: "Live TV"
-        case .sports: "Sports"
+        case .sports:
+            #if os(tvOS)
+                "SportsZone"
+            #else
+                "Sports"
+            #endif
         case .appearance: "Appearance"
         case .player: "Player"
         case .downloads: "Downloads"
@@ -67,7 +72,7 @@ enum SettingsCategory: String, CaseIterable, Identifiable {
     var isAvailableOnPlatform: Bool {
         // DreamCAST TV uses local settings backups instead of remote cloud sync.
         #if os(tvOS)
-        if self == .iCloud { return false }
+        if self == .iCloud || self == .premium { return false }
         #endif
         switch self {
         case .help, .about:
