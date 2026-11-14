@@ -49,6 +49,7 @@ struct SportFrameLeagueHighlight: Identifiable {
     let id: String
     let title: String
     let dateLabel: String
+    let eventID: String?
     let videoURL: URL
     let thumbnailURL: URL?
 
@@ -56,7 +57,7 @@ struct SportFrameLeagueHighlight: Identifiable {
     /// Accept the other common response keys without failing the whole page.
     static func decode(_ data: Data, fallbackDate: String) -> [Self] {
         guard let root = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return [] }
-        let records = ["tvhighlights", "highlights", "events", "videos"]
+        let records = ["tvhighlights", "highlights", "events", "videos", "event_highlights", "lookup"]
             .compactMap { root[$0] as? [[String: Any]] }
             .first ?? []
         return records.compactMap { item -> Self? in
@@ -75,8 +76,52 @@ struct SportFrameLeagueHighlight: Identifiable {
                 .flatMap(URL.init(string:))
             let date = (item["dateEvent"] as? String) ?? fallbackDate
             let id = (item["idVideo"] as? String) ?? rawURL
-            return Self(id: id, title: title, dateLabel: date, videoURL: url, thumbnailURL: thumb)
+            return Self(id: id, title: title, dateLabel: date,
+                        eventID: item["idEvent"] as? String,
+                        videoURL: url, thumbnailURL: thumb)
         }
+    }
+    /// Only launch a confirmed YouTube URL, never an unrelated host.
+    static func isYouTubeVideo(_ url: URL) -> Bool {
+        guard url.scheme?.lowercased() == "https", let host = url.host?.lowercased() else { return false }
+        return host == "youtu.be" || host == "youtube.com" || host.hasSuffix(".youtube.com")
+    }
+
+    /// Match a clip to the selected game. IDs beat titles; a title match must
+    /// contain both teams and match the date to avoid opening another game.
+    static func videoURL(for event: SportEvent, in clips: [Self]) -> URL? {
+        let videos = clips.filter { isYouTubeVideo($0.videoURL) }
+        if let exact = videos.first(where: { $0.eventID == event.idEvent }) {
+            return exact.videoURL
+        }
+        guard let date = event.dateEvent,
+              let home = event.strHomeTeam, !home.isEmpty,
+              let away = event.strAwayTeam, !away.isEmpty else { return nil }
+        let homeKey = ChannelMatcher.normalize(home)
+        let awayKey = ChannelMatcher.normalize(away)
+        return videos.first {
+            $0.eventID == nil && $0.dateLabel == date &&
+                ChannelMatcher.normalize($0.title).contains(homeKey) &&
+                ChannelMatcher.normalize($0.title).contains(awayKey)
+        }?.videoURL
+    }
+
+    /// A search is the fallback, not a made-up video URL.
+    static func searchURL(for event: SportEvent) -> URL {
+        let teams: String
+        if let home = event.strHomeTeam, let away = event.strAwayTeam {
+            teams = "\(home) vs \(away)"
+        } else {
+            teams = event.name
+        }
+        let search = [teams, event.dateEvent ?? "", "match highlights"]
+            .filter { !$0.isEmpty }.joined(separator: " ")
+        var url = URLComponents()
+        url.scheme = "https"
+        url.host = "www.youtube.com"
+        url.path = "/results"
+        url.queryItems = [URLQueryItem(name: "search_query", value: search)]
+        return url.url ?? URL(string: "https://www.youtube.com/results")!
     }
 }
 
@@ -279,6 +324,48 @@ final class SportFrameLeagueDetailStore: ObservableObject {
             }
         }
         if season == nil { season = standings.first?.strSeason }
+    }
+
+    /// Resolve the selected finished game to a real YouTube clip, or search
+    /// YouTube with its team names and date if no matching clip exists.
+    func highlightDestination(for event: SportEvent) async -> URL {
+        if let url = SportFrameLeagueHighlight.videoURL(for: event, in: highlights) {
+            return url
+        }
+
+        // Premium supports an exact event-ID highlight lookup.
+        if SportsDBAccess.hasPremiumKey, Int(event.idEvent) != nil,
+           let url = URL(string:
+                "https://www.thesportsdb.com/api/v2/json/lookup/event_highlights/\(event.idEvent)") {
+            var request = URLRequest(url: url)
+            request.timeoutInterval = 10
+            request.setValue(SportsDBAccess.apiKey, forHTTPHeaderField: "X-API-KEY")
+            if let (data, response) = try? await URLSession.shared.data(for: request),
+               (response as? HTTPURLResponse)?.statusCode == 200 {
+                let clips = SportFrameLeagueHighlight.decode(
+                    data, fallbackDate: event.dateEvent ?? ""
+                )
+                if let video = clips.first(where: { SportFrameLeagueHighlight.isYouTubeVideo($0.videoURL) }) {
+                    return video.videoURL
+                }
+            }
+        }
+
+        // The public v1 API lists highlights by match day, not event ID.
+        if let date = event.dateEvent {
+            var query = [URLQueryItem(name: "d", value: date)]
+            if let leagueID = event.idLeague, !leagueID.isEmpty {
+                query.append(URLQueryItem(name: "l", value: leagueID))
+            }
+            if let data = try? await Self.request("eventshighlights.php", query: query) {
+                let clips = SportFrameLeagueHighlight.decode(data, fallbackDate: date)
+                if let video = SportFrameLeagueHighlight.videoURL(for: event, in: clips) {
+                    return video
+                }
+            }
+        }
+
+        return SportFrameLeagueHighlight.searchURL(for: event)
     }
 
     private func loadHighlights(leagueID: String) async {
