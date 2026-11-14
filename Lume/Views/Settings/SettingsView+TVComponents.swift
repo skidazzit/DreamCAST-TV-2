@@ -75,7 +75,7 @@ import SwiftUI
                             .background(.tint.opacity(0.12), in: .rect(cornerRadius: 14, style: .continuous))
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Lume")
+                            Text("DreamCAST TV")
                                 .font(.system(size: 26, weight: .semibold))
                             Text("Version \(SupportInfo.appVersion)")
                                 .font(.system(size: 20))
@@ -107,7 +107,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 16) {
                 TVSettingsSectionLabel("Acknowledgements")
 
-                Text("Lume is free, open-source software, licensed under the GNU Affero General Public License v3.")
+                Text("DreamCAST TV is based on Lume, an open-source project licensed under the GNU Affero General Public License v3.")
                     .font(.system(size: 22))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
