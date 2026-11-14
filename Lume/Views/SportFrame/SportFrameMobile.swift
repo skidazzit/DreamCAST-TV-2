@@ -114,7 +114,7 @@ struct SportFrameMobile: View {
             return (selectedSport == "All Sports" || selectedSport == sport)
                 && (selectedLeague == "All Leagues" || selectedLeague == event.league)
                 && (leagueChoices[sport]?.contains(event.league) ?? true)
-        }.sorted { ($0.startDate ?? .distantFuture) < ($1.startDate ?? .distantFuture) }
+        }.sorted(by: SportEvent.newestFirst)
     }
 
     private var availableLeagues: [String] {
