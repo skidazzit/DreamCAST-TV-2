@@ -672,7 +672,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = DreamCASTTV;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CODE_SIGN_ENTITLEMENTS = Lume/DreamCASTTV.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Lume/DreamCASTTV-tvOS.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvos*]" = "Lume/DreamCASTTV-tvOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvsimulator*]" = "Lume/DreamCASTTV-tvOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "Lume/DreamCASTTV-iOS.entitlements";
@@ -736,7 +736,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = DreamCASTTV;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CODE_SIGN_ENTITLEMENTS = Lume/DreamCASTTV.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Lume/DreamCASTTV-tvOS.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvos*]" = "Lume/DreamCASTTV-tvOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvsimulator*]" = "Lume/DreamCASTTV-tvOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "Lume/DreamCASTTV-iOS.entitlements";
@@ -1073,7 +1073,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = DreamCASTTV;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CODE_SIGN_ENTITLEMENTS = Lume/DreamCASTTV.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Lume/DreamCASTTV-FreeTesting.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvos*]" = "Lume/DreamCASTTV-FreeTesting.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvsimulator*]" = "Lume/DreamCASTTV-FreeTesting.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "Lume/DreamCASTTV-iOS.entitlements";
@@ -1568,7 +1568,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = DreamCASTTV;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CODE_SIGN_ENTITLEMENTS = Lume/DreamCASTTV.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Lume/DreamCASTTV-tvOS.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_TEAM = CHG45F8MCL;
