@@ -23,6 +23,20 @@ struct SportFrameLeagueDetailTests {
         #expect(rows[1].strTeam == "Chelsea")
     }
 
+    @Test func sportsZoneOrdersMatchesByDateThenTimeDescending() throws {
+        let json = """
+        [
+          {"idEvent":"late","dateEvent":"2026-11-13","strTime":"21:30:00"},
+          {"idEvent":"early","dateEvent":"2026-11-13","strTime":"18:00:00"},
+          {"idEvent":"prior","dateEvent":"2026-11-12","strTime":"23:00:00"},
+          {"idEvent":"unknown"}
+        ]
+        """
+        let matches = try JSONDecoder().decode([SportEvent].self, from: Data(json.utf8))
+            .sorted(by: SportEvent.newestFirst)
+        #expect(matches.map(\.idEvent) == ["late", "early", "prior", "unknown"])
+    }
+
     @Test func highlightsDecodeYouTubeVideoAndDate() {
         let json = """
         {"tvhighlights":[
