@@ -442,7 +442,7 @@ struct SportFrameLeagueDetail: View {
                                 Text("Result")
                             }
                         }
-                        .font(.subheadline.bold()).monospacedDigit()
+                        .font(.subheadline.bold().monospacedDigit())
                         .frame(width: 64)
 
                         VStack(alignment: .leading, spacing: 3) {
