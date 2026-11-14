@@ -74,15 +74,15 @@ struct SportFrameHome: View {
             guard selectedLeague == "All Leagues" || selectedLeague == event.league else { return false }
             return leagueSelections[sport].map { $0.contains(event.league) } ?? true
         }
-        .sorted(by: SportEvent.newestFirst)
+        .sorted(by: SportEvent.oldestFirst)
     }
 
     private var visibleLeagues: [(String, [SportEvent])] {
         let grouped = Dictionary(grouping: visibleEvents, by: \.league)
         return grouped.keys.sorted { lhs, rhs in
-            let left = grouped[lhs]?.first?.startDate ?? .distantPast
-            let right = grouped[rhs]?.first?.startDate ?? .distantPast
-            return left == right ? lhs < rhs : left > right
+            let left = grouped[lhs]?.first?.startDate ?? .distantFuture
+            let right = grouped[rhs]?.first?.startDate ?? .distantFuture
+            return left == right ? lhs < rhs : left < right
         }.map { ($0, grouped[$0] ?? []) }
     }
 
