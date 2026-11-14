@@ -114,6 +114,10 @@ final class PreviewPlayerHandle {
     /// actually adopted. The preview's first view can be stale after UIKit
     /// swaps hosts; retaining the current view avoids a black mini-player.
     @ObservationIgnored var activeKSRenderView: UIView?
+
+    /// SportsZone favors an immediate mini-to-full-screen transition.
+    /// The Guide keeps its original TV display matching behavior.
+    @ObservationIgnored var prefersUninterruptedVideoHandoff = false
     #endif
 
     /// Ignored while full screen owns the session: a preview tile mounting
