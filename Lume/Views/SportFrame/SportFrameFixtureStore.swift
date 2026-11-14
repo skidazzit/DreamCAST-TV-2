@@ -213,7 +213,9 @@ final class FixtureStore: ObservableObject {
             let finalIDs = Set(events.filter {
                 SportsZoneScoreRefreshPolicy.isFinal(score(for: $0).status)
             }.map(\.idEvent))
-            let newlyFinal = observedLiveIDs.intersection(finalIDs).subtracting(verifiedFinalIDs)
+            // Verify a new final once, even if the API skipped directly
+            // from Scheduled to Final between the five-minute polls.
+            let newlyFinal = finalIDs.subtracting(verifiedFinalIDs)
             if !newlyFinal.isEmpty {
                 verifiedFinalIDs.formUnion(newlyFinal)
                 await refreshScores(sports: sports, date: date)
