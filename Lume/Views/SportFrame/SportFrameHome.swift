@@ -73,7 +73,7 @@ struct SportFrameHome: View {
     @State private var sportsFollowExpanded = false
     @State private var selectedEvent: SportEvent?
     @State private var openedLeague: SportFrameLeagueRoute?
-    @State private var playingMedia: PlayableMedia?
+    @State private var sportsPlayback = SportsZonePlaybackSession()
     @State private var pendingMedia: PlayableMedia?
     @State private var premiumKeyInput = ""
     @State private var keyMessage: String?
@@ -172,6 +172,9 @@ struct SportFrameHome: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 26) {
                     header
+                    if page == 0 && openedLeague == nil {
+                        SportsZoneMiniPlayer(session: sportsPlayback)
+                    }
                     switch page {
                     case 1: settingsPage
                     default: matchesPage
@@ -182,12 +185,20 @@ struct SportFrameHome: View {
             }
         }
         .fullScreenCover(item: $openedLeague) { league in
-            SportFrameLeagueDetailTV(league: league)
+            SportFrameLeagueDetailTV(league: league, playback: sportsPlayback)
         }
         .fullScreenCover(item: $selectedEvent, onDismiss: presentPendingMedia) { event in
             SportFrameMatchSheet(event: event, onPlay: queueChannelPlayback)
         }
-        .fullScreenCover(item: $playingMedia) { FullScreenPlayerView(media: $0) }
+        // The league page owns its topmost full-screen cover when it is open.
+        .fullScreenCover(item: Binding(
+            get: { openedLeague == nil ? sportsPlayback.fullScreenMedia : nil },
+            set: { sportsPlayback.fullScreenMedia = $0 }
+        ), onDismiss: {
+            sportsPlayback.returnedFromFullScreen()
+        }) { media in
+            FullScreenPlayerView(media: media, adopting: sportsPlayback.handle)
+        }
         .task { await catalog.refresh() }
         .task(id: "\(dayOffset)|\(followedValue)|\(SportsDBAccess.apiKey)") {
             let selectedDay = Calendar.current.date(byAdding: .day, value: dayOffset, to: .now) ?? .now
@@ -631,7 +642,7 @@ struct SportFrameHome: View {
     private func presentPendingMedia() {
         guard let media = pendingMedia else { return }
         pendingMedia = nil
-        playingMedia = media
+        sportsPlayback.tune(media)
     }
 
     private func refresh() async {
