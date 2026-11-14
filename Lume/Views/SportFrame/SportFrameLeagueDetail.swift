@@ -431,6 +431,7 @@ struct SportFrameLeagueDetail: View {
 
     @Environment(\.openURL) private var openURL
     @StateObject private var store = SportFrameLeagueDetailStore()
+    @State private var openingHighlightsFor: String?
 
     var body: some View {
         ScrollView {
@@ -514,7 +515,7 @@ struct SportFrameLeagueDetail: View {
             .padding(.horizontal, 12).padding(.vertical, 10)
 
             ForEach(store.recentResults) { event in
-                Button { onSelectEvent(event) } label: {
+                Button { openHighlights(for: event) } label: {
                     HStack(alignment: .center, spacing: 8) {
                         VStack(alignment: .leading, spacing: 7) {
                             teamRow(event.strHomeTeam ?? "Home", image: event.homeBadge)
@@ -548,6 +549,17 @@ struct SportFrameLeagueDetail: View {
             }
         }
         .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+    }
+
+    /// Results open the correct highlight video, not the live-channel picker.
+    private func openHighlights(for event: SportEvent) {
+        guard openingHighlightsFor == nil else { return }
+        openingHighlightsFor = event.idEvent
+        Task {
+            let destination = await store.highlightDestination(for: event)
+            openingHighlightsFor = nil
+            openURL(destination)
+        }
     }
 
     private func fixtureRow(_ event: SportEvent) -> some View {
