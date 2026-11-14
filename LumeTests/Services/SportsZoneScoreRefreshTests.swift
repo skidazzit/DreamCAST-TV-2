@@ -4,18 +4,16 @@ import Testing
 
 @MainActor
 struct SportsZoneScoreRefreshTests {
-    @Test func liveAndPremiumScoresRefreshEveryMinute() {
+    @Test func liveAndPremiumScoresRefreshEvery160Seconds() {
         let start = Date(timeIntervalSince1970: 1_800_000_000)
-        let early = start.addingTimeInterval(59)
-        let due = start.addingTimeInterval(60)
-        #expect(SportsZoneScoreRefreshPolicy.liveInterval == 60)
-        #expect(SportsZoneScoreRefreshPolicy.premiumInterval == 60)
-        #expect(!SportsZoneScoreRefreshPolicy.isDue(
-            since: start, interval: SportsZoneScoreRefreshPolicy.liveInterval, now: early
-        ))
-        #expect(SportsZoneScoreRefreshPolicy.isDue(
-            since: start, interval: SportsZoneScoreRefreshPolicy.liveInterval, now: due
-        ))
+        let early = start.addingTimeInterval(159)
+        let due = start.addingTimeInterval(160)
+        #expect(SportsZoneScoreRefreshPolicy.liveInterval == 160)
+        #expect(SportsZoneScoreRefreshPolicy.premiumInterval == 160)
+        for interval in [SportsZoneScoreRefreshPolicy.liveInterval, SportsZoneScoreRefreshPolicy.premiumInterval] {
+            #expect(!SportsZoneScoreRefreshPolicy.isDue(since: start, interval: interval, now: early))
+            #expect(SportsZoneScoreRefreshPolicy.isDue(since: start, interval: interval, now: due))
+        }
     }
 
     @Test func upcomingFixturesRefreshEveryFiveMinutes() {
