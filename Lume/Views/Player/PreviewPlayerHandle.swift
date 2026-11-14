@@ -99,6 +99,12 @@ final class PreviewPlayerHandle {
     /// Only `.preview` lets the preview tile reset, reconnect or tear down its
     /// player; any other owner means the running session is no longer its own.
     var owner: Owner = .preview
+
+    /// Full-screen's old queued callbacks must never rebuild a decoder once
+    /// the preview has reclaimed it. A nil handle (normal playback) is
+    /// handled by the caller.
+    var allowsFullScreenEngineCallbacks: Bool { owner == .fullScreen }
+
     var media: PlayableMedia?
     /// The Stalker-resolved stand-in for `media` the engine actually opened, so
     /// full screen reuses its URL instead of spending another `create_link`.
