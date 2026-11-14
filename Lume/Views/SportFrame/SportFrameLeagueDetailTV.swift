@@ -15,6 +15,7 @@ struct SportFrameLeagueDetailTV: View {
     let league: SportFrameLeagueRoute
     let playback: SportsZonePlaybackSession
     let onBack: () -> Void
+    @ObservedObject var scores: FixtureStore
 
     @StateObject private var store = SportFrameLeagueDetailStore()
     @Environment(\.modelContext) private var modelContext
@@ -161,7 +162,7 @@ struct SportFrameLeagueDetailTV: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                         Group {
-                            if let home = event.intHomeScore, let away = event.intAwayScore {
+                            if let home = scores.score(for: event).home, let away = scores.score(for: event).away {
                                 Text("\(home) – \(away)")
                             } else {
                                 Text("Result")
@@ -205,20 +206,22 @@ struct SportFrameLeagueDetailTV: View {
     }
 
     private func sportsDBFixture(_ event: SportEvent) -> some View {
-        HStack(spacing: 18) {
+        let matchScore = scores.score(for: event)
+        let live = scores.isLive(event)
+        return HStack(spacing: 18) {
             VStack(alignment: .leading, spacing: 14) {
                 team(event.strHomeTeam ?? "Home", logo: event.homeBadge)
                 team(event.strAwayTeam ?? "Away", logo: event.awayBadge)
             }
             Spacer(minLength: 6)
             VStack(alignment: .trailing, spacing: 8) {
-                if let home = event.intHomeScore, let away = event.intAwayScore {
+                if let home = matchScore.home, let away = matchScore.away {
                     Text("\(home) – \(away)").font(.title3.bold())
                 } else {
                     Text(event.timeLabel).font(.title3.bold())
                 }
-                Text(event.isLive ? "LIVE" : "TheSportsDB")
-                    .font(.subheadline).foregroundStyle(event.isLive ? .green : .secondary)
+                Text(live ? "LIVE" : (matchScore.status ?? "TheSportsDB"))
+                    .font(.subheadline).foregroundStyle(live ? .green : .secondary)
             }
         }
         .padding(18)
