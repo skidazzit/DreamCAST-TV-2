@@ -1,9 +1,9 @@
 #if os(iOS) || os(tvOS)
 import SwiftUI
 
-/// One SportsZone live playback session, shared by its guide and mini-player.
-/// The same PreviewPlayerHandle transfers a running decoder to full screen
-/// and restores it when the viewer backs out, as Live TV does.
+/// SportsZone uses the same decoder handoff as the Live TV guide.
+/// Only choosing a channel changes playback; scrolling and changing leagues
+/// do not affect the running stream.
 @MainActor @Observable
 final class SportsZonePlaybackSession {
     let handle = PreviewPlayerHandle()
@@ -13,13 +13,20 @@ final class SportsZonePlaybackSession {
     var reloadToken = 0
 
     func tune(_ media: PlayableMedia) {
-        // Reselecting the same channel must not restart its decoder.
         guard miniMedia?.id != media.id else { return }
         handle.stopPreview()
         failedMediaID = nil
         reloadToken += 1
         miniMedia = media
         LiveChannelHistory.record(media)
+
+        // Match the Live TV setting: "Off" means no inline preview.
+        // Open the stream full screen rather than playing it off-screen.
+        let mode = GuidePreviewMode(storedValue:
+            UserDefaults.standard.string(forKey: PlayerSettings.tvGuidePreviewModeKey))
+        if mode == .off {
+            openFullScreen()
+        }
     }
 
     func openFullScreen() {
@@ -27,20 +34,18 @@ final class SportsZonePlaybackSession {
         if handle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) {
             handle.handOffToFullScreen()
         } else {
-            // When the engine cannot hand off, release the preview connection
-            // before full screen opens a new one.
+            // The selected engine cannot hand over its decoder. Release the
+            // preview connection first, then let full screen start normally.
             handle.stopPreview()
         }
         fullScreenMedia = media
     }
 
     func returnedFromFullScreen() {
-        // Called after the full-screen UIKit surface has been dismissed.
         if handle.owner == .fullScreen, let id = handle.media?.id {
             _ = handle.returnToPreview(mediaID: id)
         }
         if !handle.finishReturnToPreview() {
-            // Engines without handoff start a fresh mini-player on return.
             handle.release()
             reloadToken += 1
         }
@@ -55,84 +60,135 @@ final class SportsZonePlaybackSession {
     }
 }
 
-/// The mini-player is always audible and never changes streams on a focus
-/// move, event refresh or league switch. Only selecting a channel calls tune.
+/// An in-flow, fixed-position SportsZone player. Its parent keeps the view
+/// OUTSIDE the fixtures ScrollView, so it never overlays match rows or moves
+/// when a viewer scrolls. It reads the actual Live TV guide display settings.
 struct SportsZoneMiniPlayer: View {
     let session: SportsZonePlaybackSession
 
+    @AppStorage(PlayerSettings.tvGuidePreviewModeKey)
+    private var modeRaw = PlayerSettings.tvGuidePreviewModeDefault.rawValue
+
+    private var mode: GuidePreviewMode {
+        GuidePreviewMode(storedValue: modeRaw)
+    }
+
+    #if os(tvOS)
+    @AppStorage(TVGuideDesign.storageKey)
+    private var guideDesignRaw = TVGuideDesign.classic.rawValue
+
+    private var guideDesign: TVGuideDesign {
+        TVGuideDesign(storedValue: guideDesignRaw)
+    }
+    #endif
+
     var body: some View {
-        if let media = session.miniMedia {
+        if let media = session.miniMedia, mode.showsHero {
             #if os(tvOS)
-                HStack(alignment: .center, spacing: 26) {
-                    surface(media)
-                        .frame(width: 405, height: 228)
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text("NOW PLAYING")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                        Text(media.title)
-                            .font(.title2.bold())
-                            .lineLimit(2)
-                        HStack(spacing: 18) {
-                            Button {
-                                session.openFullScreen()
-                            } label: {
-                                Label("Full Screen", systemImage: "arrow.up.left.and.arrow.down.right")
-                            }
-                            .buttonStyle(.borderedProminent)
-                            Button {
-                                session.close()
-                            } label: {
-                                Label("Stop", systemImage: "stop.fill")
-                            }
-                            .buttonStyle(.bordered)
-                        }
-                    }
-                    Spacer(minLength: 0)
-                }
-                .padding(22)
-                .background(.white.opacity(0.075), in: RoundedRectangle(cornerRadius: 24))
-                .focusSection()
+            tvPlayer(media)
             #else
-                HStack(spacing: 12) {
-                    surface(media)
-                        .frame(width: 142, height: 80)
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("NOW PLAYING")
-                            .font(.caption2.bold())
-                            .foregroundStyle(.secondary)
-                        Text(media.title)
-                            .font(.subheadline.weight(.semibold))
-                            .lineLimit(2)
-                    }
-                    Spacer(minLength: 0)
-                    Button {
-                        session.openFullScreen()
-                    } label: {
-                        Image(systemName: "arrow.up.left.and.arrow.down.right")
-                            .font(.headline)
-                    }
-                    .accessibilityLabel("Open SportsZone full screen")
-                    Button {
-                        session.close()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title3)
-                    }
-                    .accessibilityLabel("Stop SportsZone playback")
-                }
-                .padding(10)
-                .background(Color(red: 0.09, green: 0.13, blue: 0.2),
-                            in: RoundedRectangle(cornerRadius: 16))
-                .padding(.horizontal, 10)
+            phonePlayer(media)
             #endif
         }
     }
 
+    #if os(tvOS)
+    /// The same hero dimensions and left/right order as the tvOS Live TV guide.
+    /// The fixtures and league table scroll in the space BELOW this hero.
+    private func tvPlayer(_ media: PlayableMedia) -> some View {
+        let layout = EPGHeroLayout(mode)
+        return HStack(alignment: .bottom, spacing: 48) {
+            if guideDesign == .dreamcast {
+                surface(media)
+                    .frame(width: layout.videoWidth, height: layout.height)
+                tvInfo(media)
+            } else {
+                tvInfo(media)
+                surface(media)
+                    .frame(width: layout.videoWidth, height: layout.height)
+            }
+        }
+        .frame(height: layout.height)
+        .padding(.bottom, layout.bottomPadding)
+        .focusSection()
+        .accessibilityElement(children: .contain)
+    }
+
+    private func tvInfo(_ media: PlayableMedia) -> some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text("NOW PLAYING")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+            Text(media.title)
+                .font(.system(size: 35, weight: .bold))
+                .lineLimit(2)
+            HStack(spacing: 18) {
+                Button {
+                    session.openFullScreen()
+                } label: {
+                    Label("Full Screen", systemImage: "arrow.up.left.and.arrow.down.right")
+                }
+                .buttonStyle(.borderedProminent)
+                Button {
+                    session.close()
+                } label: {
+                    Label("Stop", systemImage: "stop.fill")
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+    }
+    #else
+    /// Match iOS Live TV: title/controls above a wide, non-floating preview.
+    private func phonePlayer(_ media: PlayableMedia) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                Text("NOW PLAYING")
+                    .font(.caption2.bold())
+                    .foregroundStyle(.secondary)
+                Text(media.title)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                Spacer(minLength: 4)
+                Button {
+                    session.openFullScreen()
+                } label: {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                }
+                .accessibilityLabel("Open SportsZone full screen")
+                Button {
+                    session.close()
+                } label: {
+                    Image(systemName: "stop.fill")
+                }
+                .accessibilityLabel("Stop SportsZone playback")
+            }
+            surface(media)
+                .frame(height: mode == .large || mode == .infoOnly ? 210 : 124)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 10)
+        .padding(.bottom, 10)
+    }
+    #endif
+
+    /// The tile remains mounted behind full screen to retain its player state.
+    /// Only .small and .large render video, matching GuidePreviewMode.
     private func surface(_ media: PlayableMedia) -> some View {
         ZStack {
             Color.black
-            if session.failedMediaID == media.id {
+            if !mode.playsVideo {
+                if let artwork = media.posterURL {
+                    AsyncImage(url: artwork) { image in
+                        image.resizable().scaledToFit()
+                    } placeholder: {
+                        Image(systemName: "tv").font(.largeTitle)
+                    }
+                } else {
+                    Image(systemName: "tv").font(.largeTitle)
+                }
+            } else if session.failedMediaID == media.id {
                 Label("Stream unavailable", systemImage: "exclamationmark.triangle")
                     .font(.caption)
                     .foregroundStyle(.white)
@@ -146,13 +202,12 @@ struct SportsZoneMiniPlayer: View {
                         session.failedMediaID = media.id
                     }
                 )
-                // Retain the actual player across full-screen handoff. A new
-                // identity is needed only for a different stream or fallback.
                 .id("\(media.id)-\(session.reloadToken)")
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .accessibilityLabel("SportsZone playing \(media.title)")
+        .frame(maxWidth: .infinity)
+        .clipShape(RoundedRectangle(cornerRadius: 22))
+        .accessibilityLabel("SportsZone channel: \(media.title)")
     }
 }
 #endif
