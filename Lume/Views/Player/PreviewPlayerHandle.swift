@@ -11,6 +11,9 @@
 import KSPlayer
 import OSLog
 import SwiftUI
+#if os(tvOS)
+import UIKit
+#endif
 
 @MainActor @Observable
 final class PreviewPlayerHandle {
@@ -106,6 +109,13 @@ final class PreviewPlayerHandle {
     /// The KSPlayer coordinator and decoder are kept intact.
     private(set) var returnGeneration = 0
 
+    #if os(tvOS)
+    /// The most recent KSPlayer render view, including the one full screen
+    /// actually adopted. The preview's first view can be stale after UIKit
+    /// swaps hosts; retaining the current view avoids a black mini-player.
+    @ObservationIgnored var activeKSRenderView: UIView?
+    #endif
+
     /// Ignored while full screen owns the session: a preview tile mounting
     /// behind the cover must not replace the coordinator full screen adopted.
     func register(
@@ -120,6 +130,9 @@ final class PreviewPlayerHandle {
            let existing = self.coordinator, existing.isSame(as: coordinator) {
             return
         }
+        #if os(tvOS)
+        if self.media?.id != media.id { activeKSRenderView = nil }
+        #endif
         owner = .preview
         self.media = media
         resolvedMedia = resolved
@@ -179,6 +192,9 @@ final class PreviewPlayerHandle {
         owner = .released
         coordinator = nil
         hasStarted = false
+        #if os(tvOS)
+        activeKSRenderView = nil
+        #endif
     }
 
     /// Stops the preview's session now rather than when its tile next
