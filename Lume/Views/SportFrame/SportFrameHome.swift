@@ -181,7 +181,8 @@ struct SportFrameHome: View {
                     SportFrameLeagueDetailTV(
                         league: openedLeague,
                         playback: sportsPlayback,
-                        onBack: { self.openedLeague = nil }
+                        onBack: { self.openedLeague = nil },
+                        scores: fixtures
                     )
                 } else {
                     ScrollView {
