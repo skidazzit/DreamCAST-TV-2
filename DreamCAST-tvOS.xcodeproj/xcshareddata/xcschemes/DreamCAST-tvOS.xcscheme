@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "C67C02BF2F880F2200842DBA"
-               BuildableName = "Lume.app"
+               BuildableName = "DreamCASTTV.app"
                BlueprintName = "DreamCAST TV"
                ReferencedContainer = "container:DreamCAST-tvOS.xcodeproj">
             </BuildableReference>
@@ -70,7 +70,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C67C02BF2F880F2200842DBA"
-            BuildableName = "Lume.app"
+            BuildableName = "DreamCASTTV.app"
             BlueprintName = "DreamCAST TV"
             ReferencedContainer = "container:DreamCAST-tvOS.xcodeproj">
          </BuildableReference>
@@ -90,7 +90,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C67C02BF2F880F2200842DBA"
-            BuildableName = "Lume.app"
+            BuildableName = "DreamCASTTV.app"
             BlueprintName = "DreamCAST TV"
             ReferencedContainer = "container:DreamCAST-tvOS.xcodeproj">
          </BuildableReference>
