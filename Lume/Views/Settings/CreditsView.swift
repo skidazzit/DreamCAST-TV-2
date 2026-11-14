@@ -17,7 +17,7 @@
     struct CreditsView: View {
         var body: some View {
             List {
-                lumeSection
+                dreamCASTSection
                 librariesSection
                 metadataSection
                 sampleFootageSection
@@ -26,7 +26,7 @@
             .platformNavigationTitle("Acknowledgements")
         }
 
-        private var lumeSection: some View {
+        private var dreamCASTSection: some View {
             Section {
                 if let url = CreditsInfo.sourceCodeURL {
                     Link(destination: url) {
@@ -50,9 +50,9 @@
                     }
                 }
             } header: {
-                Text("Lume")
+                Text("DreamCAST TV")
             } footer: {
-                Text("Lume is free, open-source software, licensed under the GNU Affero General Public License v3.")
+                Text("DreamCAST TV is based on the original Lume project and is licensed under the GNU Affero General Public License v3.")
             }
         }
 
@@ -64,7 +64,7 @@
             } header: {
                 Text("Open Source")
             } footer: {
-                Text("Lume's playback engines build on these open-source projects. Each remains under its own license.")
+                Text("DreamCAST TV uses playback engines from these open-source projects. Each remains under its own license.")
             }
         }
 
