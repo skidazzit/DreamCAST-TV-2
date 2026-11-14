@@ -60,6 +60,7 @@ private enum SportsZoneAPIConnectionStatus: Equatable {
 struct SportFrameHome: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.contentRestriction) private var restriction
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var fixtures = FixtureStore()
     @StateObject private var catalog = SportFrameCatalog()
     @AppStorage("sportFrameFollowedSportsV2") private var followedValue = "Soccer|Basketball|American Football"
@@ -219,9 +220,10 @@ struct SportFrameHome: View {
             FullScreenPlayerView(media: media, adopting: sportsPlayback.handle)
         }
         .task { await catalog.refresh() }
-        .task(id: "\(dayOffset)|\(followedValue)|\(SportsDBAccess.apiKey)") {
+        .task(id: "\(dayOffset)|\(followedValue)|\(SportsDBAccess.apiKey)|\(page)|\(scenePhase == .active)") {
+            guard page == 0, scenePhase == .active else { return }
             let selectedDay = Calendar.current.date(byAdding: .day, value: dayOffset, to: .now) ?? .now
-            await fixtures.fetch(sports: followedSports, date: selectedDay)
+            await fixtures.pollSportsZone(sports: followedSports, date: selectedDay)
         }
         .onChange(of: followedValue) { _, _ in
             if selectedSport != "All Sports" && !followedSports.contains(selectedSport) {
@@ -383,7 +385,13 @@ struct SportFrameHome: View {
                         }
 
                         ForEach(events) { event in
-                            Button { selectedEvent = event } label: { SportFrameFixtureCard(event: event) }
+                            Button { selectedEvent = event } label: {
+                                SportFrameFixtureCard(
+                                    event: event,
+                                    score: fixtures.score(for: event),
+                                    isLive: fixtures.isLive(event)
+                                )
+                            }
                                 .buttonStyle(TVCardButtonStyle(focusScale: 1.03))
                                 .focused($focusedControl, equals: .fixture(event.idEvent))
                         }
@@ -704,6 +712,8 @@ private struct SportsZonePillStyle: ButtonStyle {
 
 private struct SportFrameFixtureCard: View {
     let event: SportEvent
+    let score: SportFrameScore
+    let isLive: Bool
     @Environment(\.isFocused) private var focused
     private let accent = Color(red: 0.0, green: 0.8, blue: 0.94)
 
@@ -716,15 +726,15 @@ private struct SportFrameFixtureCard: View {
                 }
                 Spacer(minLength: 8)
                 VStack(alignment: .trailing, spacing: 9) {
-                    if event.intHomeScore != nil && event.intAwayScore != nil {
-                        Text(score).font(.system(size: 29, weight: .bold))
+                    if score.home != nil && score.away != nil {
+                        Text(scoreText).font(.system(size: 29, weight: .bold))
                     } else {
                         Text(event.timeLabel).font(.system(size: 23, weight: .bold))
                     }
-                    Text(event.isLive ? "LIVE" : (event.strStatus ?? "Scheduled"))
+                    Text(isLive ? "LIVE" : (score.status ?? "Scheduled"))
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(event.isLive ? .green : .secondary)
-                    if event.intHomeScore != nil && event.intAwayScore != nil {
+                        .foregroundStyle(isLive ? .green : .secondary)
+                    if score.home != nil && score.away != nil {
                         Text(event.timeLabel).font(.subheadline).foregroundStyle(.secondary)
                     }
                 }
@@ -739,8 +749,8 @@ private struct SportFrameFixtureCard: View {
         .overlay(RoundedRectangle(cornerRadius: 20).stroke(focused ? accent : .clear, lineWidth: 3))
     }
 
-    private var score: String {
-        if let home = event.intHomeScore, let away = event.intAwayScore { return "\(home) : \(away)" }
+    private var scoreText: String {
+        if let home = score.home, let away = score.away { return "\(home) : \(away)" }
         return "vs"
     }
 
