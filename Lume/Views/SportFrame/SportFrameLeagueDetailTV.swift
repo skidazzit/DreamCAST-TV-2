@@ -14,10 +14,10 @@ struct SportFrameLeagueRoute: Identifiable {
 struct SportFrameLeagueDetailTV: View {
     let league: SportFrameLeagueRoute
     let playback: SportsZonePlaybackSession
+    let onBack: () -> Void
 
     @StateObject private var store = SportFrameLeagueDetailStore()
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.dismiss) private var dismiss
     @State private var selectedMatch: SportEvent?
     @State private var pendingMedia: PlayableMedia?
     @State private var openingHighlightsFor: String?
@@ -38,31 +38,18 @@ struct SportFrameLeagueDetailTV: View {
                 .padding(.horizontal, 90)
                 .padding(.vertical, 45)
             }
-            .safeAreaInset(edge: .bottom) {
-                if playback.miniMedia != nil {
-                    SportsZoneMiniPlayer(session: playback)
-                        .frame(maxWidth: 1100)
-                        .padding(.horizontal, 90)
-                        .padding(.bottom, 16)
-                }
-            }
         }
         .fullScreenCover(item: $selectedMatch, onDismiss: presentPendingMedia) { event in
             SportFrameMatchSheet(event: event, onPlay: queueChannelPlayback)
-        }
-        .fullScreenCover(item: Binding(
-            get: { playback.fullScreenMedia },
-            set: { playback.fullScreenMedia = $0 }
-        ), onDismiss: {
-            playback.returnedFromFullScreen()
-        }) { media in
-            FullScreenPlayerView(media: media, adopting: playback.handle)
         }
         .task(id: league.id) {
             await store.refresh(
                 leagueID: league.leagueID, leagueName: league.leagueName,
                 sport: league.sport
             )
+        }
+        .onExitCommand {
+            onBack()
         }
     }
 
@@ -108,7 +95,7 @@ struct SportFrameLeagueDetailTV: View {
                 }
             }
             .buttonStyle(.bordered)
-            Button("Back") { dismiss() }
+            Button("Back") { onBack() }
                 .buttonStyle(.borderedProminent)
         }
         .padding(.bottom, 20)
