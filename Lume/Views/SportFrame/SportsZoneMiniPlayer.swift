@@ -6,7 +6,14 @@ import SwiftUI
 /// do not affect the running stream.
 @MainActor @Observable
 final class SportsZonePlaybackSession {
+    #if os(tvOS)
+    /// The exact controller Live TV uses for preview ownership, cooldown
+    /// and the return from full-screen. Never create a second handoff path.
+    let guidePreview = GuidePreviewController()
+    var handle: PreviewPlayerHandle { guidePreview.handle }
+    #else
     let handle = PreviewPlayerHandle()
+    #endif
     var miniMedia: PlayableMedia?
     var fullScreenMedia: PlayableMedia?
     var failedMediaID: String?
@@ -24,6 +31,9 @@ final class SportsZonePlaybackSession {
         failedMediaID = nil
         reloadToken += 1
         miniMedia = media
+        #if os(tvOS)
+        guidePreview.preferredStreamID = media.id
+        #endif
         LiveChannelHistory.record(media)
 
         // Match the Live TV setting: "Off" means no inline preview.
@@ -35,47 +45,50 @@ final class SportsZonePlaybackSession {
 
     func openFullScreen() {
         guard let media = miniMedia, fullScreenMedia == nil else { return }
+        #if os(tvOS)
+        // Use Live TV's exact preparation, including owner transition
+        // and suspend/cooldown state for a non-adoptable decoder.
+        guidePreview.prepareToPresent(media)
+        #else
         if handle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) {
             handle.handOffToFullScreen()
         } else {
-            // The selected engine cannot hand over its decoder. Release the
-            // preview connection first, then let full screen start normally.
             handle.stopPreview()
         }
+        #endif
         isAwaitingFullScreenDismissal = true
         fullScreenMedia = media
     }
 
     func returnedFromFullScreen() {
-        // SwiftUI can report a previous cover's dismissal while a newer one
-        // is opening. Never tear down the active decoder in that case.
+        // A single dismissal may be reported twice by SwiftUI. Live TV
+        // must receive just one matching return for each presentation.
         guard isAwaitingFullScreenDismissal, fullScreenMedia == nil else { return }
         isAwaitingFullScreenDismissal = false
 
-        // The full-screen player and its dismiss callback both help return
-        // the handle. If the decoder is already back, a duplicate dismissal
-        // must NOT release it or force a second stream load.
+        #if os(tvOS)
+        // Let the working Guide code return the same decoder, or cool down
+        // a failed handoff before opening another provider connection.
+        guidePreview.fullScreenDidClose()
+        if handle.owner == .preview {
+            failedMediaID = nil
+        }
+        #else
         if handle.owner == .preview,
            handle.media?.id == miniMedia?.id,
-           handle.coordinator != nil {
-            return
-        }
-
+           handle.coordinator != nil { return }
         if handle.owner == .fullScreen, let media = miniMedia,
            handle.media?.id == media.id {
             _ = handle.returnToPreview(mediaID: media.id)
         }
-
         if handle.finishReturnToPreview() {
             failedMediaID = nil
             return
         }
-
-        // Engine did not support adoption or the channel changed in full
-        // screen. Only those cases need a fresh preview connection.
         handle.release()
         failedMediaID = nil
         reloadToken += 1
+        #endif
     }
 
     func close() {
@@ -83,6 +96,9 @@ final class SportsZonePlaybackSession {
         handle.stopPreview()
         miniMedia = nil
         failedMediaID = nil
+        #if os(tvOS)
+        guidePreview.preferredStreamID = nil
+        #endif
         reloadToken += 1
     }
 }
