@@ -25,28 +25,28 @@
 			containerPortal = C67C02B82F880F2200842DBA /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = C67C02BF2F880F2200842DBA;
-			remoteInfo = Lume;
+			remoteInfo = "DreamCAST TV";
 		};
 		C67C02DC2F880F2400842DBA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C67C02B82F880F2200842DBA /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = C67C02BF2F880F2200842DBA;
-			remoteInfo = Lume;
+			remoteInfo = "DreamCAST TV";
 		};
 		C6BD5701000000000000F005 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C67C02B82F880F2200842DBA /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = C6BD5701000000000000E001;
-			remoteInfo = LumeTopShelf;
+			remoteInfo = "DreamCAST TV Top Shelf";
 		};
 		C6BE110000000000000000A7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C67C02B82F880F2200842DBA /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = C67C02BF2F880F2200842DBA;
-			remoteInfo = Lume;
+			remoteInfo = "DreamCAST TV";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -77,13 +77,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		C6339AC72FE20238008DDD93 /* Lume.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Lume.storekit; sourceTree = "<group>"; };
-		C67C02C02F880F2200842DBA /* Lume.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lume.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C67C02D12F880F2400842DBA /* LumeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LumeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		C67C02DB2F880F2400842DBA /* LumeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LumeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		C6AA31012FDD00020000AB01 /* LumeWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LumeWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		C6BD5701000000000000A002 /* LumeTopShelf.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LumeTopShelf.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		C6BE110000000000000000A1 /* LumePerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LumePerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6339AC72FE20238008DDD93 /* Lume.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; name = "DreamCAST TV StoreKit"; path = Lume.storekit; sourceTree = "<group>"; };
+		C67C02C02F880F2200842DBA /* Lume.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "DreamCAST TV.app"; path = Lume.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C67C02D12F880F2400842DBA /* LumeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "DreamCAST TV Tests.xctest"; path = LumeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C67C02DB2F880F2400842DBA /* LumeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "DreamCAST TV UI Tests.xctest"; path = LumeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6AA31012FDD00020000AB01 /* LumeWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; name = "DreamCAST TV Widgets.appex"; path = LumeWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6BD5701000000000000A002 /* LumeTopShelf.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; name = "DreamCAST TV Top Shelf.appex"; path = LumeTopShelf.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6BE110000000000000000A1 /* LumePerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "DreamCAST TV Performance Tests.xctest"; path = LumePerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -123,6 +123,7 @@
 			exceptions = (
 				C67C02E32F880F2400842DBA /* Exceptions for "Lume" folder in "Lume" target */,
 			);
+			name = "DreamCAST TV";
 			path = Lume;
 			sourceTree = "<group>";
 		};
@@ -131,11 +132,13 @@
 			exceptions = (
 				C6E0F1A52FE0000000000001 /* Exceptions for "LumeTests" folder in "LumeTests" target */,
 			);
+			name = "DreamCAST TV Tests";
 			path = LumeTests;
 			sourceTree = "<group>";
 		};
 		C67C02DE2F880F2400842DBA /* LumeUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			name = "DreamCAST TV UI Tests";
 			path = LumeUITests;
 			sourceTree = "<group>";
 		};
@@ -144,11 +147,13 @@
 			exceptions = (
 				C6AA310F2FDD00020000AB0F /* Exceptions for "LumeWidgets" folder in "LumeWidgets" target */,
 			);
+			name = "DreamCAST TV Widgets";
 			path = LumeWidgets;
 			sourceTree = "<group>";
 		};
 		C6BD5701000000000000B001 /* LumeShared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			name = "DreamCAST TV Shared";
 			path = LumeShared;
 			sourceTree = "<group>";
 		};
@@ -157,11 +162,13 @@
 			exceptions = (
 				C6BD5701000000000000C002 /* Exceptions for "LumeTopShelf" folder in "LumeTopShelf" target */,
 			);
+			name = "DreamCAST TV Top Shelf";
 			path = LumeTopShelf;
 			sourceTree = "<group>";
 		};
 		C6BE110000000000000000A2 /* LumePerformanceTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			name = "DreamCAST TV Performance Tests";
 			path = LumePerformanceTests;
 			sourceTree = "<group>";
 		};
@@ -272,7 +279,7 @@
 				C67C02C22F880F2200842DBA /* Lume */,
 				C6BD5701000000000000B001 /* LumeShared */,
 			);
-			name = Lume;
+			name = "DreamCAST TV";
 			packageProductDependencies = (
 				C6CC40022FE000040000CC02 /* GoogleCastDynamic */,
 				C66C81682FC5A59D0048468D /* KSPlayer */,
@@ -302,7 +309,7 @@
 			fileSystemSynchronizedGroups = (
 				C67C02D42F880F2400842DBA /* LumeTests */,
 			);
-			name = LumeTests;
+			name = "DreamCAST TV Tests";
 			packageProductDependencies = (
 			);
 			productName = LumeTests;
@@ -325,7 +332,7 @@
 			fileSystemSynchronizedGroups = (
 				C67C02DE2F880F2400842DBA /* LumeUITests */,
 			);
-			name = LumeUITests;
+			name = "DreamCAST TV UI Tests";
 			packageProductDependencies = (
 			);
 			productName = LumeUITests;
@@ -348,7 +355,7 @@
 				C6AA31022FDD00020000AB02 /* LumeWidgets */,
 				C6BD5701000000000000B001 /* LumeShared */,
 			);
-			name = LumeWidgets;
+			name = "DreamCAST TV Widgets";
 			packageProductDependencies = (
 			);
 			productName = LumeWidgets;
@@ -371,7 +378,7 @@
 				C6BD5701000000000000B001 /* LumeShared */,
 				C6BD5701000000000000B003 /* LumeTopShelf */,
 			);
-			name = LumeTopShelf;
+			name = "DreamCAST TV Top Shelf";
 			packageProductDependencies = (
 			);
 			productName = LumeTopShelf;
@@ -394,7 +401,7 @@
 			fileSystemSynchronizedGroups = (
 				C6BE110000000000000000A2 /* LumePerformanceTests */,
 			);
-			name = LumePerformanceTests;
+			name = "DreamCAST TV Performance Tests";
 			packageProductDependencies = (
 			);
 			productName = LumePerformanceTests;
@@ -660,7 +667,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Lume needs access to your local network to find TVs, Cast devices and Philips Hue Bridges, and to reach media servers, WebDAV shares and recording servers running on it.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "DreamCAST TV needs access to your local network to find TVs, Cast devices and Philips Hue Bridges, and to reach media servers, WebDAV shares and recording servers running on it.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -683,7 +690,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Lume;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -725,7 +732,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Lume needs access to your local network to find TVs, Cast devices and Philips Hue Bridges, and to reach media servers, WebDAV shares and recording servers running on it.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "DreamCAST TV needs access to your local network to find TVs, Cast devices and Philips Hue Bridges, and to reach media servers, WebDAV shares and recording servers running on it.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -748,7 +755,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Lume;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -893,7 +900,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bilipp.LumeTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeTests;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -919,7 +926,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bilipp.LumeTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeTests;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -944,7 +951,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bilipp.LumeUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeUITests;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -953,7 +960,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_TARGET_NAME = Lume;
+				TEST_TARGET_NAME = "DreamCAST TV";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
@@ -969,7 +976,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bilipp.LumeUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeUITests;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -978,7 +985,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_TARGET_NAME = Lume;
+				TEST_TARGET_NAME = "DreamCAST TV";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Release;
@@ -1064,7 +1071,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Lume needs access to your local network to find TVs, Cast devices and Philips Hue Bridges, and to reach media servers, WebDAV shares and recording servers running on it.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "DreamCAST TV needs access to your local network to find TVs, Cast devices and Philips Hue Bridges, and to reach media servers, WebDAV shares and recording servers running on it.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -1087,7 +1094,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Lume;
 				REGISTER_APP_GROUPS = NO;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1116,7 +1123,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bilipp.LumeTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeTests;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -1141,7 +1148,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bilipp.LumeUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeUITests;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -1150,7 +1157,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_TARGET_NAME = Lume;
+				TEST_TARGET_NAME = "DreamCAST TV";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Sideload;
@@ -1172,7 +1179,7 @@
 				);
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.LumeWidgets;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeWidgets;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1204,7 +1211,7 @@
 				);
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.LumeWidgets;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeWidgets;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1237,7 +1244,7 @@
 				);
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.LumeWidgets;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeWidgets;
 				REGISTER_APP_GROUPS = NO;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1268,7 +1275,7 @@
 				);
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.topshelf;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeTopShelf;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				SKIP_INSTALL = YES;
@@ -1299,7 +1306,7 @@
 				);
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.topshelf;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeTopShelf;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				SKIP_INSTALL = YES;
@@ -1330,7 +1337,7 @@
 				);
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.topshelf;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeTopShelf;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				SKIP_INSTALL = YES;
@@ -1361,7 +1368,7 @@
 				);
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.topshelf;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeTopShelf;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				SKIP_INSTALL = YES;
@@ -1388,7 +1395,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bilipp.LumePerformanceTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumePerformanceTests;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -1414,7 +1421,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bilipp.LumePerformanceTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumePerformanceTests;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -1440,7 +1447,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bilipp.LumePerformanceTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumePerformanceTests;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -1466,7 +1473,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bilipp.LumePerformanceTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumePerformanceTests;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -1557,7 +1564,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Lume needs access to your local network to find TVs, Cast devices and Philips Hue Bridges, and to reach media servers, WebDAV shares and recording servers running on it.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "DreamCAST TV needs access to your local network to find TVs, Cast devices and Philips Hue Bridges, and to reach media servers, WebDAV shares and recording servers running on it.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -1580,7 +1587,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Lume;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1609,7 +1616,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bilipp.LumeTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeTests;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -1634,7 +1641,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bilipp.LumeUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeUITests;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -1643,7 +1650,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_TARGET_NAME = Lume;
+				TEST_TARGET_NAME = "DreamCAST TV";
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Benchmark;
@@ -1665,7 +1672,7 @@
 				);
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2.LumeWidgets;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = LumeWidgets;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
