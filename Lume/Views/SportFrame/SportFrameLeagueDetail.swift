@@ -430,6 +430,7 @@ struct SportFrameLeagueDetail: View {
     let sport: String
     let initialBadge: URL?
     let onSelectEvent: (SportEvent) -> Void
+    @ObservedObject var scores: FixtureStore
 
     @Environment(\.openURL) private var openURL
     @StateObject private var store = SportFrameLeagueDetailStore()
@@ -526,7 +527,7 @@ struct SportFrameLeagueDetail: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                         Group {
-                            if let home = event.intHomeScore, let away = event.intAwayScore {
+                            if let home = scores.score(for: event).home, let away = scores.score(for: event).away {
                                 Text("\(home) – \(away)")
                             } else {
                                 Text("Result")
@@ -569,21 +570,23 @@ struct SportFrameLeagueDetail: View {
     }
 
     private func fixtureRow(_ event: SportEvent) -> some View {
-        HStack(spacing: 10) {
+        let matchScore = scores.score(for: event)
+        let live = scores.isLive(event)
+        return HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 10) {
                 teamRow(event.strHomeTeam ?? "Home", image: event.homeBadge)
                 teamRow(event.strAwayTeam ?? "Away", image: event.awayBadge)
             }
             Spacer(minLength: 6)
             VStack(alignment: .trailing, spacing: 6) {
-                if let home = event.intHomeScore, let away = event.intAwayScore {
+                if let home = matchScore.home, let away = matchScore.away {
                     Text("\(home) - \(away)").font(.headline.monospacedDigit())
                 } else {
                     Text(event.timeLabel).font(.subheadline.weight(.semibold))
                 }
-                Text(event.isLive ? "LIVE" : event.isUpcoming ? "UPCOMING" : "RESULT")
+                Text(live ? "LIVE" : event.isUpcoming ? "UPCOMING" : (matchScore.status ?? "RESULT"))
                     .font(.caption2.bold())
-                    .foregroundStyle(event.isLive ? .green : .secondary)
+                    .foregroundStyle(live ? .green : .secondary)
                 Text(event.startDate?.formatted(date: .abbreviated, time: .omitted)
                      ?? event.dateEvent ?? "")
                     .font(.caption2).foregroundStyle(.secondary)
