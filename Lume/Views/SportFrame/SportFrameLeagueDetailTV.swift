@@ -31,13 +31,20 @@ struct SportFrameLeagueDetailTV: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 34) {
                     header
-                    SportsZoneMiniPlayer(session: playback)
                     fixtures
                     standings
                     highlights
                 }
                 .padding(.horizontal, 90)
                 .padding(.vertical, 45)
+            }
+            .safeAreaInset(edge: .bottom) {
+                if playback.miniMedia != nil {
+                    SportsZoneMiniPlayer(session: playback)
+                        .frame(maxWidth: 1100)
+                        .padding(.horizontal, 90)
+                        .padding(.bottom, 16)
+                }
             }
         }
         .fullScreenCover(item: $selectedMatch, onDismiss: presentPendingMedia) { event in
