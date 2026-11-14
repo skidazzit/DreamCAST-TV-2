@@ -161,6 +161,15 @@ struct FullScreenPlayerView: View {
             of: handle, for: media, enginePriority: enginePriority, airPlayActive: CastService.shared.isAirPlayActive
         )
         _adoption = State(initialValue: adoption)
+        #if DEBUG && os(tvOS)
+        if let handle {
+            // A handoff request is not proof the full-screen player adopted
+            // the decoder. Log the actual result to diagnose black video.
+            Logger.player.info(
+                "Guide full-screen adoption: adopted=\(adoption != nil) previewEngine=\(String(describing: handle.coordinator?.engine), privacy: .public)"
+            )
+        }
+        #endif
         if let adoption {
             _engineAttempt = State(initialValue: adoption.engineAttempt)
             _resolvedMedia = State(initialValue: adoption.resolvedMedia)
