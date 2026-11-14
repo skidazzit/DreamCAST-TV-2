@@ -7,6 +7,29 @@
 //  Moving focus never changes playback; Select tunes the mini-player.
 //
 
+/// Browsing a different guide section never retunes an existing preview.
+/// Only an explicit channel selection (handled by the scroller) or a channel
+/// adopted by full screen may change an already-playing preview.
+nonisolated enum GuidePreviewRetunePolicy {
+    static func rowIndex(
+        preferredID: String?,
+        currentID: String?,
+        adoptedID: String?,
+        rowIDs: [String]
+    ) -> Int? {
+        if let currentID {
+            // A new category may not contain the current stream. No fallback
+            // to its first row: keep the already-playing video instead.
+            guard let adoptedID, adoptedID != currentID, adoptedID == preferredID else {
+                return nil
+            }
+            return rowIDs.firstIndex(of: adoptedID)
+        }
+        // First entry to Live TV: resume last-watched, otherwise seed once.
+        return preferredID.flatMap { rowIDs.firstIndex(of: $0) } ?? rowIDs.indices.first
+    }
+}
+
 #if os(tvOS)
     import SwiftData
     import SwiftUI
@@ -65,12 +88,12 @@
         private func settlePreview() async {
             // Do not retune merely because remote focus moved to another row.
             guard !isPreviewFrozen else { return }
-            let preferred = preview.controller?.preferredStreamID
-            // A category change may not contain the previous channel. Use the
-            // first visible channel instead of leaving an empty mini-player.
-            let rowIndex = preferred.flatMap { id in rows.firstIndex(where: { $0.id == id }) }
-                ?? rows.firstIndex(where: { $0.id == previewTarget?.streamID })
-                ?? rows.indices.first
+            let rowIndex = GuidePreviewRetunePolicy.rowIndex(
+                preferredID: preview.controller?.preferredStreamID,
+                currentID: previewTarget?.streamID,
+                adoptedID: preview.controller?.handle.media?.id,
+                rowIDs: rows.map(\.id)
+            )
             guard let rowIndex else { return }
             let streamID = rows[rowIndex].id
             guard previewTarget?.streamID != streamID else { return }
