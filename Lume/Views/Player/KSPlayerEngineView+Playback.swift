@@ -235,6 +235,13 @@ extension KSPlayerEngineView {
     /// state because the audio clock still advances), watching the sync diff
     /// the video render loop publishes through `dynamicInfo`.
     func noteClockDrift() {
+        // An adopted full-screen view may receive late audio-clock events
+        // AFTER Back has returned the decoder to SportsZone. Never let its
+        // drift watchdog re-open the preview's already-running stream.
+        guard returnHandle?.allowsFullScreenEngineCallbacks ?? true else {
+            tick.driftSince = nil
+            return
+        }
         guard media.isLive, hasStartedPlayback, !isSeeking, !loadFailed,
               let diff = coordinator.playerLayer?.player.dynamicInfo?.audioVideoSyncDiff,
               abs(diff) > Self.driftTolerance
@@ -316,6 +323,9 @@ extension KSPlayerEngineView {
     /// merely *hung* in `.buffering`/`.preparing` (the startup-watchdog case),
     /// where `play()` would be a no-op because the layer never reached `.error`.
     func retryPlayback() {
+        // Covers late watchdog tasks and Retry actions from a dismissed
+        // full-screen view, not just the frequent play callback.
+        guard returnHandle?.allowsFullScreenEngineCallbacks ?? true else { return }
         withAnimation(.easeInOut(duration: 0.25)) {
             loadFailed = false
             isBuffering = true
@@ -367,6 +377,7 @@ extension KSPlayerEngineView {
     /// re-creates the HLS session from scratch so we correctly rejoin the live
     /// edge in both the `.error` and `.playedToTheEnd` cases.
     func reconnect() {
+        guard returnHandle?.allowsFullScreenEngineCallbacks ?? true else { return }
         guard let layer = coordinator.playerLayer else { return }
         // Reset session gates so stale callbacks from the previous session don't
         // prematurely clear the spinner or reset the reconnect budget.
