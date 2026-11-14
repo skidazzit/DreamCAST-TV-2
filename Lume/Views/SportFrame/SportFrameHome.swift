@@ -141,7 +141,7 @@ struct SportFrameHome: View {
             guard selectedLeague == "All Leagues" || selectedLeague == event.league else { return false }
             return leagueSelections[sport].map { $0.contains(event.league) } ?? true
         }
-        .sorted { ($0.startDate ?? .distantFuture) < ($1.startDate ?? .distantFuture) }
+        .sorted(by: SportEvent.newestFirst)
     }
 
     private var visibleLeagues: [(String, [SportEvent])] {
