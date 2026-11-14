@@ -112,27 +112,73 @@ struct SportFrameLeagueDetailTV: View {
                 missing("No live or upcoming matches found for this league.")
             }
             LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 16) {
-                ForEach(store.liveUpcoming) { event in
-                    Button { selectedMatch = event } label: {
-                        sportsDBFixture(event)
+                ForEach(store.upcomingMatches) { match in
+                    switch match {
+                    case .sportsDB(let event):
+                        Button { selectedMatch = event } label: {
+                            sportsDBFixture(event)
+                        }
+                        .buttonStyle(.card)
+                    case .espn(let event):
+                        espnFixture(event)
                     }
-                    .buttonStyle(.card)
-                }
-                ForEach(store.espnMatches) { event in
-                    espnFixture(event)
                 }
             }
             if !store.recentResults.isEmpty {
                 Text("Recent results").font(.title2.bold()).foregroundStyle(.secondary)
                     .focusable()
-                LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 16) {
-                    ForEach(store.recentResults) { event in
-                        Button { selectedMatch = event } label: { sportsDBFixture(event) }
-                            .buttonStyle(.card)
-                    }
-                }
+                recentResultsTable
             }
         }
+        .focusSection()
+    }
+
+    /// One focusable table row per result, ordered by kickoff.
+    private var recentResultsTable: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 20) {
+                Text("Matchup").frame(maxWidth: .infinity, alignment: .leading)
+                Text("Score").frame(width: 150)
+                Text("Date & time").frame(width: 210, alignment: .leading)
+            }
+            .font(.headline).foregroundStyle(.secondary)
+            .padding(.horizontal, 26).padding(.vertical, 18)
+
+            ForEach(store.recentResults) { event in
+                Button { selectedMatch = event } label: {
+                    HStack(spacing: 20) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            team(event.strHomeTeam ?? "Home", logo: event.homeBadge)
+                            team(event.strAwayTeam ?? "Away", logo: event.awayBadge)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Group {
+                            if let home = event.intHomeScore, let away = event.intAwayScore {
+                                Text("\(home) – \(away)")
+                            } else {
+                                Text("Result")
+                            }
+                        }
+                        .font(.title3.bold()).monospacedDigit()
+                        .frame(width: 150)
+
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(event.startDate?.formatted(date: .abbreviated, time: .omitted)
+                                 ?? event.dateEvent ?? "Date TBA")
+                            Text(event.timeLabel).foregroundStyle(.secondary)
+                        }
+                        .font(.subheadline)
+                        .frame(width: 210, alignment: .leading)
+                    }
+                    .padding(.horizontal, 26).padding(.vertical, 14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.card)
+                Divider().overlay(.white.opacity(0.10))
+            }
+        }
+        .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 16))
         .focusSection()
     }
 
