@@ -2,9 +2,9 @@
 //  SettingsView+Premium.swift
 //  Lume
 //
-//  The Lume Pro surfaces in Settings: the shared paywall helpers, the plan
-//  details page behind the iOS / macOS Lume Pro row, the DEBUG-only developer
-//  page, and the tvOS Lume Pro pane. Split out of SettingsView to keep that
+//  The DreamCAST TV Pro surfaces in Settings: the shared paywall helpers, the plan
+//  details page behind the iOS / macOS DreamCAST TV Pro row, the DEBUG-only developer
+//  page, and the tvOS DreamCAST TV Pro pane. Split out of SettingsView to keep that
 //  file within the project's line-count cap.
 //
 
@@ -63,7 +63,7 @@ extension SettingsView {
 
 #if !os(tvOS)
 
-    /// The page behind the Lume Pro row once Pro is unlocked: the plan, its
+    /// The page behind the DreamCAST TV Pro row once Pro is unlocked: the plan, its
     /// billing state, and what it includes. Free users get the paywall instead.
     struct PremiumPlanView: View {
         @State private var premium = PremiumManager.shared
@@ -112,7 +112,7 @@ extension SettingsView {
                     Text("Included")
                 }
             }
-            .platformNavigationTitle("Lume Pro")
+            .platformNavigationTitle("DreamCAST TV Pro")
         }
     }
 
@@ -150,14 +150,14 @@ extension SettingsView {
 #if os(tvOS)
 
     extension SettingsView {
-        /// The tvOS Lume Pro pane, across the pane's full width: status and
+        /// The tvOS DreamCAST TV Pro pane, across the pane's full width: status and
         /// the upgrade / restore actions side by side, then the benefits in
         /// two columns. Nothing below the actions can take focus, so focus
         /// never scrolls the pane: it all has to fit on one screen.
         var tvPremiumDetail: some View {
             VStack(alignment: .leading, spacing: 28) {
                 VStack(alignment: .leading, spacing: 8) {
-                    TVSettingsSectionLabel("Lume Pro")
+                    TVSettingsSectionLabel("DreamCAST TV Pro")
                     HStack(alignment: .center, spacing: 32) {
                         tvPremiumStatus
                         Spacer(minLength: 0)
@@ -181,7 +181,7 @@ extension SettingsView {
                     .background(.tint.opacity(0.12), in: .rect(cornerRadius: 14, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(premium.isPremium ? "Lume Pro" : "Free Plan")
+                    Text(premium.isPremium ? "DreamCAST TV Pro" : "Free Plan")
                         .font(.system(size: 26, weight: .semibold))
                     Text(premium.isPremium
                         ? premium.statusDetail
