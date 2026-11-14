@@ -82,16 +82,20 @@
                 guard handle.owner == .preview else { return }
                 _ = returnGeneration // Explicitly consume the handoff revision.
                 attachCallbacks()
-                // SwiftUI calls updateUIView for unrelated state changes.
-                // Do not call makeView again while this host already owns
-                // the running surface. Only reclaim it after full screen
-                // moved the video view out, leaving the preview host empty.
-                if !container.subviews.isEmpty { return }
-                // Reparent the *same* render view and decoder. A fresh
-                // makeView on return can restart KSPlayer's pipeline and
-                // produce hardware-decoder errors on some live streams.
+                // A prior full-screen view may leave the preview container
+                // with a non-video subview during UIKit dismissal. Checking
+                // just "subviews.isEmpty" can then leave a BLACK preview even
+                // though the same decoder is still playing.
+                //
+                // Compare the *actual* retained render view to its parent.
+                // Reattach that exact view after handoff: do not call
+                // makeView again on a running stream.
                 if let retained = context.coordinator.retainedView {
-                    host(retained, in: container)
+                    if retained.superview !== container {
+                        host(retained, in: container)
+                        container.setNeedsLayout()
+                        container.layoutIfNeeded()
+                    }
                 } else {
                     let surface = coordinator.makeView(url: url, options: options)
                     context.coordinator.retainedView = surface
