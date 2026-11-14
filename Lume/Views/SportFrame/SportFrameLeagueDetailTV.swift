@@ -69,7 +69,11 @@ struct SportFrameLeagueDetailTV: View {
     private func presentPendingMedia() {
         guard let media = pendingMedia else { return }
         pendingMedia = nil
-        playback.tune(media)
+        playback.tune(
+            media,
+            previewMode: GuidePreviewMode(storedValue:
+                UserDefaults.standard.string(forKey: PlayerSettings.tvGuidePreviewModeKey))
+        )
     }
 
     private var header: some View {
