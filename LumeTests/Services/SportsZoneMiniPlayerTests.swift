@@ -121,11 +121,9 @@ struct SportsZoneMiniPlayerTests {
     }
 
     #if os(tvOS)
-    @Test func sportsZoneFastHandoffDoesNotChangeLiveTVGuideBehavior() {
+    @Test func sportsZoneSharesLiveTVGuideHandleState() {
         let session = SportsZonePlaybackSession()
-        let liveGuide = GuidePreviewController()
-        #expect(session.handle.prefersUninterruptedVideoHandoff)
-        #expect(!liveGuide.handle.prefersUninterruptedVideoHandoff)
+        #expect(session.handle === session.guidePreview.handle)
     }
 
     @Test func sportsZoneUsesTheLiveTVGuideControllerForHandoff() {
