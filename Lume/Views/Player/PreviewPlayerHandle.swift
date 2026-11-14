@@ -131,7 +131,9 @@ final class PreviewPlayerHandle {
             return
         }
         #if os(tvOS)
-        if self.media?.id != media.id { activeKSRenderView = nil }
+        if let previousID = self.media?.id, previousID != media.id {
+            activeKSRenderView = nil
+        }
         #endif
         owner = .preview
         self.media = media
