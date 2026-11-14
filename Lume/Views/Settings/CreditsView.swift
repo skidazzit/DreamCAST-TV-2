@@ -17,7 +17,7 @@
     struct CreditsView: View {
         var body: some View {
             List {
-                lumeSection
+                dreamCASTSection
                 librariesSection
                 metadataSection
                 sampleFootageSection
@@ -26,7 +26,7 @@
             .platformNavigationTitle("Acknowledgements")
         }
 
-        private var lumeSection: some View {
+        private var dreamCASTSection: some View {
             Section {
                 if let url = CreditsInfo.sourceCodeURL {
                     Link(destination: url) {
