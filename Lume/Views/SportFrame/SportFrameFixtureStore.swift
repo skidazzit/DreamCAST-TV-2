@@ -8,6 +8,27 @@ struct SportFrameScore: Equatable {
     let status: String?
 }
 
+/// Shared poll rules for the current SportsZone screens.
+enum SportsZoneScoreRefreshPolicy {
+    static let liveInterval: TimeInterval = 60
+    static let premiumInterval: TimeInterval = 60
+    static let upcomingInterval: TimeInterval = 5 * 60
+
+    static func isDue(since previous: Date, interval: TimeInterval, now: Date) -> Bool {
+        now.timeIntervalSince(previous) >= interval
+    }
+
+    /// Require a confirmed final status. A missing LIVE marker alone does not
+    /// prove the match has finished; it could have been postponed or paused.
+    static func isFinal(_ raw: String?) -> Bool {
+        guard let raw else { return false }
+        let status = raw.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        return ["FT", "FULL TIME", "FINAL", "FINISHED", "MATCH FINISHED",
+                "ENDED", "COMPLETED", "AET", "AFTER EXTRA TIME", "PEN",
+                "AFTER PENALTIES", "FINAL/OT", "FINAL/SO"].contains(status)
+    }
+}
+
 enum SportsDBAccess {
     private static let keychainAccount = "sportFrameSportsDBPremiumKey"
 
@@ -134,6 +155,74 @@ final class FixtureStore: ObservableObject {
         return status == "LIVE" || status == "IN PLAY" || status.hasPrefix("LIVE ") || livePeriods.contains(status)
     }
 
+    /// A single visible SportsZone page owns this loop. SwiftUI cancels it
+    /// when the tab is hidden, Settings opens, or the app backgrounds.
+    /// Scores only touch @Published score maps; the fixtures and player retain
+    /// their identities between five-minute schedule refreshes.
+    func pollSportsZone(sports: [String], date: Date) async {
+        await fetch(sports: sports, date: date)
+        guard !Task.isCancelled, !sports.isEmpty else { return }
+        let isToday = Calendar.current.isDateInToday(date)
+        if isToday && SportsDBAccess.hasPremiumKey {
+            await refreshLiveScores()
+        }
+        guard !Task.isCancelled else { return }
+
+        var lastSchedule = Date()
+        var lastLive = Date()
+        var lastPremium = Date()
+        var observedLiveIDs = Set(events.filter { isLive($0) }.map(\.idEvent))
+        var verifiedFinalIDs = Set(events.filter {
+            SportsZoneScoreRefreshPolicy.isFinal(score(for: $0).status)
+        }.map(\.idEvent))
+
+        while !Task.isCancelled {
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled else { return }
+            let now = Date()
+            let scheduleDue = SportsZoneScoreRefreshPolicy.isDue(
+                since: lastSchedule, interval: SportsZoneScoreRefreshPolicy.upcomingInterval, now: now
+            )
+            let liveDue = isToday && events.contains(where: { isLive($0) })
+                && SportsZoneScoreRefreshPolicy.isDue(
+                    since: lastLive, interval: SportsZoneScoreRefreshPolicy.liveInterval, now: now
+                )
+            let premiumDue = isToday && SportsDBAccess.hasPremiumKey
+                && SportsZoneScoreRefreshPolicy.isDue(
+                    since: lastPremium, interval: SportsZoneScoreRefreshPolicy.premiumInterval, now: now
+                )
+
+            if scheduleDue {
+                await fetch(sports: sports, date: date, quietly: true)
+                lastSchedule = now
+            }
+            guard !Task.isCancelled else { return }
+            if liveDue && !scheduleDue {
+                await refreshScores(sports: sports, date: date)
+            }
+            if liveDue { lastLive = now }
+            guard !Task.isCancelled else { return }
+            if premiumDue {
+                await refreshLiveScores()
+                lastPremium = now
+            }
+            guard !Task.isCancelled else { return }
+
+            // A live match that becomes FINAL gets exactly one last V1 score
+            // check. Never keep polling that finished match each minute.
+            let finalIDs = Set(events.filter {
+                SportsZoneScoreRefreshPolicy.isFinal(score(for: $0).status)
+            }.map(\.idEvent))
+            let newlyFinal = observedLiveIDs.intersection(finalIDs).subtracting(verifiedFinalIDs)
+            if !newlyFinal.isEmpty {
+                verifiedFinalIDs.formUnion(newlyFinal)
+                await refreshScores(sports: sports, date: date)
+                guard !Task.isCancelled else { return }
+            }
+            observedLiveIDs.formUnion(events.filter { isLive($0) }.map(\.idEvent))
+        }
+    }
+
     // Refresh scores without changing the event list, card IDs, or loading state.
     func refreshScores(sports: [String], date: Date) async {
         guard !sports.isEmpty else { return }
@@ -161,7 +250,7 @@ final class FixtureStore: ObservableObject {
         if !Task.isCancelled && !updates.isEmpty && updates != scoreUpdates { scoreUpdates = updates }
     }
 
-    // Premium V2 is polled on its own two-minute schedule.
+    // Premium V2 is polled every minute by the SportsZone page loop.
     func refreshLiveScores() async {
         guard SportsDBAccess.hasPremiumKey,
               let url = URL(string: "https://www.thesportsdb.com/api/v2/json/livescore/all") else { return }
