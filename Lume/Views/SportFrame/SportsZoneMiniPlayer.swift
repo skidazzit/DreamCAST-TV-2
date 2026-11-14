@@ -70,9 +70,9 @@ final class SportsZonePlaybackSession {
         // Let the working Guide code return the same decoder, or cool down
         // a failed handoff before opening another provider connection.
         guidePreview.fullScreenDidClose()
-        if handle.owner == .preview {
-            failedMediaID = nil
-        }
+        // An unsupported engine restarts after the Guide's cooldown. Never
+        // leave a stale failure badge hiding that next preview attempt.
+        failedMediaID = nil
         #else
         if handle.owner == .preview,
            handle.media?.id == miniMedia?.id,
