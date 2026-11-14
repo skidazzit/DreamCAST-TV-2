@@ -75,21 +75,15 @@
             }
 
             attachCallbacks()
-            // SportsZone already has decoded frames in its preview UIView.
-            // Move that same render view into full screen immediately instead
-            // of asking KSPlayer to construct/rebind a video surface again.
-            // Only reuse for the exact adopted coordinator and stream URL.
-            let existingSurface: UIView? = {
-                guard case let .adopted(optionalHandle) = mode,
-                      let handle = optionalHandle,
-                      handle.prefersUninterruptedVideoHandoff,
-                      handle.owner == .fullScreen,
-                      handle.coordinator?.ksCoordinator === coordinator,
-                      (handle.media?.url == url || handle.resolvedMedia?.url == url)
-                else { return nil }
-                return handle.activeKSRenderView
-            }()
-            let surface = existingSurface ?? coordinator.makeView(url: url, options: options)
+            // Always ask the coordinator for its current render view when
+            // taking over a preview. KSPlayer's makeView retains the existing
+            // decoder for the same URL, while reconnecting its display host.
+            //
+            // Reparenting an older UIView directly bypasses that host setup:
+            // audio can keep running while video frames stop arriving. The
+            // drift watchdog then sees a large A/V gap and rebuilds the stream.
+            attachCallbacks()
+            let surface = coordinator.makeView(url: url, options: options)
             context.coordinator.retainedView = surface
             switch mode {
             case let .preview(handle):
@@ -98,10 +92,6 @@
                 if handle?.owner != .released { handle?.activeKSRenderView = surface }
             }
             host(surface, in: container)
-            if existingSurface != nil {
-                container.setNeedsLayout()
-                container.layoutIfNeeded()
-            }
             return container
         }
 
