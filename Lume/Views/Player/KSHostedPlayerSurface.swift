@@ -66,9 +66,23 @@
             let container = UIView()
             container.backgroundColor = .black
             container.clipsToBounds = true
+            // SwiftUI may recreate the preview host while the full-screen
+            // cover owns the video. Never ask KSPlayer for a view in that
+            // state: doing so can steal the render surface from full screen.
+            if case let .preview(handle) = mode,
+               handle.owner == .fullScreen || handle.owner == .returning {
+                return container
+            }
+
             attachCallbacks()
             let surface = coordinator.makeView(url: url, options: options)
             context.coordinator.retainedView = surface
+            switch mode {
+            case let .preview(handle):
+                handle.activeKSRenderView = surface
+            case let .adopted(handle):
+                if handle?.owner != .released { handle?.activeKSRenderView = surface }
+            }
             host(surface, in: container)
             return container
         }
@@ -90,22 +104,29 @@
                 // Compare the *actual* retained render view to its parent.
                 // Reattach that exact view after handoff: do not call
                 // makeView again on a running stream.
-                if let retained = context.coordinator.retainedView {
+                // The fullscreen host may have received a newer UIView from
+                // the same decoder. Prefer that actual, most recent render
+                // surface instead of the preview host's old black one.
+                if let retained = handle.activeKSRenderView ?? context.coordinator.retainedView {
+                    context.coordinator.retainedView = retained
                     if retained.superview !== container {
                         host(retained, in: container)
                         container.setNeedsLayout()
                         container.layoutIfNeeded()
                     }
+                    handle.activeKSRenderView = retained
                 } else {
                     let surface = coordinator.makeView(url: url, options: options)
                     context.coordinator.retainedView = surface
+                    handle.activeKSRenderView = surface
                     host(surface, in: container)
                 }
-            case .adopted:
+            case let .adopted(handle):
                 attachCallbacks()
                 guard coordinator.playerLayer?.url != url else { return }
                 let surface = coordinator.makeView(url: url, options: options)
                 context.coordinator.retainedView = surface
+                if handle?.owner != .released { handle?.activeKSRenderView = surface }
                 host(surface, in: container)
             }
         }
