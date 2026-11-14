@@ -20,6 +20,15 @@ struct SportEvent: Decodable, Identifiable {
     let intAwayScore: String?
 
     var id: String { idEvent }
+
+    /// Sort full kickoff timestamps, newest first. Unknown dates go last.
+    /// The event ID keeps the order stable when kickoffs are equal.
+    static func newestFirst(_ lhs: SportEvent, _ rhs: SportEvent) -> Bool {
+        let left = lhs.startDate ?? .distantPast
+        let right = rhs.startDate ?? .distantPast
+        if left != right { return left > right }
+        return lhs.idEvent < rhs.idEvent
+    }
     var name: String { strEvent ?? "Upcoming event" }
     var league: String { strLeague ?? "Other league" }
     var leagueBadge: URL? { strLeagueBadge.flatMap(URL.init(string:)) }
