@@ -20,6 +20,7 @@ struct SportFrameLeagueDetailTV: View {
     @State private var selectedMatch: SportEvent?
     @State private var playingMedia: PlayableMedia?
     @State private var pendingMedia: PlayableMedia?
+    @State private var openingHighlightsFor: String?
     @Environment(\.openURL) private var openURL
 
     private let background = Color(red: 0.025, green: 0.055, blue: 0.11)
@@ -145,7 +146,7 @@ struct SportFrameLeagueDetailTV: View {
             .padding(.horizontal, 26).padding(.vertical, 18)
 
             ForEach(store.recentResults) { event in
-                Button { selectedMatch = event } label: {
+                Button { openHighlights(for: event) } label: {
                     HStack(spacing: 20) {
                         VStack(alignment: .leading, spacing: 10) {
                             team(event.strHomeTeam ?? "Home", logo: event.homeBadge)
@@ -180,6 +181,17 @@ struct SportFrameLeagueDetailTV: View {
         }
         .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 16))
         .focusSection()
+    }
+
+    /// Results open the correct highlight video, not the live-channel picker.
+    private func openHighlights(for event: SportEvent) {
+        guard openingHighlightsFor == nil else { return }
+        openingHighlightsFor = event.idEvent
+        Task {
+            let destination = await store.highlightDestination(for: event)
+            openingHighlightsFor = nil
+            openURL(destination)
+        }
     }
 
     private func sportsDBFixture(_ event: SportEvent) -> some View {
