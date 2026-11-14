@@ -31,3 +31,42 @@ struct EPGGuideEntryTests {
         #expect(EPGGuideEntry.landingRow(previewedStreamID: "a", previewedRowIndex: 0, rowIDs: [], topVisibleRow: 0) == nil)
     }
 }
+
+struct GuidePreviewRetunePolicyTests {
+    private let newGroup = ["sports-1", "sports-2"]
+
+    @Test func `opening Live TV selects the last watched channel if visible`() {
+        #expect(GuidePreviewRetunePolicy.rowIndex(
+            preferredID: "sports-2", currentID: nil, adoptedID: nil,
+            rowIDs: newGroup
+        ) == 1)
+    }
+
+    @Test func `switching a TV group never starts its first channel`() {
+        #expect(GuidePreviewRetunePolicy.rowIndex(
+            preferredID: "news-playing", currentID: "news-playing",
+            adoptedID: "news-playing", rowIDs: newGroup
+        ) == nil)
+    }
+
+    @Test func `switching groups even with matching preview keeps the current decoder`() {
+        #expect(GuidePreviewRetunePolicy.rowIndex(
+            preferredID: "sports-1", currentID: "sports-1",
+            adoptedID: "sports-1", rowIDs: newGroup
+        ) == nil)
+    }
+
+    @Test func `full screen handoff may update its returned channel`() {
+        #expect(GuidePreviewRetunePolicy.rowIndex(
+            preferredID: "sports-2", currentID: "news-playing",
+            adoptedID: "sports-2", rowIDs: newGroup
+        ) == 1)
+    }
+
+    @Test func `an empty channel group cannot retune the player`() {
+        #expect(GuidePreviewRetunePolicy.rowIndex(
+            preferredID: "news-playing", currentID: "news-playing",
+            adoptedID: "news-playing", rowIDs: []
+        ) == nil)
+    }
+}
