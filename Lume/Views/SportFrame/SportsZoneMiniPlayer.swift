@@ -102,7 +102,7 @@ struct SportsZoneMiniPlayer: View {
                             .font(.caption2.bold())
                             .foregroundStyle(.secondary)
                         Text(media.title)
-                            .font(.subheadline.semibold())
+                            .font(.subheadline.weight(.semibold))
                             .lineLimit(2)
                     }
                     Spacer(minLength: 0)
