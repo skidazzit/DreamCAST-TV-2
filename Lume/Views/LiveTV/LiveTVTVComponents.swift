@@ -424,7 +424,8 @@
                         onDidClaimFocus: { guideFocusToken = 0 },
                         preview: preview
                     )
-                    .id("\(section.id)-\(contentSort.rawValue)-\(layoutMode.rawValue)")
+                    // Keep the guide and its preview player mounted while browsing
+                    // categories. Recreating this subtree retunes the first channel.
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 case .list:
                     TVChannelsList(
