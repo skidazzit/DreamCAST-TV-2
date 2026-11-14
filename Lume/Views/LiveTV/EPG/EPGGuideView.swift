@@ -107,14 +107,8 @@ struct EPGGuideView: View {
     var body: some View {
         let channels = scopedStreams
         Group {
-            if channels.isEmpty {
-                ContentUnavailableView(
-                    "No Channels",
-                    systemImage: "antenna.radiowaves.left.and.right",
-                    description: Text("This category has no channels")
-                )
-            } else {
-                EPGGridScroller(
+            EPGGridScroller(
+                    scope: scope,
                     rows: buildRows(for: channels),
                     timeline: timeline,
                     dataVersion: dataVersion,
@@ -128,12 +122,22 @@ struct EPGGuideView: View {
                 // Rebuild the frozen panes and focus surface when display presets change.
                 .id("\(guideDesignRaw)|\(guideColumnRaw)|\(guideHeightRaw)")
                 .timelineLayoutDirection()
-            }
+                // A category with no channels must not unmount the mini-player.
+                .overlay(alignment: .bottom) {
+                    if channels.isEmpty {
+                        ContentUnavailableView(
+                            "No Channels",
+                            systemImage: "antenna.radiowaves.left.and.right",
+                            description: Text("This category has no channels")
+                        )
+                        .allowsHitTesting(false)
+                    }
+                }
         }
         // Reload when the channel set changes or a guide import settles. Keyed on
         // `isSyncing` (which flips twice per sync) rather than observing the store,
         // so the grid rebuilds a handful of times — not on every batch write.
-        .task(id: "\(channels.count)-\(epgSync.isSyncing)") {
+        .task(id: "\(scope)-\(channels.count)-\(epgSync.isSyncing)") {
             await loadListings(for: channels)
         }
     }
