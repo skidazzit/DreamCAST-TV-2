@@ -537,7 +537,11 @@ struct SportFrameLeagueDetail: View {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(event.startDate?.formatted(.dateTime.month(.abbreviated).day())
                                  ?? event.dateEvent ?? "Date TBA")
-                            Text(event.timeLabel).foregroundStyle(.secondary)
+                            if openingHighlightsFor == event.idEvent {
+                                ProgressView().controlSize(.small).tint(.cyan)
+                            } else {
+                                Text(event.timeLabel).foregroundStyle(.secondary)
+                            }
                         }
                         .font(.caption2)
                         .frame(width: 78, alignment: .leading)
