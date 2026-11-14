@@ -44,13 +44,34 @@ final class SportsZonePlaybackSession {
     }
 
     func returnedFromFullScreen() {
-        if handle.owner == .fullScreen, let id = handle.media?.id {
-            _ = handle.returnToPreview(mediaID: id)
+        // SwiftUI can report a previous cover's dismissal while a newer one
+        // is opening. Never tear down the active decoder in that case.
+        guard fullScreenMedia == nil else { return }
+
+        // The full-screen player and its dismiss callback both help return
+        // the handle. If the decoder is already back, a duplicate dismissal
+        // must NOT release it or force a second stream load.
+        if handle.owner == .preview,
+           handle.media?.id == miniMedia?.id,
+           handle.coordinator != nil {
+            return
         }
-        if !handle.finishReturnToPreview() {
-            handle.release()
-            reloadToken += 1
+
+        if handle.owner == .fullScreen, let media = miniMedia,
+           handle.media?.id == media.id {
+            _ = handle.returnToPreview(mediaID: media.id)
         }
+
+        if handle.finishReturnToPreview() {
+            failedMediaID = nil
+            return
+        }
+
+        // Engine did not support adoption or the channel changed in full
+        // screen. Only those cases need a fresh preview connection.
+        handle.release()
+        failedMediaID = nil
+        reloadToken += 1
     }
 
     func close() {
@@ -200,7 +221,11 @@ struct SportsZoneMiniPlayer: View {
                     isMuted: false,
                     role: .guidePreview(handle: session.handle),
                     onFailure: {
-                        guard session.miniMedia?.id == media.id else { return }
+                        // A stale preview watchdog cannot replace the active
+                        // video with a failure badge during full-screen handoff.
+                        guard session.miniMedia?.id == media.id,
+                              session.fullScreenMedia == nil,
+                              session.handle.owner == .preview else { return }
                         session.failedMediaID = media.id
                     }
                 )
