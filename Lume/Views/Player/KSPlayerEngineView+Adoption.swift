@@ -55,9 +55,14 @@ extension KSPlayerEngineView {
     func seedAdoptedSessionState() {
         #if os(tvOS)
             guard isAdoptedSession else { return }
-            // The preview held the TV's display mode back; full screen is
-            // where the session matches it.
-            (coordinator.playerLayer?.options as? LumeKSOptions)?.beginMatchingDisplayCriteria()
+            // A display-mode switch can black out HDMI video for seconds
+            // even while the stream's audio keeps playing. SportsZone uses
+            // short mini/full transitions, so keep the TV's current mode.
+            // Other full-screen players (including Live TV Guide) keep their
+            // existing Match Content behavior.
+            if returnHandle?.prefersUninterruptedVideoHandoff != true {
+                (coordinator.playerLayer?.options as? LumeKSOptions)?.beginMatchingDisplayCriteria()
+            }
             hasSeenReadyToPlay = true
             let state = coordinator.state
             isPlaying = state == .bufferFinished
