@@ -271,7 +271,8 @@ struct SportFrameMobile: View {
                                 leagueName: league,
                                 sport: sport,
                                 initialBadge: logoURL,
-                                onSelectEvent: { selectedEvent = $0 }
+                                onSelectEvent: { selectedEvent = $0 },
+                                scores: fixtures
                             )
                         } label: {
                             HStack(spacing: 10) {
