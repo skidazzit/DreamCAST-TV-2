@@ -51,6 +51,29 @@ struct SportsZoneMiniPlayerTests {
         #expect(session.fullScreenMedia == nil)
     }
 
+    #if os(tvOS)
+    @Test func fullScreenWatchdogsStopAfterReturningDecoderToMiniPlayer() {
+        let session = SportsZonePlaybackSession()
+        let channel = media("a")
+        session.tune(channel)
+        let decoder = KSVideoPlayer.Coordinator()
+        session.handle.register(media: channel, resolved: nil, coordinator: .ks(decoder))
+        session.handle.markStarted()
+
+        #expect(!session.handle.allowsFullScreenEngineCallbacks)
+        session.openFullScreen()
+        #expect(session.handle.allowsFullScreenEngineCallbacks)
+
+        _ = session.handle.returnToPreview(mediaID: channel.id)
+        #expect(!session.handle.allowsFullScreenEngineCallbacks)
+        session.fullScreenMedia = nil
+        session.returnedFromFullScreen()
+        #expect(session.handle.owner == .preview)
+        #expect(!session.handle.allowsFullScreenEngineCallbacks)
+        #expect(session.handle.coordinator?.ksCoordinator === decoder)
+    }
+    #endif
+
     @Test func repeatedFullScreenReturnKeepsAnAdoptedDecoder() {
         let session = SportsZonePlaybackSession()
         let channel = media("a")
