@@ -234,7 +234,11 @@ struct SportFrameMobile: View {
                                        description: Text("Choose more sports or another date."))
             }
             let groups = Dictionary(grouping: shownEvents, by: \.league)
-            ForEach(groups.keys.sorted(), id: \.self) { league in
+            ForEach(groups.keys.sorted { lhs, rhs in
+                let left = groups[lhs]?.first?.startDate ?? .distantPast
+                let right = groups[rhs]?.first?.startDate ?? .distantPast
+                return left == right ? lhs < rhs : left > right
+            }, id: \.self) { league in
                 VStack(alignment: .leading, spacing: 10) {
                     if let first = groups[league]?.first {
                         let sport = fixtures.eventSports[first.idEvent] ?? first.strSport ?? ""
