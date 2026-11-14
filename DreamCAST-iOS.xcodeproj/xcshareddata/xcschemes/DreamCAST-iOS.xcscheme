@@ -17,7 +17,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "C67C02BF2F880F2200842DBA"
                BuildableName = "Lume.app"
-               BlueprintName = "Lume"
+               BlueprintName = "DreamCAST TV"
                ReferencedContainer = "container:DreamCAST-iOS.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -37,7 +37,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "C67C02D02F880F2400842DBA"
                BuildableName = "LumeTests.xctest"
-               BlueprintName = "LumeTests"
+               BlueprintName = "DreamCAST TV Tests"
                ReferencedContainer = "container:DreamCAST-iOS.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -48,7 +48,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "C67C02DA2F880F2400842DBA"
                BuildableName = "LumeUITests.xctest"
-               BlueprintName = "LumeUITests"
+               BlueprintName = "DreamCAST TV UI Tests"
                ReferencedContainer = "container:DreamCAST-iOS.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -71,7 +71,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C67C02BF2F880F2200842DBA"
             BuildableName = "Lume.app"
-            BlueprintName = "Lume"
+            BlueprintName = "DreamCAST TV"
             ReferencedContainer = "container:DreamCAST-iOS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -91,7 +91,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C67C02BF2F880F2200842DBA"
             BuildableName = "Lume.app"
-            BlueprintName = "Lume"
+            BlueprintName = "DreamCAST TV"
             ReferencedContainer = "container:DreamCAST-iOS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
