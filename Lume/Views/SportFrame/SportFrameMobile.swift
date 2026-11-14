@@ -114,7 +114,7 @@ struct SportFrameMobile: View {
             return (selectedSport == "All Sports" || selectedSport == sport)
                 && (selectedLeague == "All Leagues" || selectedLeague == event.league)
                 && (leagueChoices[sport]?.contains(event.league) ?? true)
-        }.sorted(by: SportEvent.newestFirst)
+        }.sorted(by: SportEvent.oldestFirst)
     }
 
     private var availableLeagues: [String] {
@@ -235,9 +235,9 @@ struct SportFrameMobile: View {
             }
             let groups = Dictionary(grouping: shownEvents, by: \.league)
             ForEach(groups.keys.sorted { lhs, rhs in
-                let left = groups[lhs]?.first?.startDate ?? .distantPast
-                let right = groups[rhs]?.first?.startDate ?? .distantPast
-                return left == right ? lhs < rhs : left > right
+                let left = groups[lhs]?.first?.startDate ?? .distantFuture
+                let right = groups[rhs]?.first?.startDate ?? .distantFuture
+                return left == right ? lhs < rhs : left < right
             }, id: \.self) { league in
                 VStack(alignment: .leading, spacing: 10) {
                     if let first = groups[league]?.first {
