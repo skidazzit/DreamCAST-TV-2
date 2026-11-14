@@ -75,7 +75,7 @@ struct SportFrameMobile: View {
     /// Hold the tapped channel until the match sheet has fully dismissed.
     /// This replaces a fixed delay before full-screen playback.
     @State private var pendingPlaybackMedia: PlayableMedia?
-    @State private var playingMedia: PlayableMedia?
+    @State private var sportsPlayback = SportsZonePlaybackSession()
     @State private var premiumKey = ""
     @State private var keyStatus: String?
     @State private var apiConnectionStatus: SportsDBConnectionStatus = .unchecked
@@ -124,8 +124,9 @@ struct SportFrameMobile: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
+        VStack(spacing: 0) {
+            NavigationStack {
+                ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     header
                     switch page {
@@ -153,7 +154,7 @@ struct SportFrameMobile: View {
                 // has finished closing. No arbitrary 350 ms timer is needed.
                 guard let media = pendingPlaybackMedia else { return }
                 pendingPlaybackMedia = nil
-                playingMedia = media
+                sportsPlayback.tune(media)
             }) { event in
                 SportFrameMobileMatchSheet(event: event, restriction: restriction) { channel in
                     guard let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
@@ -161,7 +162,15 @@ struct SportFrameMobile: View {
                     selectedEvent = nil
                 }
             }
-            .fullScreenCover(item: $playingMedia) { FullScreenPlayerView(media: $0) }
+            }
+            // Stays mounted even while a league detail is pushed.
+            SportsZoneMiniPlayer(session: sportsPlayback)
+        }
+        .background(Color(red: 0.025, green: 0.055, blue: 0.11).ignoresSafeArea())
+        .fullScreenCover(item: $sportsPlayback.fullScreenMedia, onDismiss: {
+            sportsPlayback.returnedFromFullScreen()
+        }) { media in
+            FullScreenPlayerView(media: media, adopting: sportsPlayback.handle)
         }
         .task { await catalog.refresh() }
         .task(id: "\(dayOffset)|\(followedValue)|\(SportsDBAccess.apiKey)") { await refresh() }
