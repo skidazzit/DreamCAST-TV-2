@@ -13,12 +13,12 @@ struct SportFrameLeagueRoute: Identifiable {
 
 struct SportFrameLeagueDetailTV: View {
     let league: SportFrameLeagueRoute
+    let playback: SportsZonePlaybackSession
 
     @StateObject private var store = SportFrameLeagueDetailStore()
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @State private var selectedMatch: SportEvent?
-    @State private var playingMedia: PlayableMedia?
     @State private var pendingMedia: PlayableMedia?
     @State private var openingHighlightsFor: String?
     @Environment(\.openURL) private var openURL
@@ -31,6 +31,7 @@ struct SportFrameLeagueDetailTV: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 34) {
                     header
+                    SportsZoneMiniPlayer(session: playback)
                     fixtures
                     standings
                     highlights
@@ -42,7 +43,14 @@ struct SportFrameLeagueDetailTV: View {
         .fullScreenCover(item: $selectedMatch, onDismiss: presentPendingMedia) { event in
             SportFrameMatchSheet(event: event, onPlay: queueChannelPlayback)
         }
-        .fullScreenCover(item: $playingMedia) { FullScreenPlayerView(media: $0) }
+        .fullScreenCover(item: Binding(
+            get: { playback.fullScreenMedia },
+            set: { playback.fullScreenMedia = $0 }
+        ), onDismiss: {
+            playback.returnedFromFullScreen()
+        }) { media in
+            FullScreenPlayerView(media: media, adopting: playback.handle)
+        }
         .task(id: league.id) {
             await store.refresh(
                 leagueID: league.leagueID, leagueName: league.leagueName,
@@ -67,7 +75,7 @@ struct SportFrameLeagueDetailTV: View {
     private func presentPendingMedia() {
         guard let media = pendingMedia else { return }
         pendingMedia = nil
-        playingMedia = media
+        playback.tune(media)
     }
 
     private var header: some View {
