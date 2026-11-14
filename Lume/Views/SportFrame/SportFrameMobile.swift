@@ -125,51 +125,51 @@ struct SportFrameMobile: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Keep the same top preview location as the iPhone Live TV guide.
-            // The navigation stack below it may push league pages without
-            // dismounting or restarting the current channel.
+            // Like Live TV, keep the mini-player above the scrolling pages.
+            // One player host survives navigation into and out of a league.
             SportsZoneMiniPlayer(session: sportsPlayback)
+
             NavigationStack {
                 ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    header
-                    switch page {
-                    case 1: settingsPage
-                    default: matchesPage
+                    VStack(alignment: .leading, spacing: 20) {
+                        header
+                        switch page {
+                        case 1: settingsPage
+                        default: matchesPage
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 16)
+                }
+                .background(Color(red: 0.025, green: 0.055, blue: 0.11).ignoresSafeArea())
+                .foregroundStyle(.white)
+                .navigationTitle("SportsZone")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { Task { await refresh() } } label: {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        .accessibilityLabel("Refresh SportsZone")
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
-            }
-            .background(Color(red: 0.025, green: 0.055, blue: 0.11).ignoresSafeArea())
-            .foregroundStyle(.white)
-            .navigationTitle("SportsZone")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { Task { await refresh() } } label: {
-                        Image(systemName: "arrow.clockwise")
+                .sheet(item: $selectedEvent, onDismiss: {
+                    // Wait for dismissal, so the sheet and mini-player never
+                    // try to play separate streams at the same time.
+                    guard let media = pendingPlaybackMedia else { return }
+                    pendingPlaybackMedia = nil
+                    sportsPlayback.tune(
+                        media,
+                        previewMode: GuidePreviewMode(storedValue:
+                            UserDefaults.standard.string(forKey: PlayerSettings.tvGuidePreviewModeKey))
+                    )
+                }) { event in
+                    SportFrameMobileMatchSheet(event: event, restriction: restriction) { channel in
+                        guard let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
+                        pendingPlaybackMedia = media
+                        selectedEvent = nil
                     }
-                    .accessibilityLabel("Refresh SportsZone")
                 }
-            }
-            .sheet(item: $selectedEvent, onDismiss: {
-                // Start playback at the earliest safe point, when the sheet
-                // has finished closing. No arbitrary 350 ms timer is needed.
-                guard let media = pendingPlaybackMedia else { return }
-                pendingPlaybackMedia = nil
-                sportsPlayback.tune(
-            media,
-            previewMode: GuidePreviewMode(storedValue:
-                UserDefaults.standard.string(forKey: PlayerSettings.tvGuidePreviewModeKey))
-        )
-            }) { event in
-                SportFrameMobileMatchSheet(event: event, restriction: restriction) { channel in
-                    guard let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
-                    pendingPlaybackMedia = media
-                    selectedEvent = nil
-                }
-            }
             }
         }
         .background(Color(red: 0.025, green: 0.055, blue: 0.11).ignoresSafeArea())
