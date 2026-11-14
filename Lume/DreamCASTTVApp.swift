@@ -1,5 +1,5 @@
 //
-//  LumeApp.swift
+//  DreamCASTTVApp.swift
 //  Lume
 //
 //  Created by Philipp Bischoff on 09.04.26.
