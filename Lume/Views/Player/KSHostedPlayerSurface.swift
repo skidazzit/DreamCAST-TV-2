@@ -80,7 +80,8 @@
             // of asking KSPlayer to construct/rebind a video surface again.
             // Only reuse for the exact adopted coordinator and stream URL.
             let existingSurface: UIView? = {
-                guard case let .adopted(handle?) = mode,
+                guard case let .adopted(optionalHandle) = mode,
+                      let handle = optionalHandle,
                       handle.prefersUninterruptedVideoHandoff,
                       handle.owner == .fullScreen,
                       handle.coordinator?.ksCoordinator === coordinator,
