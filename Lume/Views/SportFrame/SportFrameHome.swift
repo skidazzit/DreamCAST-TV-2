@@ -197,6 +197,16 @@ struct SportFrameHome: View {
                 }
             }
         }
+        // Match the Live TV guide's scene and handoff lifecycle. On a
+        // non-adoptable engine, its cooldown prevents overlapping streams.
+        // On an adopted KS/AV decoder, the video surface stays mounted.
+        .guidePreviewSuspension(
+            sportsPlayback.guidePreview,
+            playingMedia: Binding(
+                get: { sportsPlayback.fullScreenMedia },
+                set: { sportsPlayback.fullScreenMedia = $0 }
+            )
+        )
         .fullScreenCover(item: $selectedEvent, onDismiss: presentPendingMedia) { event in
             SportFrameMatchSheet(event: event, onPlay: queueChannelPlayback)
         }
