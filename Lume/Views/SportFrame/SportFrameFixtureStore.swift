@@ -10,8 +10,8 @@ struct SportFrameScore: Equatable {
 
 /// Shared poll rules for the current SportsZone screens.
 enum SportsZoneScoreRefreshPolicy {
-    static let liveInterval: TimeInterval = 60
-    static let premiumInterval: TimeInterval = 60
+    static let liveInterval: TimeInterval = 160
+    static let premiumInterval: TimeInterval = 160
     static let upcomingInterval: TimeInterval = 5 * 60
 
     static func isDue(since previous: Date, interval: TimeInterval, now: Date) -> Bool {
@@ -208,7 +208,7 @@ final class FixtureStore: ObservableObject {
             guard !Task.isCancelled else { return }
 
             // A live match that becomes FINAL gets exactly one last V1 score
-            // check. Never keep polling that finished match each minute.
+            // check. Never keep polling that finished match every cycle.
             let finalIDs = Set(events.filter {
                 SportsZoneScoreRefreshPolicy.isFinal(score(for: $0).status)
             }.map(\.idEvent))
@@ -250,7 +250,7 @@ final class FixtureStore: ObservableObject {
         if !Task.isCancelled && !updates.isEmpty && updates != scoreUpdates { scoreUpdates = updates }
     }
 
-    // Premium V2 is polled every minute by the SportsZone page loop.
+    // Premium V2 is polled every 160 seconds by the SportsZone page loop.
     func refreshLiveScores() async {
         guard SportsDBAccess.hasPremiumKey,
               let url = URL(string: "https://www.thesportsdb.com/api/v2/json/livescore/all") else { return }
