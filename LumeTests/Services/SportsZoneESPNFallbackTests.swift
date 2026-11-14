@@ -67,6 +67,20 @@ struct SportsZoneESPNFallbackTests {
         #expect(matches[1].home == "Pacers")
     }
 
+    @Test func sportEventsSortEarliestDateAndKickoffTimeFirst() throws {
+        let data = Data("""
+        [
+          {"idEvent":"late","dateEvent":"2026-11-15","strTime":"22:00:00"},
+          {"idEvent":"early","dateEvent":"2026-11-15","strTime":"18:00:00"},
+          {"idEvent":"yesterday","dateEvent":"2026-11-14","strTime":"20:00:00"},
+          {"idEvent":"unknown"}
+        ]
+        """.utf8)
+        let events = try JSONDecoder().decode([SportEvent].self, from: data)
+            .sorted(by: SportEvent.oldestFirst)
+        #expect(events.map(\.idEvent) == ["yesterday", "early", "late", "unknown"])
+    }
+
     @Test func decoderHandlesMissingData() {
         #expect(SportsZoneESPNDecoder.matches(Data("{}".utf8)).isEmpty)
         #expect(SportsZoneESPNDecoder.standings(Data(#"{"children":[]}"#.utf8)).isEmpty)
