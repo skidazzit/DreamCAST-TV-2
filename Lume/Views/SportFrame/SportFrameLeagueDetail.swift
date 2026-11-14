@@ -399,23 +399,68 @@ struct SportFrameLeagueDetail: View {
             if !store.loadingMatches && store.liveUpcoming.isEmpty && store.espnMatches.isEmpty && store.matchError == nil {
                 emptyMessage("No live or upcoming matches returned for this league.")
             }
-            ForEach(store.liveUpcoming) { event in
-                Button { onSelectEvent(event) } label: { fixtureRow(event) }
-                    .buttonStyle(.plain)
-            }
-            if !store.espnMatches.isEmpty {
-                Text("More fixtures from ESPN")
-                    .font(.subheadline.bold()).foregroundStyle(.secondary)
-                ForEach(store.espnMatches) { match in espnFixtureRow(match) }
+            ForEach(store.upcomingMatches) { match in
+                switch match {
+                case .sportsDB(let event):
+                    Button { onSelectEvent(event) } label: { fixtureRow(event) }
+                        .buttonStyle(.plain)
+                case .espn(let event):
+                    espnFixtureRow(event)
+                }
             }
             if !store.recentResults.isEmpty {
                 Text("Recent results").font(.subheadline.bold()).foregroundStyle(.secondary)
-                ForEach(store.recentResults) { event in
-                    Button { onSelectEvent(event) } label: { fixtureRow(event) }
-                        .buttonStyle(.plain)
-                }
+                recentResultsTable
             }
         }
+    }
+
+    /// Compact results table with matchups, actual scores and full kickoff date/time.
+    private var recentResultsTable: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                Text("Matchup").frame(maxWidth: .infinity, alignment: .leading)
+                Text("Score").frame(width: 64)
+                Text("Date").frame(width: 78, alignment: .leading)
+            }
+            .font(.caption.bold()).foregroundStyle(.secondary)
+            .padding(.horizontal, 12).padding(.vertical, 10)
+
+            ForEach(store.recentResults) { event in
+                Button { onSelectEvent(event) } label: {
+                    HStack(alignment: .center, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 7) {
+                            teamRow(event.strHomeTeam ?? "Home", image: event.homeBadge)
+                            teamRow(event.strAwayTeam ?? "Away", image: event.awayBadge)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Group {
+                            if let home = event.intHomeScore, let away = event.intAwayScore {
+                                Text("\(home) – \(away)")
+                            } else {
+                                Text("Result")
+                            }
+                        }
+                        .font(.subheadline.bold()).monospacedDigit()
+                        .frame(width: 64)
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(event.startDate?.formatted(.dateTime.month(.abbreviated).day())
+                                 ?? event.dateEvent ?? "Date TBA")
+                            Text(event.timeLabel).foregroundStyle(.secondary)
+                        }
+                        .font(.caption2)
+                        .frame(width: 78, alignment: .leading)
+                    }
+                    .padding(.horizontal, 12).padding(.vertical, 12)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                Divider().overlay(.white.opacity(0.12))
+            }
+        }
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
     }
 
     private func fixtureRow(_ event: SportEvent) -> some View {
