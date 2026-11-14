@@ -75,7 +75,20 @@
             }
 
             attachCallbacks()
-            let surface = coordinator.makeView(url: url, options: options)
+            // SportsZone already has decoded frames in its preview UIView.
+            // Move that same render view into full screen immediately instead
+            // of asking KSPlayer to construct/rebind a video surface again.
+            // Only reuse for the exact adopted coordinator and stream URL.
+            let existingSurface: UIView? = {
+                guard case let .adopted(handle?) = mode,
+                      handle.prefersUninterruptedVideoHandoff,
+                      handle.owner == .fullScreen,
+                      handle.coordinator?.ksCoordinator === coordinator,
+                      (handle.media?.url == url || handle.resolvedMedia?.url == url)
+                else { return nil }
+                return handle.activeKSRenderView
+            }()
+            let surface = existingSurface ?? coordinator.makeView(url: url, options: options)
             context.coordinator.retainedView = surface
             switch mode {
             case let .preview(handle):
@@ -84,6 +97,10 @@
                 if handle?.owner != .released { handle?.activeKSRenderView = surface }
             }
             host(surface, in: container)
+            if existingSurface != nil {
+                container.setNeedsLayout()
+                container.layoutIfNeeded()
+            }
             return container
         }
 
