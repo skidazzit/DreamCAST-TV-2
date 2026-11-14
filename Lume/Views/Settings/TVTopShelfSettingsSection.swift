@@ -58,7 +58,7 @@ import SwiftUI
                 }
 
                 Group {
-                    Text("What Lume shows above its icon on the Apple TV Home Screen. A section appears only when it has something to show. When switched off, the Top Shelf shows the Lume artwork.")
+                    Text("What DreamCAST TV shows above its icon on the Apple TV Home Screen. A section appears only when it has something to show. When switched off, the Top Shelf shows DreamCAST TV artwork.")
                     if isEnabled, style == .carousel {
                         Text("The carousel shows movies and series. Channels have no wide artwork, so they appear only in Rows.")
                     }
