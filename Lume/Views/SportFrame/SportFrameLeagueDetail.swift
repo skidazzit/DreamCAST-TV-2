@@ -80,6 +80,26 @@ struct SportFrameLeagueHighlight: Identifiable {
     }
 }
 
+/// One kickoff in the combined TheSportsDB and ESPN league schedule.
+enum SportFrameLeagueMatch: Identifiable {
+    case sportsDB(SportEvent)
+    case espn(SportsZoneESPNMatch)
+
+    var id: String {
+        switch self {
+        case .sportsDB(let event): "sportsdb:\(event.idEvent)"
+        case .espn(let match): "espn:\(match.id)"
+        }
+    }
+
+    var startDate: Date? {
+        switch self {
+        case .sportsDB(let event): event.startDate
+        case .espn(let match): match.start
+        }
+    }
+}
+
 @MainActor
 final class SportFrameLeagueDetailStore: ObservableObject {
     @Published private(set) var liveUpcoming: [SportEvent] = []
@@ -96,6 +116,19 @@ final class SportFrameLeagueDetailStore: ObservableObject {
     @Published private(set) var matchError: String?
     @Published private(set) var tableError: String?
     @Published private(set) var highlightError: String?
+
+    /// Combine both providers before sorting, so ESPN matches do not
+    /// appear after older TheSportsDB fixtures just because of their source.
+    var upcomingMatches: [SportFrameLeagueMatch] {
+        (liveUpcoming.map(SportFrameLeagueMatch.sportsDB)
+         + espnMatches.map(SportFrameLeagueMatch.espn))
+            .sorted { left, right in
+                let lhs = left.startDate ?? .distantPast
+                let rhs = right.startDate ?? .distantPast
+                if lhs != rhs { return lhs > rhs }
+                return left.id < right.id
+            }
+    }
 
     var tableGroups: [SportFrameLeagueTableGroup] {
         let groups = Dictionary(grouping: standings) { row -> String in
@@ -165,15 +198,12 @@ final class SportFrameLeagueDetailStore: ObservableObject {
         var seen = Set<String>()
         liveUpcoming = (current + future)
             .filter { seen.insert($0.idEvent).inserted && ($0.isLive || $0.isUpcoming) }
-            .sorted { left, right in
-                if left.isLive != right.isLive { return left.isLive }
-                return (left.startDate ?? .distantFuture) < (right.startDate ?? .distantFuture)
-            }
+            .sorted(by: SportEvent.newestFirst)
             .prefix(10).map { $0 }
 
         recentResults = pastEvents
             .filter { !$0.isLive && !$0.isUpcoming }
-            .sorted { ($0.startDate ?? .distantPast) > ($1.startDate ?? .distantPast) }
+            .sorted(by: SportEvent.newestFirst)
             .prefix(4).map { $0 }
         espnMatches = []
         // The Free API may return one next match. Fill sparse fixtures from
@@ -191,7 +221,12 @@ final class SportFrameLeagueDetailStore: ObservableObject {
                         let sameKickoff = abs((event.startDate ?? .distantPast).timeIntervalSince(match.start)) < 4 * 3600
                         return sameTeams && sameKickoff
                     }
-                }.prefix(10).map { $0 }
+                }
+                .sorted { left, right in
+                    if left.start != right.start { return left.start > right.start }
+                    return left.id < right.id
+                }
+                .prefix(10).map { $0 }
         }
         if today == nil && next == nil && past == nil && espnMatches.isEmpty {
             matchError = "Could not load league matches. Pull down to retry."
