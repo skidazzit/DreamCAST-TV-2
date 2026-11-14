@@ -158,7 +158,11 @@ struct SportFrameMobile: View {
                 // has finished closing. No arbitrary 350 ms timer is needed.
                 guard let media = pendingPlaybackMedia else { return }
                 pendingPlaybackMedia = nil
-                sportsPlayback.tune(media)
+                sportsPlayback.tune(
+            media,
+            previewMode: GuidePreviewMode(storedValue:
+                UserDefaults.standard.string(forKey: PlayerSettings.tvGuidePreviewModeKey))
+        )
             }) { event in
                 SportFrameMobileMatchSheet(event: event, restriction: restriction) { channel in
                     guard let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
