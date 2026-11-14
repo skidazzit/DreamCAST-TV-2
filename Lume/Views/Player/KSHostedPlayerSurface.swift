@@ -74,7 +74,6 @@
                 return container
             }
 
-            attachCallbacks()
             // Always ask the coordinator for its current render view when
             // taking over a preview. KSPlayer's makeView retains the existing
             // decoder for the same URL, while reconnecting its display host.
