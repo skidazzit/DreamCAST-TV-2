@@ -167,9 +167,9 @@
                 Text("Advanced")
             } footer: {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Lume plays each stream with your preferred engine and falls back to the next if it can't be played.")
+                    Text("DreamCAST TV plays each stream with your preferred engine and falls back to the next if it can't be played.")
                     // swiftlint:disable:next line_length
-                    Text("Streams open in the selected external app instead of Lume's player, when it is installed. Some apps — Infuse among them — play movies and series but no live channels, so you can limit the hand-off to one or the other.")
+                    Text("Streams open in the selected external app instead of DreamCAST TV's player, when it is installed. Some apps — Infuse among them — play movies and series but no live channels, so you can limit the hand-off to one or the other.")
                 }
             }
         }
@@ -239,7 +239,7 @@
                 } header: {
                     Text("Priority")
                 } footer: {
-                    Text("Lume plays each stream with the first engine and automatically falls back to the next if it can't be played. Drag to reorder.")
+                    Text("DreamCAST TV plays each stream with the first engine and automatically falls back to the next if it can't be played. Drag to reorder.")
                 }
 
                 Section {
