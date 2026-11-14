@@ -83,10 +83,41 @@ struct SportsZoneMiniPlayerTests {
         let before = session.reloadToken
         session.fullScreenMedia = nil
         session.returnedFromFullScreen()
+        #if os(tvOS)
+        // The Live TV guide defers fallback until its cooldown ends.
+        #expect(session.guidePreview.isCoolingDown)
+        #expect(session.reloadToken == before)
+        session.returnedFromFullScreen()
+        #expect(session.guidePreview.isCoolingDown)
+        #expect(session.reloadToken == before)
+        #else
         #expect(session.reloadToken == before + 1)
         session.returnedFromFullScreen()
         #expect(session.reloadToken == before + 1)
+        #endif
     }
+
+    #if os(tvOS)
+    @Test func sportsZoneUsesTheLiveTVGuideControllerForHandoff() {
+        let session = SportsZonePlaybackSession()
+        #expect(session.handle === session.guidePreview.handle)
+        session.tune(media("a"))
+        let previous = session.guidePreview.handoffRevision
+        let coordinator = KSVideoPlayer.Coordinator()
+        session.handle.register(media: media("a"), resolved: nil, coordinator: .ks(coordinator))
+        session.handle.markStarted()
+
+        session.openFullScreen()
+        #expect(session.guidePreview.isSuspended)
+        #expect(session.handle.owner == .fullScreen)
+
+        session.fullScreenMedia = nil
+        session.returnedFromFullScreen()
+        #expect(!session.guidePreview.isSuspended)
+        #expect(session.guidePreview.handoffRevision == previous + 1)
+        #expect(session.handle.coordinator?.ksCoordinator === coordinator)
+    }
+    #endif
 
     @Test func stoppingMiniPlayerClearsOnlyTheSportsSession() {
         let session = SportsZonePlaybackSession()
