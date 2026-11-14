@@ -139,7 +139,7 @@ struct MainTabView: View {
                 #if os(tvOS)
                     // Home is removed from the Apple TV tab bar.
                     if !isVisibleTVTab(router.selectedTab, tabs: tabs) {
-                        router.selectedTab = [AppTab.liveTV, .movies, .series, .sports, .search, .settings]
+                        router.selectedTab = [AppTab.liveTV, .sports, .movies, .series, .search, .settings]
                             .first { isVisibleTVTab($0, tabs: tabs) } ?? .settings
                     }
                 #else
@@ -259,6 +259,14 @@ struct MainTabView: View {
                     }
                 }
 
+                if sportsTabEnabled {
+                    Tab(value: AppTab.sports) {
+                        activeOnly(.sports, selection: selection.wrappedValue) { SportFrameHome() }
+                    } label: {
+                        Text("SportsZone")
+                    }
+                }
+
                 if tabs.showsTab(.movies) {
                     Tab(value: AppTab.movies) {
                         activeOnly(.movies, selection: selection.wrappedValue) { MoviesView() }
@@ -272,14 +280,6 @@ struct MainTabView: View {
                         activeOnly(.series, selection: selection.wrappedValue) { SeriesView() }
                     } label: {
                         Text("Series")
-                    }
-                }
-
-                if sportsTabEnabled {
-                    Tab(value: AppTab.sports) {
-                        activeOnly(.sports, selection: selection.wrappedValue) { SportFrameHome() }
-                    } label: {
-                        Text("Sports")
                     }
                 }
 
