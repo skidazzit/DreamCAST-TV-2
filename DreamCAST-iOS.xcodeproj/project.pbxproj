@@ -123,7 +123,6 @@
 			exceptions = (
 				C67C02E32F880F2400842DBA /* Exceptions for "Lume" folder in "Lume" target */,
 			);
-			name = "DreamCAST TV";
 			path = Lume;
 			sourceTree = "<group>";
 		};
@@ -132,13 +131,11 @@
 			exceptions = (
 				C6E0F1A52FE0000000000001 /* Exceptions for "LumeTests" folder in "LumeTests" target */,
 			);
-			name = "DreamCAST TV Tests";
 			path = LumeTests;
 			sourceTree = "<group>";
 		};
 		C67C02DE2F880F2400842DBA /* LumeUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			name = "DreamCAST TV UI Tests";
 			path = LumeUITests;
 			sourceTree = "<group>";
 		};
@@ -147,13 +144,11 @@
 			exceptions = (
 				C6AA310F2FDD00020000AB0F /* Exceptions for "LumeWidgets" folder in "LumeWidgets" target */,
 			);
-			name = "DreamCAST TV Widgets";
 			path = LumeWidgets;
 			sourceTree = "<group>";
 		};
 		C6BD5701000000000000B001 /* LumeShared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			name = "DreamCAST TV Shared";
 			path = LumeShared;
 			sourceTree = "<group>";
 		};
@@ -162,13 +157,11 @@
 			exceptions = (
 				C6BD5701000000000000C002 /* Exceptions for "LumeTopShelf" folder in "LumeTopShelf" target */,
 			);
-			name = "DreamCAST TV Top Shelf";
 			path = LumeTopShelf;
 			sourceTree = "<group>";
 		};
 		C6BE110000000000000000A2 /* LumePerformanceTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			name = "DreamCAST TV Performance Tests";
 			path = LumePerformanceTests;
 			sourceTree = "<group>";
 		};
