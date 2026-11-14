@@ -125,6 +125,10 @@ struct SportFrameMobile: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Keep the same top preview location as the iPhone Live TV guide.
+            // The navigation stack below it may push league pages without
+            // dismounting or restarting the current channel.
+            SportsZoneMiniPlayer(session: sportsPlayback)
             NavigationStack {
                 ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
@@ -163,8 +167,6 @@ struct SportFrameMobile: View {
                 }
             }
             }
-            // Stays mounted even while a league detail is pushed.
-            SportsZoneMiniPlayer(session: sportsPlayback)
         }
         .background(Color(red: 0.025, green: 0.055, blue: 0.11).ignoresSafeArea())
         .fullScreenCover(item: $sportsPlayback.fullScreenMedia, onDismiss: {
