@@ -169,9 +169,9 @@ final class SportFrameLeagueDetailStore: ObservableObject {
         (liveUpcoming.map(SportFrameLeagueMatch.sportsDB)
          + espnMatches.map(SportFrameLeagueMatch.espn))
             .sorted { left, right in
-                let lhs = left.startDate ?? .distantPast
-                let rhs = right.startDate ?? .distantPast
-                if lhs != rhs { return lhs > rhs }
+                let lhs = left.startDate ?? .distantFuture
+                let rhs = right.startDate ?? .distantFuture
+                if lhs != rhs { return lhs < rhs }
                 return left.id < right.id
             }
     }
@@ -244,13 +244,14 @@ final class SportFrameLeagueDetailStore: ObservableObject {
         var seen = Set<String>()
         liveUpcoming = (current + future)
             .filter { seen.insert($0.idEvent).inserted && ($0.isLive || $0.isUpcoming) }
-            .sorted(by: SportEvent.newestFirst)
+            .sorted(by: SportEvent.oldestFirst)
             .prefix(10).map { $0 }
 
-        recentResults = pastEvents
+        recentResults = Array(pastEvents
             .filter { !$0.isLive && !$0.isUpcoming }
             .sorted(by: SportEvent.newestFirst)
-            .prefix(4).map { $0 }
+            .prefix(4))
+            .sorted(by: SportEvent.oldestFirst)
         espnMatches = []
         // The Free API may return one next match. Fill sparse fixtures from
         // ESPN without changing TheSportsDB IDs used for broadcaster lookups.
@@ -269,7 +270,7 @@ final class SportFrameLeagueDetailStore: ObservableObject {
                     }
                 }
                 .sorted { left, right in
-                    if left.start != right.start { return left.start > right.start }
+                    if left.start != right.start { return left.start < right.start }
                     return left.id < right.id
                 }
                 .prefix(10).map { $0 }
