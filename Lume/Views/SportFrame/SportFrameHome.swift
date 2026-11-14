@@ -79,7 +79,11 @@ struct SportFrameHome: View {
 
     private var visibleLeagues: [(String, [SportEvent])] {
         let grouped = Dictionary(grouping: visibleEvents, by: \.league)
-        return grouped.keys.sorted().map { ($0, grouped[$0] ?? []) }
+        return grouped.keys.sorted { lhs, rhs in
+            let left = grouped[lhs]?.first?.startDate ?? .distantPast
+            let right = grouped[rhs]?.first?.startDate ?? .distantPast
+            return left == right ? lhs < rhs : left > right
+        }.map { ($0, grouped[$0] ?? []) }
     }
 
     private var availableLeagues: [String] {
