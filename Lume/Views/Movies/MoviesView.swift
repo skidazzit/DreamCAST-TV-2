@@ -113,6 +113,12 @@ struct MoviesView: View {
                 #endif
             }
         }
+        #if os(tvOS)
+        .background(TVAmbientBackground(hero: nil).ignoresSafeArea())
+        .onExitCommand {
+            NotificationCenter.default.post(name: .dreamCASTReturnToTopMenu, object: nil)
+        }
+        #endif
     }
 
     /// The existing category and collection rails, now beside a tvOS sidebar.
