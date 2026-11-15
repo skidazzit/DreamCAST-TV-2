@@ -378,7 +378,7 @@
             action: @escaping () -> Void
         ) -> some View {
             Button(action: action) {
-                Text(Image(systemName: systemImage))
+                Text(Text(Image(systemName: systemImage)))
                     .font(.system(size: 24, weight: .semibold))
                     .frame(width: 30, height: 33)
             }
@@ -424,7 +424,7 @@
                         }
                     }
                 } label: {
-                    Image(systemName: "waveform")
+                    Text(Image(systemName: "waveform"))
                 }
                 .menuIndicator(.hidden)
                 .buttonStyle(TVPlayerCircleButtonStyle())
@@ -469,7 +469,7 @@
                         }
                     }
                 } label: {
-                    Image(systemName: "captions.bubble")
+                    Text(Image(systemName: "captions.bubble"))
                 }
                 .menuIndicator(.hidden)
                 .buttonStyle(TVPlayerCircleButtonStyle())
