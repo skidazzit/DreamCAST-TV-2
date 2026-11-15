@@ -62,12 +62,15 @@
             @Environment(\.isEnabled) private var isEnabled
 
             var body: some View {
-                let pressed = configuration.isPressed
                 configuration.label
                     .font(.system(size: glyphSize, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(width: diameter, height: diameter)
-                    .background(isFocused ? TVNeonTheme.electricBlue : TVNeonTheme.glass, in: Circle())
+                    .background(
+                        isFocused ? AnyShapeStyle(TVNeonTheme.electricBlue)
+                                  : AnyShapeStyle(TVNeonTheme.glass),
+                        in: Circle()
+                    )
                     .overlay {
                         Circle().strokeBorder(isFocused ? TVNeonTheme.iceBlue : .clear,
                                               lineWidth: isFocused ? 2 : 0)
@@ -76,7 +79,6 @@
                     .opacity(isEnabled ? 1 : 0.35)
                     .shadow(color: .black.opacity(isFocused ? 0.4 : 0), radius: 16, y: 8)
                     .animation(.easeOut(duration: 0.18), value: isFocused)
-                    .animation(.easeOut(duration: 0.1), value: pressed)
             }
         }
     }
