@@ -301,7 +301,15 @@ struct SettingsView: View {
                     )
                     tvDetailContainer
                         .focused($detailFocused)
-                        .onExitCommand(perform: handleDetailMenu)
+                        .onExitCommand {
+                            // Keep Back consistent with Live TV, SportsZone,
+                            // Movies, Series and Search. Navigate focus first;
+                            // never jump directly to the main app menu.
+                            NotificationCenter.default.post(
+                                name: .dreamCASTReturnToTopMenu,
+                                object: nil
+                            )
+                        }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .onExitCommand {
