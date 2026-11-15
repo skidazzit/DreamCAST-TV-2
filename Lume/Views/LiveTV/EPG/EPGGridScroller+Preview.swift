@@ -100,6 +100,8 @@ nonisolated enum GuidePreviewRetunePolicy {
             let row = rows[rowIndex]
             previewTarget = EPGPreviewTarget(row: row, rowIndex: rowIndex, media: preview.media(row.stream))
             preview.hero?.settleGlow(onLogo: row.logoURL)
+            // One initial restore to the root player. Never retune on focus.
+            preview.onAutoTune(row.stream)
         }
 
         /// Hands the hero's info block the focused row on every row change,
