@@ -449,7 +449,10 @@ struct FullScreenPlayerView: View {
         } else if resolveError != nil {
             // Stalker `create_link` failed — surface the failure with a retry
             // rather than spinning forever.
-            PlayerErrorIndicator(title: activeMedia.title, onRetry: retryResolve, onClose: closePlayer)
+            PlayerErrorIndicator(
+                title: activeMedia.title, onRetry: retryResolve, onClose: closePlayer,
+                failedMedia: activeMedia, onSelectMedia: switchMedia
+            )
         } else {
             // Resolving the Stalker stream URL before the engine can load it.
             PlayerLoadingIndicator(title: activeMedia.title)
