@@ -620,6 +620,39 @@
         }
       }
     },
+    "#" : {
+
+    },
+    "%@ - %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ - %2$@"
+          }
+        }
+      }
+    },
+    "%@ – %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ – %2$@"
+          }
+        }
+      }
+    },
+    "%@ : %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ : %2$@"
+          }
+        }
+      }
+    },
     "%@ Collection" : {
       "localizations" : {
         "ar" : {
@@ -976,6 +1009,9 @@
           }
         }
       }
+    },
+    "%@ leagues" : {
+
     },
     "%@ Options" : {
       "localizations" : {
@@ -1401,6 +1437,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ 对 %2$@"
+          }
+        }
+      }
+    },
+    "%@ vs %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ vs %2$@"
           }
         }
       }
@@ -2378,6 +2424,9 @@
           }
         }
       }
+    },
+    "%lld selected" : {
+
     },
     "%lld show%@ will be marked the first time you open them." : {
       "localizations" : {
@@ -3408,6 +3457,9 @@
           }
         }
       }
+    },
+    "A Premium key is saved. The status above checks whether v2 access works." : {
+
     },
     "A sentence or two helps a lot. It's added to the top of the report." : {
       "localizations" : {
@@ -6679,6 +6731,9 @@
         }
       }
     },
+    "All Leagues" : {
+
+    },
     "All synced content for this playlist will also be removed." : {
       "localizations" : {
         "ar" : {
@@ -7516,12 +7571,6 @@
     },
     "Applies to KSPlayer, Lume Engine and AVPlayer; VLCKit follows the size only. Image-based subtitles, such as those on Blu-ray rips, can be moved but not restyled." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Applies to KSPlayer, DreamCAST TV Engine and AVPlayer; VLCKit follows the size only. Image-based subtitles, such as those on Blu-ray rips, can be moved but not restyled."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7532,6 +7581,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gilt für KSPlayer, DreamCAST TV Engine und AVPlayer; VLCKit übernimmt nur die Größe. Bildbasierte Untertitel, etwa von Blu-ray-Rips, lassen sich verschieben, aber nicht umgestalten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies to KSPlayer, DreamCAST TV Engine and AVPlayer; VLCKit follows the size only. Image-based subtitles, such as those on Blu-ray rips, can be moved but not restyled."
           }
         },
         "es" : {
@@ -9478,6 +9533,9 @@
         }
       }
     },
+    "Back Up Settings to File" : {
+
+    },
     "Background" : {
       "localizations" : {
         "ar" : {
@@ -10419,6 +10477,9 @@
           }
         }
       }
+    },
+    "Broadcasters" : {
+
     },
     "Browse by Genre" : {
       "localizations" : {
@@ -12110,6 +12171,9 @@
         }
       }
     },
+    "Channel layout" : {
+
+    },
     "Channel Surfing" : {
       "localizations" : {
         "ar" : {
@@ -12414,6 +12478,12 @@
         }
       }
     },
+    "Channels matching %@" : {
+
+    },
+    "Checking cloud sync for your playlists…" : {
+
+    },
     "Checking iCloud for your playlists…" : {
       "comment" : "Shown on the launch screen while the app waits for the first iCloud sync before offering the add-playlist form.",
       "localizations" : {
@@ -12475,6 +12545,7 @@
     },
     "Checking Lume Cloud for your playlists…" : {
       "comment" : "Launch screen while a fresh device waits for its first Lume Cloud sync. Lume Cloud is a product name; keep it in Latin script.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -12886,14 +12957,11 @@
         }
       }
     },
+    "Choose a listed network to search your IPTV channels." : {
+
+    },
     "Choose a profile each time Lume launches. When off, Lume resumes the last profile you used." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose a profile each time DreamCAST TV launches. When off, DreamCAST TV resumes the last profile you used."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12904,6 +12972,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wähle bei jedem Start von DreamCAST TV ein Profil. Wenn deaktiviert, setzt DreamCAST TV mit dem zuletzt verwendeten Profil fort."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a profile each time DreamCAST TV launches. When off, DreamCAST TV resumes the last profile you used."
           }
         },
         "es" : {
@@ -13133,6 +13207,9 @@
         }
       }
     },
+    "Choose more sports or another date." : {
+
+    },
     "Choose playlists to combine in Settings" : {
       "comment" : "Subtitle of the Combined row in the tvOS quick-switch modal while fewer than two playlists are combined",
       "localizations" : {
@@ -13255,6 +13332,9 @@
           }
         }
       }
+    },
+    "Choose the player used for Live TV. Automatic follows the app's normal playback order. Reopen Live TV to apply changes." : {
+
     },
     "Choose which sections appear on Home and in what order." : {
       "extractionState" : "stale",
@@ -14308,6 +14388,9 @@
         }
       }
     },
+    "Club" : {
+
+    },
     "Codec Low Delay" : {
       "comment" : "A toggle to enable low-delay decoding",
       "isCommentAutoGenerated" : true,
@@ -14367,6 +14450,9 @@
           }
         }
       }
+    },
+    "Collapse sports list" : {
+
     },
     "Color" : {
       "localizations" : {
@@ -17925,6 +18011,12 @@
         }
       }
     },
+    "Date" : {
+
+    },
+    "Day" : {
+
+    },
     "DEBUG only. Force Premium previews the free tier and paywall. Recalculate rebuilds the For You row now, bypassing the once-a-day throttle." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -21256,6 +21348,24 @@
         }
       }
     },
+    "DreamCAST TV" : {
+
+    },
+    "DreamCAST TV is based on Lume, an open-source project licensed under the GNU Affero General Public License v3. Original authors and licenses remain credited here." : {
+
+    },
+    "DreamCAST TV is based on open-source software. Pro includes extra features." : {
+
+    },
+    "DreamCAST TV plays each stream with the first engine and automatically falls back to the next if it can't be played. Drag to reorder." : {
+
+    },
+    "DreamCAST TV plays each stream with your preferred engine and falls back to the next if it can't be played." : {
+
+    },
+    "DreamCAST TV Pro" : {
+
+    },
     "Drivers" : {
       "comment" : "Formula 1 drivers standings section header",
       "localizations" : {
@@ -24189,6 +24299,9 @@
         }
       }
     },
+    "Enter Premium API key" : {
+
+    },
     "Enter the 6-digit code from the recording server. It appears in the server's log, or run `lume-recorder pair` on the server to show the current one." : {
       "comment" : "Recording server pairing sheet: where the code comes from. Keep `lume-recorder pair` (a terminal command) untranslated, in backticks.",
       "localizations" : {
@@ -24614,6 +24727,9 @@
           }
         }
       }
+    },
+    "Enter the recovery key you saved when you created your Cloud Sync account." : {
+
     },
     "Enter the recovery key you saved when you created your Lume Cloud account." : {
       "comment" : "Footer under the recovery key field when restoring a Lume Cloud account.",
@@ -25396,12 +25512,6 @@
     "Enter your server address — Lume recognizes Jellyfin, Emby, Plex and Silo servers and WebDAV shares automatically." : {
       "comment" : "Footer explaining that the media server kind is detected from the URL.",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enter your server address — DreamCAST TV recognizes Jellyfin, Emby, Plex and Silo servers and WebDAV shares automatically."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25412,6 +25522,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gib deine Serveradresse ein – DreamCAST TV erkennt Jellyfin-, Emby-, Plex- und Silo-Server sowie WebDAV-Freigaben automatisch."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your server address — DreamCAST TV recognizes Jellyfin, Emby, Plex and Silo servers and WebDAV shares automatically."
           }
         },
         "es" : {
@@ -25867,6 +25983,9 @@
           }
         }
       }
+    },
+    "ESPN • %@" : {
+
     },
     "Europe" : {
       "localizations" : {
@@ -26396,6 +26515,9 @@
           }
         }
       }
+    },
+    "Expand sports list" : {
+
     },
     "Experience" : {
       "localizations" : {
@@ -27778,6 +27900,12 @@
         }
       }
     },
+    "Finding matches…" : {
+
+    },
+    "Finding recent highlights…" : {
+
+    },
     "Finding recommendations…" : {
       "localizations" : {
         "ar" : {
@@ -28594,14 +28722,12 @@
         }
       }
     },
+    "Follow the device appearance, or keep DreamCAST TV always in Dark or Light Mode." : {
+
+    },
     "Follow the device appearance, or keep Lume always in Dark or Light Mode." : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Follow the device appearance, or keep DreamCAST TV always in Dark or Light Mode."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -28612,6 +28738,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Folge dem Erscheinungsbild des Geräts oder verwende DreamCAST TV immer im Dunkel- oder Hellmodus."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Follow the device appearance, or keep DreamCAST TV always in Dark or Light Mode."
           }
         },
         "es" : {
@@ -29547,12 +29679,6 @@
     },
     "Free includes one playlist, the first one added. Upgrade to Lume Pro to use the others." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Free includes one playlist, the first one added. Upgrade to DreamCAST TV Pro to use the others."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -29563,6 +29689,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kostenlos enthält eine Playlist – die zuerst hinzugefügte. Mit DreamCAST TV Pro kannst du auch die anderen nutzen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free includes one playlist, the first one added. Upgrade to DreamCAST TV Pro to use the others."
           }
         },
         "es" : {
@@ -29611,12 +29743,6 @@
     },
     "Free includes one playlist. Upgrade to Lume Pro to add more." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Free includes one playlist. Upgrade to DreamCAST TV Pro to add more."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -29627,6 +29753,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kostenlos enthält eine Playlist. Mit DreamCAST TV Pro kannst du weitere hinzufügen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free includes one playlist. Upgrade to DreamCAST TV Pro to add more."
           }
         },
         "es" : {
@@ -29675,12 +29807,6 @@
     },
     "Free includes one profile. Upgrade to Lume Pro for the whole household." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Free includes one profile. Upgrade to DreamCAST TV Pro for the whole household."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -29691,6 +29817,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kostenlos enthält ein Profil. Mit DreamCAST TV Pro für den ganzen Haushalt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free includes one profile. Upgrade to DreamCAST TV Pro for the whole household."
           }
         },
         "es" : {
@@ -30499,6 +30631,9 @@
         }
       }
     },
+    "Full Screen" : {
+
+    },
     "Fumbles lost" : {
       "localizations" : {
         "ar" : {
@@ -30679,6 +30814,9 @@
           }
         }
       }
+    },
+    "GB" : {
+
     },
     "GD" : {
       "comment" : "Standings table column header: goal difference (keep very short).",
@@ -31564,6 +31702,12 @@
         }
       }
     },
+    "Guide Appearance" : {
+
+    },
+    "Guide Channel Width" : {
+
+    },
     "Guide data is matched to channels across all your playlists." : {
       "localizations" : {
         "ar" : {
@@ -31621,6 +31765,15 @@
           }
         }
       }
+    },
+    "Guide Design" : {
+
+    },
+    "Guide Mini-player" : {
+
+    },
+    "Guide Mini-player Size" : {
+
     },
     "Guide Preview" : {
       "comment" : "Title of the Lume Pro feature and its tvOS Settings toggle that plays a muted live preview of the focused channel inside the TV Guide.",
@@ -31687,6 +31840,9 @@
         }
       }
     },
+    "Guide Row Height" : {
+
+    },
     "Half-time" : {
       "localizations" : {
         "ar" : {
@@ -31744,6 +31900,9 @@
           }
         }
       }
+    },
+    "Happening now & coming up" : {
+
     },
     "Hardware Decoding" : {
       "localizations" : {
@@ -33777,6 +33936,9 @@
         }
       }
     },
+    "If you lose all your devices, this key is the only way back to your Cloud Sync data. Without it, your synced data is gone." : {
+
+    },
     "If you lose all your devices, this key is the only way back to your Lume Cloud data. Without it, your synced data is gone." : {
       "comment" : "Explanation under the Lume Cloud recovery key.",
       "localizations" : {
@@ -35458,6 +35620,9 @@
         }
       }
     },
+    "It stops syncing with Cloud Sync. Anything already on it stays there." : {
+
+    },
     "It stops syncing with Lume Cloud. Anything already on it stays there." : {
       "comment" : "Message of the confirmation before removing another device from the Lume Cloud account.",
       "localizations" : {
@@ -35642,12 +35807,6 @@
     "Jellyfin compatibility is turned off on this Silo server. Lume connects to Silo through it — ask the server's admin to turn it on in Silo's settings." : {
       "comment" : "Error when a Silo server has its Jellyfin-compatible service switched off.",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jellyfin compatibility is turned off on this Silo server. DreamCAST TV connects to Silo through it — ask the server's admin to turn it on in Silo's settings."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -35658,6 +35817,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Die Jellyfin-Kompatibilität ist auf diesem Silo-Server ausgeschaltet. DreamCAST TV verbindet sich darüber mit Silo – bitte den Administrator des Servers, sie in den Silo-Einstellungen einzuschalten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jellyfin compatibility is turned off on this Silo server. DreamCAST TV connects to Silo through it — ask the server's admin to turn it on in Silo's settings."
           }
         },
         "es" : {
@@ -35763,6 +35928,9 @@
           }
         }
       }
+    },
+    "Join Cloud Sync" : {
+
     },
     "Join Lume Cloud" : {
       "comment" : "Title of the sheet where a new device joins a Lume Cloud account with a pairing code. Lume Cloud is a product name; keep it in Latin script.",
@@ -36664,6 +36832,9 @@
           }
         }
       }
+    },
+    "Last checked: %@" : {
+
     },
     "Last refresh failed" : {
       "localizations" : {
@@ -38743,6 +38914,9 @@
         }
       }
     },
+    "Live TV layout" : {
+
+    },
     "Live TV Layout" : {
       "comment" : "Settings › Live TV: row that switches the Live TV tab between the List and Guide layouts.",
       "localizations" : {
@@ -38807,6 +38981,9 @@
           }
         }
       }
+    },
+    "Live TV Playback Engine" : {
+
     },
     "Loading details…" : {
       "localizations" : {
@@ -38924,6 +39101,15 @@
         }
       }
     },
+    "Loading league matches…" : {
+
+    },
+    "Loading matches…" : {
+
+    },
+    "Loading standings…" : {
+
+    },
     "Loading teams…" : {
       "localizations" : {
         "ar" : {
@@ -39039,6 +39225,9 @@
           }
         }
       }
+    },
+    "Local Backup & Restore" : {
+
     },
     "Lock a category to hide it from child profiles. Drag to reorder." : {
       "localizations" : {
@@ -39596,12 +39785,6 @@
     },
     "Lume" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -39609,6 +39792,12 @@
           }
         },
         "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV"
+          }
+        },
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV"
@@ -40635,12 +40824,6 @@
     },
     "Lume couldn't reach that address on your local network. If you declined the local network prompt, only the system Settings app can allow it again." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV couldn't reach that address on your local network. If you declined the local network prompt, only the system Settings app can allow it again."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -40651,6 +40834,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV konnte diese Adresse in deinem lokalen Netzwerk nicht erreichen. Wenn du die Anfrage für das lokale Netzwerk abgelehnt hast, kann sie nur in der Einstellungen-App wieder erteilt werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV couldn't reach that address on your local network. If you declined the local network prompt, only the system Settings app can allow it again."
           }
         },
         "es" : {
@@ -40765,12 +40954,6 @@
     "Lume couldn't recognize a media server at that address. Enter your Jellyfin, Emby, Plex or Silo server's base address, or the full path of a WebDAV folder." : {
       "comment" : "Error message when no media server kind was recognized at the entered address.",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV couldn't recognize a media server at that address. Enter your Jellyfin, Emby, Plex or Silo server's base address, or the full path of a WebDAV folder."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -40781,6 +40964,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV konnte unter dieser Adresse keinen Medienserver erkennen. Gib die Basisadresse deines Jellyfin-, Emby-, Plex- oder Silo-Servers ein oder den vollständigen Pfad eines WebDAV-Ordners."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV couldn't recognize a media server at that address. Enter your Jellyfin, Emby, Plex or Silo server's base address, or the full path of a WebDAV folder."
           }
         },
         "es" : {
@@ -40894,12 +41083,6 @@
     },
     "Lume Diagnostics — %@" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV Diagnostics — %@"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -40910,6 +41093,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV-Diagnose – %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV Diagnostics — %@"
           }
         },
         "es" : {
@@ -40958,12 +41147,6 @@
     },
     "Lume Engine — Decoding" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV Engine — Decoding"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -40974,6 +41157,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV Engine — Dekodierung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV Engine — Decoding"
           }
         },
         "es" : {
@@ -41022,12 +41211,6 @@
     },
     "Lume Engine — Network & Buffering" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV Engine — Network & Buffering"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41038,6 +41221,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV Engine — Netzwerk & Pufferung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV Engine — Network & Buffering"
           }
         },
         "es" : {
@@ -41086,12 +41275,6 @@
     },
     "Lume Engine — Stream Analysis" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV Engine — Stream Analysis"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41102,6 +41285,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV Engine — Streamanalyse"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV Engine — Stream Analysis"
           }
         },
         "es" : {
@@ -41150,12 +41339,6 @@
     },
     "Lume Engine Options" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV Engine Options"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41166,6 +41349,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV Engine-Optionen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV Engine Options"
           }
         },
         "es" : {
@@ -41280,12 +41469,6 @@
     "Lume is free and open source. Premium supports development and unlocks a few extra conveniences." : {
       "extractionState" : "stale",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV is free and open source. Premium supports development and unlocks a few extra conveniences."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41296,6 +41479,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV ist kostenlos und quelloffen. Premium unterstützt die Entwicklung und schaltet einige zusätzliche Annehmlichkeiten frei."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV is free and open source. Premium supports development and unlocks a few extra conveniences."
           }
         },
         "es" : {
@@ -41346,12 +41535,6 @@
       "comment" : "A description of Lume Pro.",
       "isCommentAutoGenerated" : true,
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV is free and open source. Pro supports development and unlocks a few extra conveniences."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41362,6 +41545,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV ist kostenlos und quelloffen. Pro unterstützt die Entwicklung und schaltet einige zusätzliche Annehmlichkeiten frei."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV is free and open source. Pro supports development and unlocks a few extra conveniences."
           }
         },
         "es" : {
@@ -41409,13 +41598,8 @@
       }
     },
     "Lume is free, open-source software, licensed under the GNU Affero General Public License v3." : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV is free, open-source software, licensed under the GNU Affero General Public License v3."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41426,6 +41610,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV ist freie, quelloffene Software unter der GNU Affero General Public License v3."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV is free, open-source software, licensed under the GNU Affero General Public License v3."
           }
         },
         "es" : {
@@ -41538,13 +41728,8 @@
       }
     },
     "Lume plays each stream with the first engine and automatically falls back to the next if it can't be played. Drag to reorder." : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV plays each stream with the first engine and automatically falls back to the next if it can't be played. Drag to reorder."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41555,6 +41740,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV gibt jeden Stream mit der ersten Engine wieder und wechselt automatisch zur nächsten, wenn er nicht abgespielt werden kann. Zum Neuordnen ziehen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV plays each stream with the first engine and automatically falls back to the next if it can't be played. Drag to reorder."
           }
         },
         "es" : {
@@ -41602,13 +41793,8 @@
       }
     },
     "Lume plays each stream with your preferred engine and falls back to the next if it can't be played." : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV plays each stream with your preferred engine and falls back to the next if it can't be played."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41619,6 +41805,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV spielt jeden Stream mit deiner bevorzugten Engine ab und wechselt zur nächsten, wenn das nicht klappt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV plays each stream with your preferred engine and falls back to the next if it can't be played."
           }
         },
         "es" : {
@@ -41667,12 +41859,6 @@
     },
     "Lume Pro" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV Pro"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41680,6 +41866,12 @@
           }
         },
         "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV Pro"
+          }
+        },
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV Pro"
@@ -41731,12 +41923,6 @@
     },
     "Lume selects the first of these languages the stream offers as an audio track, most preferred at the top. When the audio that plays is in none of them and the stream carries a forced subtitle track, that track is turned on. Applied the next time playback starts." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV selects the first of these languages the stream offers as an audio track, most preferred at the top. When the audio that plays is in none of them and the stream carries a forced subtitle track, that track is turned on. Applied the next time playback starts."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41747,6 +41933,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV wählt die erste dieser Sprachen, die der Stream als Tonspur anbietet – die bevorzugte steht oben. Wenn der abgespielte Ton in keiner davon vorliegt und der Stream eine erzwungene Untertitelspur enthält, wird diese Spur aktiviert. Wird bei der nächsten Wiedergabe angewendet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV selects the first of these languages the stream offers as an audio track, most preferred at the top. When the audio that plays is in none of them and the stream carries a forced subtitle track, that track is turned on. Applied the next time playback starts."
           }
         },
         "es" : {
@@ -41795,12 +41987,6 @@
     },
     "Lume selects the first of these languages the stream offers as an audio track. Drag to reorder. When the audio that plays is in none of them and the stream carries a forced subtitle track, that track is turned on. Applied the next time playback starts." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV selects the first of these languages the stream offers as an audio track. Drag to reorder. When the audio that plays is in none of them and the stream carries a forced subtitle track, that track is turned on. Applied the next time playback starts."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41811,6 +41997,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV wählt die erste dieser Sprachen, die der Stream als Tonspur anbietet. Zum Umsortieren ziehen. Wenn der abgespielte Ton in keiner davon vorliegt und der Stream eine erzwungene Untertitelspur enthält, wird diese Spur aktiviert. Wird bei der nächsten Wiedergabe angewendet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV selects the first of these languages the stream offers as an audio track. Drag to reorder. When the audio that plays is in none of them and the stream carries a forced subtitle track, that track is turned on. Applied the next time playback starts."
           }
         },
         "es" : {
@@ -41860,12 +42052,6 @@
     "Lume signed in to Silo but couldn't reach its Jellyfin compatibility service. Make sure the public URL in Silo's Jellyfin compatibility settings is an address this device can reach." : {
       "comment" : "Error when Lume signed in to Silo but none of the addresses of its Jellyfin-compatible service answered.",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV signed in to Silo but couldn't reach its Jellyfin compatibility service. Make sure the public URL in Silo's Jellyfin compatibility settings is an address this device can reach."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41876,6 +42062,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV hat sich bei Silo angemeldet, konnte aber den Jellyfin-Kompatibilitätsdienst nicht erreichen. Achte darauf, dass die öffentliche URL in den Jellyfin-Kompatibilitätseinstellungen von Silo eine Adresse ist, die dieses Gerät erreichen kann."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV signed in to Silo but couldn't reach its Jellyfin compatibility service. Make sure the public URL in Silo's Jellyfin compatibility settings is an address this device can reach."
           }
         },
         "es" : {
@@ -41926,12 +42118,6 @@
       "comment" : "Description of the Lume Engine, a custom FFmpeg 9 engine.",
       "isCommentAutoGenerated" : true,
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV's own FFmpeg 9 engine. Hardware-accelerated decoding of most formats, built for live-stream stability, with system A/V sync and Picture in Picture."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41942,6 +42128,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lumes eigene FFmpeg-9-Engine. Hardwarebeschleunigte Dekodierung der meisten Formate, ausgelegt auf Stabilität bei Livestreams, mit System-A/V-Synchronisierung und Bild-in-Bild."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV's own FFmpeg 9 engine. Hardware-accelerated decoding of most formats, built for live-stream stability, with system A/V sync and Picture in Picture."
           }
         },
         "es" : {
@@ -41989,13 +42181,8 @@
       }
     },
     "Lume's playback engines build on these open-source projects. Each remains under its own license." : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DreamCAST TV's playback engines build on these open-source projects. Each remains under its own license."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -42006,6 +42193,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lumes Wiedergabe-Engines bauen auf diesen Open-Source-Projekten auf. Jedes unterliegt weiterhin seiner eigenen Lizenz."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DreamCAST TV's playback engines build on these open-source projects. Each remains under its own license."
           }
         },
         "es" : {
@@ -42872,6 +43065,9 @@
         }
       }
     },
+    "Match channels" : {
+
+    },
     "Match Content" : {
       "comment" : "AetherEngine options in Settings (tvOS).",
       "localizations" : {
@@ -43120,6 +43316,9 @@
           }
         }
       }
+    },
+    "Matchup" : {
+
     },
     "Max Connections" : {
       "localizations" : {
@@ -43995,6 +44194,9 @@
           }
         }
       }
+    },
+    "More matches from your IPTV guide" : {
+
     },
     "Motorsport" : {
       "localizations" : {
@@ -46362,6 +46564,9 @@
         }
       }
     },
+    "No broadcasters listed." : {
+
+    },
     "No categories match your search." : {
       "localizations" : {
         "ar" : {
@@ -47408,6 +47613,12 @@
         }
       }
     },
+    "No leagues" : {
+
+    },
+    "No leagues available for this sport yet. Try Refresh." : {
+
+    },
     "No Live Channels" : {
       "localizations" : {
         "ar" : {
@@ -47465,6 +47676,12 @@
           }
         }
       }
+    },
+    "No Matches" : {
+
+    },
+    "No matching network found. Check the guide matches below." : {
+
     },
     "No Movies" : {
       "localizations" : {
@@ -50036,6 +50253,9 @@
         }
       }
     },
+    "On a device that already uses Cloud Sync, open Settings ▸ Sync ▸ Add a Device and enter this code, or scan the QR code with that device’s camera." : {
+
+    },
     "On a device that already uses Lume Cloud, open Settings ▸ Sync ▸ Add a Device and enter this code, or scan the QR code with that device’s camera." : {
       "comment" : "Footer explaining how to finish joining Lume Cloud from another device. Lume Cloud is a product name; keep it in Latin script.",
       "localizations" : {
@@ -50395,6 +50615,9 @@
         }
       }
     },
+    "Only add devices you own. The new device can read everything you sync with Cloud Sync." : {
+
+    },
     "Only add devices you own. The new device can read everything you sync with Lume Cloud." : {
       "comment" : "Warning shown before confirming a new Lume Cloud device. Lume Cloud is a product name; keep it in Latin script.",
       "localizations" : {
@@ -50582,6 +50805,12 @@
           }
         }
       }
+    },
+    "Open %@ league page" : {
+
+    },
+    "Open current channel full screen" : {
+
     },
     "Open Detail" : {
       "localizations" : {
@@ -50814,6 +51043,9 @@
           }
         }
       }
+    },
+    "Open SportsZone full screen" : {
+
     },
     "Open trakt.tv/activate" : {
       "localizations" : {
@@ -51162,6 +51394,9 @@
           }
         }
       }
+    },
+    "Original Open-Source Project" : {
+
     },
     "Other device" : {
       "comment" : "Platform shown for a Lume Cloud device whose operating system Lume doesn't recognize.",
@@ -51582,6 +51817,9 @@
           }
         }
       }
+    },
+    "P" : {
+
     },
     "Pair" : {
       "comment" : "Recording server pairing sheet: confirm button that pairs with the server.",
@@ -53050,6 +53288,9 @@
         }
       }
     },
+    "PCT" : {
+
+    },
     "Penalties" : {
       "localizations" : {
         "ar" : {
@@ -54164,6 +54405,9 @@
           }
         }
       }
+    },
+    "Playback relies on open-source projects. Each remains under its own license." : {
+
     },
     "Player" : {
       "localizations" : {
@@ -58458,6 +58702,9 @@
         }
       }
     },
+    "Preview unavailable" : {
+
+    },
     "Previous Channel" : {
       "comment" : "The player's transport button that plays the previous live-TV channel in the list. A TV channel, not an episode of a series.",
       "localizations" : {
@@ -59157,6 +59404,9 @@
         }
       }
     },
+    "Pts" : {
+
+    },
     "PTS" : {
       "comment" : "Standings table column header: points (keep very short).",
       "localizations" : {
@@ -59746,14 +59996,12 @@
         }
       }
     },
+    "Rate DreamCAST TV" : {
+
+    },
     "Rate Lume" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rate DreamCAST TV"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -59764,6 +60012,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV bewerten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rate DreamCAST TV"
           }
         },
         "es" : {
@@ -60159,6 +60413,9 @@
           }
         }
       }
+    },
+    "Recent results" : {
+
     },
     "Recently Added" : {
       "localizations" : {
@@ -61664,6 +61921,9 @@
         }
       }
     },
+    "Refresh league" : {
+
+    },
     "Refresh Now" : {
       "localizations" : {
         "ar" : {
@@ -61779,6 +62039,9 @@
           }
         }
       }
+    },
+    "Refresh SportsZone" : {
+
     },
     "Refreshing…" : {
       "localizations" : {
@@ -62493,6 +62756,9 @@
         }
       }
     },
+    "Remove Key" : {
+
+    },
     "Remove Server" : {
       "comment" : "Recording Server settings: destructive button that forgets the paired server on every device, revoking its pairing on the server when it can be reached.",
       "localizations" : {
@@ -62978,6 +63244,9 @@
           }
         }
       }
+    },
+    "Report an Issue" : {
+
     },
     "Reports go to %@." : {
       "localizations" : {
@@ -63624,6 +63893,9 @@
         }
       }
     },
+    "Restore Settings from File" : {
+
+    },
     "Restore the default AetherEngine options?" : {
       "comment" : "AetherEngine options in Settings.",
       "localizations" : {
@@ -63749,12 +64021,6 @@
     },
     "Restore the default Lume Engine options?" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restore the default DreamCAST TV Engine options?"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -63765,6 +64031,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV Engine-Standardoptionen wiederherstellen?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore the default DreamCAST TV Engine options?"
           }
         },
         "es" : {
@@ -63984,6 +64256,9 @@
           }
         }
       }
+    },
+    "Result" : {
+
     },
     "Results" : {
       "localizations" : {
@@ -65163,6 +65438,9 @@
         }
       }
     },
+    "Save Key" : {
+
+    },
     "Save movies and episodes to watch offline, anywhere." : {
       "localizations" : {
         "ar" : {
@@ -65278,6 +65556,9 @@
           }
         }
       }
+    },
+    "Saves your app preferences to a JSON file in Files. Passwords, account keys, playlists, and watched history are not included. Importing a file changes saved settings, not your media library. Relaunch the app after restoring." : {
+
     },
     "Scan the code with your phone or visit %@." : {
       "comment" : "tvOS Recording Server settings: under the setup guide's QR code. %@ is the guide's web address.",
@@ -65397,6 +65678,7 @@
       }
     },
     "Scan the code with your phone to open our Discord." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -65887,6 +66169,9 @@
           }
         }
       }
+    },
+    "Score" : {
+
     },
     "Scores and schedules provided by ESPN" : {
       "localizations" : {
@@ -66825,6 +67110,9 @@
         }
       }
     },
+    "Searching IPTV channels…" : {
+
+    },
     "Searching…" : {
       "localizations" : {
         "ar" : {
@@ -67412,6 +67700,12 @@
           }
         }
       }
+    },
+    "Select All" : {
+
+    },
+    "Select None" : {
+
     },
     "Semi-Opaque" : {
       "localizations" : {
@@ -73831,6 +74125,12 @@
         }
       }
     },
+    "Showing first 5 matches" : {
+
+    },
+    "Shows" : {
+
+    },
     "Shows the playlist and what's on now." : {
       "comment" : "Description of the Simple stream-information detail level.",
       "localizations" : {
@@ -75560,6 +75860,7 @@
     },
     "Small and Large play the focused channel muted and use a provider connection while you browse. Info Only shows it without video; Off gives the Guide the full height." : {
       "comment" : "tvOS Settings › Live TV: footnote under the Guide Preview row, explaining its four choices (Small, Large, Info Only, Off).",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -75622,6 +75923,9 @@
           }
         }
       }
+    },
+    "Small or Large: video with audio. Info Only: channel details. Off: hide the preview. This choice is saved for the iPhone guide; the video preview still needs a mobile view." : {
+
     },
     "Smallest" : {
       "localizations" : {
@@ -76756,6 +77060,15 @@
         }
       }
     },
+    "SportsZone" : {
+
+    },
+    "SportsZone channel: %@" : {
+
+    },
+    "SportsZone section" : {
+
+    },
     "Spotlight" : {
       "localizations" : {
         "ar" : {
@@ -77768,6 +78081,9 @@
         }
       }
     },
+    "Stop SportsZone playback" : {
+
+    },
     "Stop this recording?" : {
       "comment" : "Confirmation title before stopping a running recording.",
       "localizations" : {
@@ -78321,12 +78637,6 @@
     },
     "Streams open in the selected app instead of Lume's player. Downloads always play in Lume, and the built-in player is used when the app is not installed or the stream is outside the selected content." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Streams open in the selected app instead of DreamCAST TV's player. Downloads always play in DreamCAST TV, and the built-in player is used when the app is not installed or the stream is outside the selected content."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -78337,6 +78647,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Streams werden statt in Lumes Player in der ausgewählten App geöffnet. Downloads laufen immer in DreamCAST TV, und der integrierte Player wird verwendet, wenn die App nicht installiert ist oder der Stream nicht zum ausgewählten Inhalt gehört."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streams open in the selected app instead of DreamCAST TV's player. Downloads always play in DreamCAST TV, and the built-in player is used when the app is not installed or the stream is outside the selected content."
           }
         },
         "es" : {
@@ -78383,14 +78699,12 @@
         }
       }
     },
+    "Streams open in the selected external app instead of DreamCAST TV's player, when it is installed. Some apps — Infuse among them — play movies and series but no live channels, so you can limit the hand-off to one or the other." : {
+
+    },
     "Streams open in the selected external app instead of Lume's player, when it is installed. Some apps — Infuse among them — play movies and series but no live channels, so you can limit the hand-off to one or the other." : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Streams open in the selected external app instead of DreamCAST TV's player, when it is installed. Some apps — Infuse among them — play movies and series but no live channels, so you can limit the hand-off to one or the other."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -78401,6 +78715,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Streams werden statt in Lumes Player in der ausgewählten externen App geöffnet, sofern sie installiert ist. Manche Apps – darunter Infuse – spielen Filme und Serien, aber keine Live-Sender ab; du kannst die Übergabe deshalb auf das eine oder andere beschränken."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streams open in the selected external app instead of DreamCAST TV's player, when it is installed. Some apps — Infuse among them — play movies and series but no live channels, so you can limit the hand-off to one or the other."
           }
         },
         "es" : {
@@ -82081,6 +82401,9 @@
         }
       }
     },
+    "Tap a followed sport to choose its leagues." : {
+
+    },
     "TBD" : {
       "localizations" : {
         "ar" : {
@@ -83933,6 +84256,9 @@
         }
       }
     },
+    "The Free API may show only the first five table rows." : {
+
+    },
     "The Movie Database (TMDB)" : {
       "localizations" : {
         "ar" : {
@@ -85449,12 +85775,6 @@
     },
     "The server returned a response Lume could not read." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The server returned a response DreamCAST TV could not read."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -85465,6 +85785,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Der Server hat eine Antwort gesendet, die DreamCAST TV nicht lesen konnte."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server returned a response DreamCAST TV could not read."
           }
         },
         "es" : {
@@ -86063,6 +86389,12 @@
           }
         }
       }
+    },
+    "These settings match Apple TV. The iPhone guide still uses its compact touch layout until its matching design options are wired in." : {
+
+    },
+    "TheSportsDB API" : {
+
     },
     "Third-down efficiency" : {
       "localizations" : {
@@ -88858,6 +89190,9 @@
         }
       }
     },
+    "To remove this device, leave Cloud Sync instead." : {
+
+    },
     "To remove this device, leave Lume Cloud instead." : {
       "comment" : "Error when trying to revoke the current device from the Lume Cloud device list. Lume Cloud is a product name; keep it in Latin script.",
       "localizations" : {
@@ -91124,14 +91459,12 @@
         }
       }
     },
+    "Unlock DreamCAST TV Pro" : {
+
+    },
     "Unlock Lume Pro" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlock DreamCAST TV Pro"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -91142,6 +91475,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DreamCAST TV Pro freischalten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlock DreamCAST TV Pro"
           }
         },
         "es" : {
@@ -92648,6 +92987,9 @@
         }
       }
     },
+    "Using the public Free API. Add a Premium key to unlock Premium access." : {
+
+    },
     "Version" : {
       "comment" : "Recording Server settings: label for the recording server's software version.",
       "localizations" : {
@@ -92951,6 +93293,9 @@
           }
         }
       }
+    },
+    "Videos open in your browser or YouTube. Some clips may be region restricted." : {
+
     },
     "View Report" : {
       "localizations" : {
@@ -93847,6 +94192,9 @@
           }
         }
       }
+    },
+    "Watch %@ highlights" : {
+
     },
     "Watch from Start" : {
       "comment" : "A button that restarts catch-up playback of a currently airing programme from its beginning, shown alongside \"Watch Live\".",
@@ -94789,13 +95137,8 @@
       }
     },
     "What Lume shows above its icon on the Apple TV Home Screen. A section appears only when it has something to show. When switched off, the Top Shelf shows the Lume artwork." : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "What DreamCAST TV shows above its icon on the Apple TV Home Screen. A section appears only when it has something to show. When switched off, the Top Shelf shows the DreamCAST TV artwork."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -94806,6 +95149,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Was DreamCAST TV über seinem Symbol auf dem Home-Bildschirm des Apple TV zeigt. Ein Bereich erscheint nur, wenn er etwas zu zeigen hat. Ist die Option aus, zeigt der Top Shelf das DreamCAST TV-Bild."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What DreamCAST TV shows above its icon on the Apple TV Home Screen. A section appears only when it has something to show. When switched off, the Top Shelf shows the DreamCAST TV artwork."
           }
         },
         "es" : {
@@ -95025,6 +95374,15 @@
           }
         }
       }
+    },
+    "Which leagues you follow" : {
+
+    },
+    "Which sports you follow" : {
+
+    },
+    "Which sports you follow, %lld selected" : {
+
     },
     "While watching a live channel, switch to the same channel in another quality, such as HD, FHD or 4K, when your playlist lists it more than once." : {
       "comment" : "Footer under the Show Quality Switch toggle. HD, FHD and 4K are quality tags and stay untranslated, like SD and UHD.",
