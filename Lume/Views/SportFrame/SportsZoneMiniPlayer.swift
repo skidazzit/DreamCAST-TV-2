@@ -374,9 +374,10 @@ struct TVPersistentMiniPlayer: View {
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .clipShape(RoundedRectangle(cornerRadius: 22))
+                .shadow(color: TVNeonTheme.electricBlue.opacity(0.36), radius: 12)
                 .overlay {
                     RoundedRectangle(cornerRadius: 22)
-                        .strokeBorder(Color.cyan.opacity(0.5), lineWidth: 1.5)
+                        .strokeBorder(TVNeonTheme.iceBlue.opacity(0.9), lineWidth: 2)
                         .allowsHitTesting(false)
                 }
             }
