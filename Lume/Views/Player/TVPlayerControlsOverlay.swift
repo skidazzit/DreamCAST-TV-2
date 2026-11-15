@@ -378,7 +378,7 @@
             action: @escaping () -> Void
         ) -> some View {
             Button(action: action) {
-                Text(Text(Image(systemName: systemImage)))
+                Text(Image(systemName: systemImage))
                     .font(.system(size: 24, weight: .semibold))
                     .frame(width: 30, height: 33)
             }
