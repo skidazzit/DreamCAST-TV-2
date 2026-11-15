@@ -43,9 +43,9 @@
         @ViewBuilder
         private var content: some View {
             if sharedPlayback?.miniMedia != nil {
-                // The app-root player covers this reserved frame. Do not
-                // create a second video stream or show a stale channel logo.
-                Color.black
+                // Reserve the exact guide hero frame and publish its position.
+                // The app-root decoder renders here, without a second player.
+                TVEmbeddedPlayerSlot()
             } else if let target, !isFailed, isAllowed, sharedPlayback == nil, let media = target.media {
                 ZStack {
                     Color.black
