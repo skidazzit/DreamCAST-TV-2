@@ -57,6 +57,7 @@
         /// TV lists do — a channel watched before its category was locked must
         /// not stay one tab away.
         @Environment(\.contentRestriction) var restriction
+        @Environment(SportsZonePlaybackSession.self) var sportsZonePlayback: SportsZonePlaybackSession?
 
         // Resolved SwiftData backing for the active stream.
         @State var episode: Episode?
@@ -70,6 +71,7 @@
         @State var epgNext: EPGListing?
         @State var seriesPlaylist: Playlist?
         @State var recentChannels: [LiveStream] = []
+        @State var sportsZoneChannels: [LiveStream] = []
         @State var recentNowTitles: [String: String] = [:]
         /// Programme-level context for the caption (the owning playlist),
         /// resolved once per stream off the main actor and held as a value.
@@ -89,7 +91,7 @@
         /// Decays `scrubStepLevel` back to zero after a pause in input.
         @State var scrubResetTask: Task<Void, Never>?
 
-        enum TabKind: Hashable { case episodes, recent, info }
+        enum TabKind: Hashable { case episodes, sportsZone, recent, info }
         @State var openTab: TabKind?
         @FocusState var focus: TVPlayerFocus?
 
@@ -178,6 +180,16 @@
                     currentEpisodeID: episode?.id,
                     focus: $focus,
                     onSelect: select(episode:),
+                    onClose: closePanel
+                )
+                .transition(.opacity)
+            case .sportsZone:
+                TVPlayerRecentChannelsPanel(
+                    channels: sportsZoneChannels,
+                    currentChannelID: liveStream?.id,
+                    nowTitles: [:],
+                    focus: $focus,
+                    onSelect: selectSportsZoneChannel,
                     onClose: closePanel
                 )
                 .transition(.opacity)
@@ -272,10 +284,11 @@
             if isSeries {
                 return [.episodes, .info]
             }
-            // The recents rail only earns a tab once there's somewhere to switch
-            // to — i.e. a channel beyond the one playing now.
-            if media.isLive, recentChannels.count > 1 {
-                return [.recent, .info]
+            if media.isLive {
+                var tabs: [TabKind] = []
+                if !sportsZoneChannels.isEmpty { tabs.append(.sportsZone) }
+                if recentChannels.count > 1 { tabs.append(.recent) }
+                return tabs + [.info]
             }
             return [.info]
         }
@@ -293,6 +306,7 @@
         private func tabTitle(_ kind: TabKind) -> LocalizedStringKey {
             switch kind {
             case .episodes: "Episodes"
+            case .sportsZone: "Match Channels"
             case .recent: "Recent"
             case .info: "Info"
             }
