@@ -325,58 +325,60 @@ struct TVPersistentMiniPlayer: View {
 
     var body: some View {
         if let media = session.miniMedia {
-            // Match the 16:9 guide hero at the upper-right of every tvOS page.
-            // The player has no floating card, external toolbar or bottom rail.
-            ZStack(alignment: .bottom) {
-                videoSurface(for: media)
-                    .frame(width: 640, height: 360)
+            // The host supplies the size of each page's *real* hero slot.
+            // Only the frame changes between tabs, never this player's identity.
+            GeometryReader { geometry in
+                ZStack(alignment: .bottom) {
+                    videoSurface(for: media)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
 
-                LinearGradient(
-                    colors: [.clear, .black.opacity(0.75)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 98)
-                .allowsHitTesting(false)
-
-                HStack(spacing: 16) {
-                    Text("LIVE")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(Color.red.opacity(0.88), in: Capsule())
-
-                    Text(media.title)
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Button {
-                        session.openFullScreen()
-                    } label: {
-                        Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    }
-                    .accessibilityLabel("Open live channel full screen")
-
-                    Button {
-                        session.close()
-                    } label: {
-                        Image(systemName: "stop.fill")
-                    }
-                    .accessibilityLabel("Stop live channel")
-                }
-                .buttonStyle(.bordered)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 14)
-            }
-            .frame(width: 640, height: 360)
-            .clipShape(RoundedRectangle(cornerRadius: 28))
-            .overlay {
-                RoundedRectangle(cornerRadius: 28)
-                    .strokeBorder(Color.cyan.opacity(0.62), lineWidth: 2)
+                    LinearGradient(
+                        colors: [.clear, .black.opacity(0.75)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 82)
                     .allowsHitTesting(false)
+
+                    HStack(spacing: 12) {
+                        Text("LIVE")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 5)
+                            .background(Color.red.opacity(0.88), in: Capsule())
+
+                        Text(media.title)
+                            .font(.system(size: 19, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Button {
+                            session.openFullScreen()
+                        } label: {
+                            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                        }
+                        .accessibilityLabel("Open live channel full screen")
+
+                        Button {
+                            session.close()
+                        } label: {
+                            Image(systemName: "stop.fill")
+                        }
+                        .accessibilityLabel("Stop live channel")
+                    }
+                    .buttonStyle(.bordered)
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 10)
+                }
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .clipShape(RoundedRectangle(cornerRadius: 22))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 22)
+                        .strokeBorder(Color.cyan.opacity(0.5), lineWidth: 1.5)
+                        .allowsHitTesting(false)
+                }
             }
             .focusSection()
             .accessibilityElement(children: .contain)
