@@ -219,6 +219,7 @@ struct SportFrameHome: View {
             sportsPlayback.returnedFromFullScreen()
         }) { media in
             FullScreenPlayerView(media: media, adopting: sportsPlayback.handle)
+                .environment(sportsPlayback)
         }
         .task { await catalog.refresh() }
         .task(id: "\(dayOffset)|\(followedValue)|\(SportsDBAccess.apiKey)|\(page)|\(scenePhase == .active)") {
@@ -656,13 +657,14 @@ struct SportFrameHome: View {
     /// Live TV and SportsZone both resolve channels through PlayableMedia.
     /// Wait for the match sheet's real dismissal rather than a fixed timer:
     /// presenting during dismissal can start the same stream twice.
-    private func queueChannelPlayback(_ channel: ResolvedChannel) {
+    private func queueChannelPlayback(_ channel: ResolvedChannel, matches: [ResolvedChannel]) {
         guard pendingMedia == nil,
               let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
         if ExternalPlayback.open(media) {
             selectedEvent = nil
             return
         }
+        sportsPlayback.rememberMatches(matches, selected: channel)
         pendingMedia = media
         selectedEvent = nil
     }
@@ -858,7 +860,7 @@ nonisolated private enum SportsZoneBroadcasterSearch {
 /// Broadcaster-first lookup from DreamCAST, with Lume's indexed EPG search below it.
 struct SportFrameMatchSheet: View {
     let event: SportEvent
-    let onPlay: (ResolvedChannel) -> Void
+    let onPlay: (ResolvedChannel, [ResolvedChannel]) -> Void
     @Environment(\.modelContext) private var modelContext
     @Environment(\.contentRestriction) private var restriction
     @Environment(\.dismiss) private var dismiss
@@ -988,7 +990,7 @@ struct SportFrameMatchSheet: View {
     }
 
     private func channelRow(_ channel: ResolvedChannel) -> some View {
-        Button { onPlay(channel) } label: {
+        Button { onPlay(channel, broadcasterMatches + epgMatches) } label: {
             HStack {
                 AsyncImage(url: channel.stream.streamIcon.flatMap(URL.init(string:))) { image in image.resizable().scaledToFit() }
                     placeholder: { Image(systemName: "play.tv") }.frame(width: 60, height: 40)
