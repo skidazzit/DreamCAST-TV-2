@@ -554,7 +554,7 @@ struct SportFrameHome: View {
 
             Group {
                 if activePlayback.miniMedia != nil {
-                    TVEmbeddedPlayerSlot(width: 580, height: 326)
+                    TVEmbeddedPlayerSlot(width: 580, height: 326 + TVPersistentMiniPlayer.controlsHeight)
                 } else {
                     VStack(spacing: 15) {
                         Image(systemName: "play.tv")
