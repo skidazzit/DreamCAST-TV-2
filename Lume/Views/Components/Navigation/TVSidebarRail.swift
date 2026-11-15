@@ -103,6 +103,9 @@
                     .padding(.bottom, 60)
                 }
                 .scrollIndicators(.visible)
+                // The ScrollView itself must not paint tvOS's white focus
+                // rectangle behind the custom neon selected channel row.
+                .focusEffectDisabled()
                 // tvOS scroll views draw outside their bounds (for focus
                 // effects), so a long list would run out of the panel's
                 // bottom; it scrolls inside the glass instead.
@@ -254,6 +257,9 @@
                 .foregroundStyle(textColor(isFocused: isItemFocused, isSelected: isSelected))
                 .frame(maxWidth: .infinity, minHeight: 60, alignment: .leading)
                 .padding(.horizontal, rowInset)
+                .contentShape(rowShape)
+                // Disable focus plating at the label as well as its Button.
+                .focusEffectDisabled()
                 .background {
                     rowShape.fill(
                         isItemFocused ? TVNeonTheme.selection :
@@ -270,6 +276,7 @@
             .buttonStyle(.plain)
             .focusEffectDisabled()
             .focused($focused, equals: item.id)
+            .focusEffectDisabled()
             .animation(.easeOut(duration: 0.18), value: isItemFocused)
         }
 
