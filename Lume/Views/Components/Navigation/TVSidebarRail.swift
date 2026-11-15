@@ -170,6 +170,14 @@
             .overlay(panelShape.strokeBorder(TVNeonTheme.iceBlue.opacity(0.36), lineWidth: 1))
             .shadow(color: .black.opacity(0.42), radius: 20, y: 10)
             .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { panelFrame = $0 }
+            .onExitCommand {
+                // A sidebar's Back always advances to the top app menu.
+                // Routing through the root also preserves its exit prompt.
+                NotificationCenter.default.post(
+                    name: .dreamCASTReturnToTopMenu,
+                    object: nil
+                )
+            }
             .onChange(of: itemIDs) { _, ids in
                 // The focused row went away under focus (an entry turned off
                 // or unpaired): hand focus to the selection rather than
