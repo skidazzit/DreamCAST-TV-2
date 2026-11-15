@@ -19,11 +19,14 @@ final class SportsZonePlaybackSession {
     /// The exact channel list shown in the last SportsZone match picker.
     var matchedChannels: [ResolvedChannel] = []
     var failedMediaID: String?
+    /// An explicit Stop must not be undone by a tab's autoplay restore.
+    var userStopped = false
     var reloadToken = 0
     // Prevent repeated dismissal callbacks from restarting a live stream.
     private var isAwaitingFullScreenDismissal = false
 
     func tune(_ media: PlayableMedia, previewMode: GuidePreviewMode = .small) {
+        userStopped = false
         guard miniMedia?.id != media.id else {
             // Off has no mini-player control to reopen the same channel.
             if previewMode == .off { openFullScreen() }
@@ -112,6 +115,7 @@ final class SportsZonePlaybackSession {
 
     func close() {
         guard fullScreenMedia == nil else { return }
+        userStopped = true
         handle.stopPreview()
         miniMedia = nil
         failedMediaID = nil
