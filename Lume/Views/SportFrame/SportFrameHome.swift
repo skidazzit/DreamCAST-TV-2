@@ -68,6 +68,11 @@ struct SportFrameHome: View {
     @AppStorage("sportFrameLeagueSelectionsV2") private var leagueValue = "{}"
     @State private var page = 0
     @State private var dayOffset = 0
+    @State private var hubWindow: SportsHubWindow = .now
+
+    private enum SportsHubWindow: Hashable {
+        case now, upcoming, yesterday
+    }
     @State private var selectedSport = "All Sports"
     @State private var selectedLeague = "All Leagues"
     @State private var expandedLeagueSport: String?
@@ -91,6 +96,7 @@ struct SportFrameHome: View {
 
     private enum FocusControl: Hashable {
         case tab(Int)
+        case hubWindow(SportsHubWindow)
         case date
         case refresh
         case sport(String)
@@ -190,17 +196,24 @@ struct SportFrameHome: View {
                         onBack: { self.openedLeague = nil },
                         scores: fixtures
                     )
+                } else if page == 0 {
+                    // The mockup's stable two-column SportsZone hub. The
+                    // player is owned by MainTabView and embedded in its hero.
+                    sportsHubPage
                 } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 26) {
                             header
-                            switch page {
-                            case 1: settingsPage
-                            default: matchesPage
+                            if activePlayback.miniMedia != nil {
+                                HStack {
+                                    Spacer()
+                                    TVEmbeddedPlayerSlot(width: 560, height: 315)
+                                }
                             }
+                            settingsPage
                         }
                         .padding(.horizontal, 55)
-                        .padding(.vertical, 36)
+                        .padding(.vertical, 28)
                     }
                 }
             }
@@ -247,8 +260,7 @@ struct SportFrameHome: View {
             }
         }
         .onChange(of: page) { _, newPage in
-            // Keep the new tab focused until the viewer presses Down.
-            focusedControl = .tab(newPage)
+            focusedControl = newPage == 0 ? .hubWindow(hubWindow) : .tab(newPage)
         }
         .onExitCommand {
             NotificationCenter.default.post(name: .dreamCASTReturnToTopMenu, object: nil)
