@@ -372,7 +372,11 @@ struct SettingsView: View {
         /// that opened it, and from a pane's top level returns to the rail.
         private func handleDetailMenu() {
             guard let opener = closeInnermostDrillIn() else {
-                railFocusRequest += 1
+                // A top-level pane returns directly to the app's tab bar.
+                NotificationCenter.default.post(
+                    name: .dreamCASTReturnToTopMenu,
+                    object: nil
+                )
                 return
             }
             // Deferred: the row only exists again a render later, and a
