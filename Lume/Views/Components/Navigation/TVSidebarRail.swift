@@ -10,6 +10,25 @@
 #if os(tvOS)
     import SwiftUI
 
+    /// Keep an SF Symbol inside Text to avoid tvOS button label image zoom.
+    /// All action buttons should focus as a whole without enlarging the icon.
+    struct TVFixedButtonLabel: View {
+        let title: LocalizedStringKey
+        let systemName: String
+        var iconSize: CGFloat = 22
+
+        var body: some View {
+            HStack(spacing: 10) {
+                Text(Image(systemName: systemName))
+                    .font(.system(size: iconSize, weight: .semibold))
+                    .frame(width: iconSize + 5, height: iconSize + 7)
+                    .accessibilityHidden(true)
+                Text(title)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
     /// Fixed-size artwork is drawn outside focused Button labels.
     /// tvOS otherwise lifts and enlarges an AsyncImage when its parent takes focus.
     struct TVFixedFocusIcon: View {
