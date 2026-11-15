@@ -30,6 +30,10 @@ struct MainTabView: View {
     /// Selected tab and the Movies/Series navigation stacks, shared so an
     /// `onOpenURL` deep link can switch tabs and push a detail screen.
     @State private var router = DeepLinkRouter()
+    #if os(tvOS)
+    /// This session belongs to the app root, not a tab. No tab switch unmounts it.
+    @State private var sharedLivePlayback = SportsZonePlaybackSession()
+    #endif
 
     /// The stream a `lume://resume` or `lume://play/...` (widget, Top Shelf)
     /// deep link asked to open. Presented directly here — the link can arrive
@@ -108,7 +112,7 @@ struct MainTabView: View {
         @Bindable var autoSyncQueue = autoSyncQueue
         let scope = catalogScope
         let tabs = visibleTabs(in: scope)
-        return tabView(selection: $router.selectedTab, tabs: tabs)
+        return persistentTabHost(selection: $router.selectedTab, tabs: tabs)
         #if os(tvOS)
             .disabled(blockingOverlayOwnsScreen || router.isQuickSwitchPresented)
             // Attached OUTSIDE `.disabled` so the same button closes the modal it
@@ -206,6 +210,41 @@ struct MainTabView: View {
             .reportsBrowseRootCovered(hasBlockingPresentation)
         #if os(tvOS)
             .overlay { tvOverlays }
+        #endif
+    }
+
+    /// Keep the single live decoder outside tvOS's active-only tab content.
+    @ViewBuilder
+    private func persistentTabHost(selection: Binding<AppTab>, tabs: Set<PlaylistTab>) -> some View {
+        #if os(tvOS)
+            ZStack(alignment: .bottomTrailing) {
+                tabView(selection: selection, tabs: tabs)
+                if sharedLivePlayback.miniMedia != nil {
+                    TVPersistentMiniPlayer(session: sharedLivePlayback)
+                        .padding(.trailing, 28)
+                        .padding(.bottom, 30)
+                        .zIndex(1)
+                }
+            }
+            .environment(sharedLivePlayback)
+            .guidePreviewSuspension(
+                sharedLivePlayback.guidePreview,
+                playingMedia: Binding(
+                    get: { sharedLivePlayback.fullScreenMedia },
+                    set: { sharedLivePlayback.fullScreenMedia = $0 }
+                )
+            )
+            .fullScreenCover(item: Binding(
+                get: { sharedLivePlayback.fullScreenMedia },
+                set: { sharedLivePlayback.fullScreenMedia = $0 }
+            ), onDismiss: {
+                sharedLivePlayback.returnedFromFullScreen()
+            }) { media in
+                FullScreenPlayerView(media: media, adopting: sharedLivePlayback.handle)
+                    .environment(sharedLivePlayback)
+            }
+        #else
+            tabView(selection: selection, tabs: tabs)
         #endif
     }
 
