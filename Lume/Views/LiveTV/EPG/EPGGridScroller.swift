@@ -309,7 +309,12 @@ struct EPGGridScroller: View {
             .frame(maxHeight: .infinity)
             .focused($surfaceClaimsFocus)
             .onExitCommand {
-                handleMenu()
+                // Back from the guide's virtual focus jumps straight to the
+                // app menu; the shared menu handles a second Back press.
+                NotificationCenter.default.post(
+                    name: .dreamCASTReturnToTopMenu,
+                    object: nil
+                )
             }
             // The channel actions a long press offers everywhere else through a
             // `contextMenu`. The guide has no focusable channel cell to hang one
