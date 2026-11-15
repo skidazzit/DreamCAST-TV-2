@@ -572,7 +572,12 @@ struct MainTabView: View {
                 // Keep each tab's content in the same VStack when playback
                 // starts or stops; only the header enters or leaves.
                 VStack(spacing: 0) {
-                    if let media = sharedLivePlayback.miniMedia, tab != .liveTV || usesLiveList {
+                    // SportsZone has its own featured-game header with a
+                    // measured video slot. Never stack the generic page hero
+                    // above it; that duplicates the player and clips fixtures.
+                    if let media = sharedLivePlayback.miniMedia,
+                       tab != .sports,
+                       (tab != .liveTV || usesLiveList) {
                         TVEmbeddedPageHeader(tab: tab, media: media)
                     }
                     content()
