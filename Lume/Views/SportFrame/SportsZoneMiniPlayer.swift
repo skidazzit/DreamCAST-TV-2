@@ -381,23 +381,31 @@ struct TVPersistentMiniPlayer: View {
                         Button {
                             session.openFullScreen()
                         } label: {
-                            TVFixedButtonLabel(title: "Full Screen", systemName: "arrow.up.left.and.arrow.down.right")
-                                .font(.system(size: 18, weight: .semibold))
+                            miniPlayerActionLabel(
+                                "Full Screen",
+                                symbol: "arrow.up.left.and.arrow.down.right",
+                                focused: focusedAction == .fullScreen
+                            )
                         }
+                        .buttonStyle(.borderless)
+                        .focusEffectDisabled()
                         .accessibilityLabel("Open live channel full screen")
                         .focused($focusedAction, equals: .fullScreen)
 
                         Button {
                             session.close()
                         } label: {
-                            TVFixedButtonLabel(title: "Stop", systemName: "stop.fill")
-                                .font(.system(size: 18, weight: .semibold))
+                            miniPlayerActionLabel(
+                                "Stop",
+                                symbol: "stop.fill",
+                                focused: focusedAction == .stop
+                            )
                         }
+                        .buttonStyle(.borderless)
+                        .focusEffectDisabled()
                         .accessibilityLabel("Stop live channel")
                         .focused($focusedAction, equals: .stop)
                     }
-                    .buttonStyle(.borderless)
-                    .focusEffectDisabled()
                     .padding(.horizontal, 13)
                     .frame(width: geometry.size.width, height: Self.controlsHeight)
                     .background(TVNeonTheme.glass)
@@ -410,7 +418,12 @@ struct TVPersistentMiniPlayer: View {
             .onChange(of: backFocus?.playerFocusRequest) { _, _ in
                 // Keep the video running. Only the footer's first button
                 // receives focus, without activating Full Screen.
-                Task { @MainActor in focusedAction = .fullScreen }
+                Task { @MainActor in
+                    // Let the current content's Menu event finish before
+                    // asking the focus engine to move into this overlay.
+                    await Task.yield()
+                    focusedAction = .fullScreen
+                }
             }
             .onChange(of: focusedAction) { _, next in
                 if next != nil {
@@ -427,6 +440,36 @@ struct TVPersistentMiniPlayer: View {
             }
             .accessibilityElement(children: .contain)
         }
+    }
+
+    /// A visible focused state is required when tvOS's white focus plate is
+    /// disabled. Keep a fixed-size symbol and highlight the full button only.
+    private func miniPlayerActionLabel(
+        _ title: LocalizedStringKey,
+        symbol: String,
+        focused: Bool
+    ) -> some View {
+        TVFixedButtonLabel(title: title, systemName: symbol, iconSize: 20)
+            .font(.system(size: 18, weight: .semibold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 16)
+            .frame(height: 48)
+            .background {
+                RoundedRectangle(cornerRadius: 13)
+                    .fill(focused ? TVNeonTheme.selection : TVNeonTheme.glass)
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 13)
+                    .strokeBorder(
+                        focused ? TVNeonTheme.iceBlue : .white.opacity(0.14),
+                        lineWidth: focused ? 2.5 : 1
+                    )
+            }
+            .shadow(
+                color: focused ? TVNeonTheme.electricBlue.opacity(0.65) : .clear,
+                radius: focused ? 10 : 0
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 13))
     }
 
     /// Mounted once in MainTabView; moving among tabs never recreates this tile.
