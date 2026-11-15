@@ -10,6 +10,33 @@
 #if os(tvOS)
     import SwiftUI
 
+    /// Fixed-size artwork is drawn outside focused Button labels.
+    /// tvOS otherwise lifts and enlarges an AsyncImage when its parent takes focus.
+    struct TVFixedFocusIcon: View {
+        let url: URL?
+        let systemName: String
+        let size: CGFloat
+
+        var body: some View {
+            AsyncImage(url: url) { phase in
+                if let image = phase.image {
+                    image
+                        .resizable()
+                        .scaledToFit()
+                } else {
+                    Text(Image(systemName: systemName))
+                        .font(.system(size: size * 0.66, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.75))
+                }
+            }
+            .frame(width: size, height: size)
+            .clipped()
+            .focusEffectDisabled()
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
+    }
+
     /// One row of a `TVSidebarRail`.
     struct TVSidebarRailItem: Identifiable {
         let id: String
@@ -244,20 +271,10 @@
                 // The reference uses leading monochrome symbols on each
                 // category, aligned with the label and without a focus plate.
                 HStack(spacing: 16) {
-                    if let badgeURL = item.badgeURL {
-                        AsyncImage(url: badgeURL) { phase in
-                            if let image = phase.image {
-                                image.resizable().scaledToFit()
-                            } else {
-                                Text(Image(systemName: item.icon ?? "sportscourt"))
-                                    .font(.system(size: iconSize, weight: .semibold))
-                                    .foregroundStyle(.white.opacity(0.8))
-                            }
-                        }
-                        .frame(width: 32, height: 32)
-                        .focusEffectDisabled()
-                    } else if let icon = item.icon {
-                        railIcon(icon, accessibilityLabel: item.iconAccessibilityLabel)
+                    if item.icon != nil || item.badgeURL != nil {
+                        // Keep icon space inside the button, but draw the
+                        // actual art in an overlay AFTER the focusable button.
+                        Color.clear.frame(width: 32, height: 32)
                     }
                     item.title
                         .font(.system(
@@ -292,24 +309,18 @@
             .buttonStyle(.borderless)
             .focusEffectDisabled()
             .focused($focused, equals: item.id)
-            .animation(.easeOut(duration: 0.18), value: isItemFocused)
-        }
-
-        @ViewBuilder
-        private func railIcon(_ icon: String, accessibilityLabel: Text?) -> some View {
-            // Just like the main menu, wrap SF Symbols in Text so tvOS does
-            // not enlarge the icon when the borderless row receives focus.
-            let symbol = Text(Image(systemName: icon))
-                .font(.system(size: iconSize, weight: .semibold))
-                .frame(width: iconSize + 4, height: iconSize + 6)
-                .accessibilityHidden(accessibilityLabel == nil)
-
-            if let accessibilityLabel {
-                symbol.accessibilityHidden(false)
-                    .accessibilityLabel(accessibilityLabel)
-            } else {
-                symbol
+            .overlay(alignment: .leading) {
+                if item.badgeURL != nil || item.icon != nil {
+                    TVFixedFocusIcon(
+                        url: item.badgeURL,
+                        systemName: item.icon ?? "sportscourt",
+                        size: 32
+                    )
+                    .padding(.leading, rowInset)
+                    .allowsHitTesting(false)
+                }
             }
+            .animation(.easeOut(duration: 0.18), value: isItemFocused)
         }
 
         private func textColor(isFocused: Bool, isSelected: Bool) -> Color {
