@@ -18,6 +18,10 @@ import SwiftUI
 /// The defaults leave the preview off, as every other platform has it.
 struct EPGGuidePreviewInputs {
     var media: (LiveStream) -> PlayableMedia? = { _ in nil }
+    /// Only remote Select explicitly tunes. Browsing focus never invokes this.
+    var onTune: (LiveStream) -> Void = { _ in }
+    /// Restore one guide channel only when the app-root player is still empty.
+    var onAutoTune: (LiveStream) -> Void = { _ in }
     /// The playlists the guide shows: the one selected, or every Combined
     /// member contributing Live TV. Their content sync or guide refresh pauses
     /// the preview, and whether any records decides the hint's wording.
