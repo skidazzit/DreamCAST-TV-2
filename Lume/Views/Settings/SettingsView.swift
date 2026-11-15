@@ -304,6 +304,9 @@ struct SettingsView: View {
                         .onExitCommand(perform: handleDetailMenu)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .onExitCommand {
+                    NotificationCenter.default.post(name: .dreamCASTReturnToTopMenu, object: nil)
+                }
                 .overlay(alignment: .top) { tvTabBarEntryCatcher }
                 .background {
                     TVAmbientBackground(hero: nil)
