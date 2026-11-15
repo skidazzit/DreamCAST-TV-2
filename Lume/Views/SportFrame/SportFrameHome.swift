@@ -252,6 +252,9 @@ struct SportFrameHome: View {
             // Keep the new tab focused until the viewer presses Down.
             focusedControl = .tab(newPage)
         }
+        .onExitCommand {
+            NotificationCenter.default.post(name: .dreamCASTReturnToTopMenu, object: nil)
+        }
         // tvOS handles directional moves through the focus sections below.
         // No programmatic Up/Down moves compete with the system focus engine.
     }
