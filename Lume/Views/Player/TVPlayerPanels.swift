@@ -284,6 +284,7 @@
     struct TVPlayerSportsZoneChannelsPanel: View {
         let channels: [ResolvedChannel]
         let currentChannelID: String?
+        var failedChannelID: String? = nil
         var focus: FocusState<TVPlayerFocus?>.Binding
         let onSelect: (ResolvedChannel) -> Void
         let onClose: () -> Void
@@ -292,7 +293,11 @@
             ScrollView(.horizontal) {
                 LazyHStack(alignment: .top, spacing: 30) {
                     ForEach(channels) { channel in
-                        Button { onSelect(channel) } label: {
+                        Button {
+                            // Focus alone never changes the stream.
+                            guard focus.wrappedValue == .channel(channel.id) else { return }
+                            onSelect(channel)
+                        } label: {
                             VStack(alignment: .leading, spacing: 10) {
                                 ZStack(alignment: .topLeading) {
                                     CachedAsyncImage(
@@ -314,8 +319,8 @@
                                     .background(Color.white.opacity(0.08))
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
 
-                                    if channel.id == currentChannelID {
-                                        Text("NOW PLAYING")
+                                    if channel.id == failedChannelID || channel.id == currentChannelID {
+                                        Text(channel.id == failedChannelID ? "RETRY CHANNEL" : "NOW PLAYING")
                                             .font(.system(size: 14, weight: .bold))
                                             .foregroundStyle(.black)
                                             .padding(.horizontal, 8)
@@ -333,6 +338,7 @@
                         }
                         .buttonStyle(TVCardButtonStyle(focusScale: 1.06))
                         .focused(focus, equals: .channel(channel.id))
+                        .accessibilityLabel("Play \(channel.stream.name)")
                     }
                 }
                 .padding(.vertical, 18)
