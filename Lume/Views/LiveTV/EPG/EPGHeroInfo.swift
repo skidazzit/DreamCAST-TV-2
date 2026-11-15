@@ -54,7 +54,7 @@
                 }
                 .font(.system(size: isCompact ? 32 : 40, weight: .bold))
                 .tracking(-0.4)
-                .lineLimit(1)
+                .lineLimit(isCompact ? 1 : 2)
                 .truncationMode(.tail)
                 .padding(.top, isCompact ? 14 : 20)
 
@@ -100,7 +100,7 @@
                 EPGProgressBar(
                     progress: programme.progress(at: now),
                     track: .white.opacity(0.18),
-                    fill: LiveTVPalette.accent,
+                    fill: TVNeonTheme.iceBlue,
                     height: 6
                 )
                 .frame(width: 360)
