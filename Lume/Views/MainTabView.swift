@@ -241,15 +241,17 @@ struct MainTabView: View {
     @ViewBuilder
     private func persistentTabHost(selection: Binding<AppTab>, tabs: Set<PlaylistTab>) -> some View {
         #if os(tvOS)
-            // Reserve a real section within every page instead of covering its
-            // content with a floating player. The one playback view stays mounted
-            // here when `activeOnly` swaps the six tab bodies.
-            VStack(spacing: 0) {
+            // Keep a single decoder mounted at app-root. Its fixed video slot
+            // lines up with the Live TV guide's existing upper-right hero.
+            // Other tabs reserve that space so the player is part of the page,
+            // rather than a popover covering posters or settings controls.
+            ZStack(alignment: .topTrailing) {
                 tabView(selection: selection, tabs: tabs)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 if sharedLivePlayback.miniMedia != nil {
                     TVPersistentMiniPlayer(session: sharedLivePlayback)
-                        .frame(maxWidth: .infinity)
+                        .padding(.top, 142)
+                        .padding(.trailing, 88)
                 }
             }
             .environment(sharedLivePlayback)
@@ -396,7 +398,18 @@ struct MainTabView: View {
         @ViewBuilder
         private func activeOnly(_ tab: AppTab, selection: AppTab, @ViewBuilder content: () -> some View) -> some View {
             if selection == tab {
-                content()
+                if sharedLivePlayback.miniMedia != nil && tab != .liveTV {
+                    // A real, unfocusable space under the root-level video.
+                    // The tab can scroll normally below the embedded player.
+                    content()
+                        .safeAreaInset(edge: .top, spacing: 0) {
+                            Color.clear
+                                .frame(height: 382)
+                                .accessibilityHidden(true)
+                        }
+                } else {
+                    content()
+                }
             } else {
                 Color.clear
             }
