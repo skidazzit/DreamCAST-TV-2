@@ -21,6 +21,7 @@
 
         private let metrics = EPGMetrics.current
         @Environment(\.epgHeroLayout) private var layout
+        @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
 
         private var shape: RoundedRectangle {
             RoundedRectangle(cornerRadius: metrics.previewVideoCornerRadius, style: .continuous)
@@ -41,7 +42,7 @@
 
         @ViewBuilder
         private var content: some View {
-            if let target, !isFailed, isAllowed, let media = target.media {
+            if let target, !isFailed, isAllowed, sharedPlayback == nil, let media = target.media {
                 ZStack {
                     Color.black
                     MultiViewTilePlayer(
