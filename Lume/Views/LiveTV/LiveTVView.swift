@@ -221,6 +221,7 @@ struct LiveTVView: View {
             // Restore the last permitted channel only when no stream is live.
             guard layoutMode == .list,
                   let sharedPlayback, sharedPlayback.miniMedia == nil,
+                  !sharedPlayback.userStopped,
                   let lastID = LiveChannelHistory.currentChannelId(),
                   let stream = PlayerContentLookup.liveStream(lastID, in: modelContext),
                   !stream.isHidden,
@@ -439,7 +440,7 @@ struct LiveTVView: View {
     /// explicit Select may retune a stream that is already playing.
     private func tuneSharedPreview(_ stream: LiveStream, onlyIfEmpty: Bool) {
         guard let sharedPlayback,
-              !onlyIfEmpty || sharedPlayback.miniMedia == nil,
+              !onlyIfEmpty || (sharedPlayback.miniMedia == nil && !sharedPlayback.userStopped),
               let media = PlayableMedia.from(
                   stream: stream, ownedByOneOf: playlists,
                   surfScope: LiveSurfScope(catalogScope)
