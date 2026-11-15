@@ -33,6 +33,7 @@ struct MainTabView: View {
     #if os(tvOS)
     /// This session belongs to the app root, not a tab. No tab switch unmounts it.
     @State private var sharedLivePlayback = SportsZonePlaybackSession()
+    @State private var ambientTheme = TVAmbientThemeSession()
     @State private var livePlayerSlotFrame: CGRect?
     @FocusState private var focusedTVTab: AppTab?
     @State private var lastTopMenuBackPress: Date?
@@ -292,6 +293,7 @@ struct MainTabView: View {
                     }
                 }
             .environment(sharedLivePlayback)
+            .environment(ambientTheme)
             .guidePreviewSuspension(
                 sharedLivePlayback.guidePreview,
                 playingMedia: Binding(
@@ -397,8 +399,10 @@ struct MainTabView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // Exactly one backdrop behind the app chrome and active tab.
+            // It follows Live TV's settled channel tint across tab switches.
             .background {
-                TVAmbientBackground(hero: nil)
+                TVAmbientBackground(hero: ambientTheme.liveHero)
                     .ignoresSafeArea()
             }
         }
@@ -563,10 +567,6 @@ struct MainTabView: View {
                     }
                     content()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-                .background {
-                    TVAmbientBackground(hero: nil)
-                        .ignoresSafeArea()
                 }
             } else {
                 Color.clear
@@ -891,9 +891,6 @@ private struct TVEmbeddedPageHeader: View {
         .padding(.top, compact ? 8 : 20)
         .padding(.bottom, compact ? 10 : 28)
         .frame(maxWidth: .infinity)
-        .background {
-            TVAmbientBackground(hero: nil)
-        }
     }
 }
 #endif
