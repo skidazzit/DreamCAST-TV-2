@@ -214,13 +214,13 @@ struct SportsZoneMiniPlayer: View {
                 Button {
                     session.openFullScreen()
                 } label: {
-                    Label("Full Screen", systemImage: "arrow.up.left.and.arrow.down.right")
+                    TVFixedButtonLabel(title: "Full Screen", systemName: "arrow.up.left.and.arrow.down.right")
                 }
                 .buttonStyle(.borderedProminent)
                 Button {
                     session.close()
                 } label: {
-                    Label("Stop", systemImage: "stop.fill")
+                    TVFixedButtonLabel(title: "Stop", systemName: "stop.fill")
                 }
                 .buttonStyle(.bordered)
             }
@@ -375,7 +375,7 @@ struct TVPersistentMiniPlayer: View {
                         Button {
                             session.openFullScreen()
                         } label: {
-                            Label("Full Screen", systemImage: "arrow.up.left.and.arrow.down.right")
+                            TVFixedButtonLabel(title: "Full Screen", systemName: "arrow.up.left.and.arrow.down.right")
                                 .font(.system(size: 18, weight: .semibold))
                         }
                         .accessibilityLabel("Open live channel full screen")
@@ -383,7 +383,7 @@ struct TVPersistentMiniPlayer: View {
                         Button {
                             session.close()
                         } label: {
-                            Label("Stop", systemImage: "stop.fill")
+                            TVFixedButtonLabel(title: "Stop", systemName: "stop.fill")
                                 .font(.system(size: 18, weight: .semibold))
                         }
                         .accessibilityLabel("Stop live channel")
