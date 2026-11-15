@@ -231,7 +231,7 @@ struct SearchView: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.cyan)
                 Text(searchText.isEmpty ? "Search channels, movies, series..." : searchText)
-                    .foregroundStyle(searchText.isEmpty ? .white.opacity(0.6) : .white)
+                    .foregroundStyle(searchText.isEmpty ? Color.white.opacity(0.6) : Color.white)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if !searchText.isEmpty {
@@ -286,7 +286,7 @@ struct SearchView: View {
                         .frame(height: 43)
                 }
                 .buttonStyle(.bordered)
-                .accessibilityLabel(key == "DELETE" ? "Delete last character" : key)
+                .accessibilityLabel(Text(key == "DELETE" ? "Delete last character" : key))
             }
         }
     }
