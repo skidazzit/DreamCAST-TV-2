@@ -111,15 +111,9 @@
             }
             .frame(width: Self.width, alignment: .leading)
             .frame(maxHeight: .infinity, alignment: .top)
-            .background(panelShape.fill(
-                LinearGradient(
-                    colors: [Color(red: 0.055, green: 0.105, blue: 0.19),
-                             Color(red: 0.035, green: 0.055, blue: 0.12)],
-                    startPoint: .topLeading, endPoint: .bottomTrailing
-                )
-            ))
-            .glassEffectCompat(.regular, in: panelShape)
-            .overlay(panelShape.strokeBorder(Color.cyan.opacity(0.25), lineWidth: 1))
+            .background(panelShape.fill(TVNeonTheme.glass))
+            .overlay(panelShape.strokeBorder(TVNeonTheme.iceBlue.opacity(0.36), lineWidth: 1))
+            .shadow(color: .black.opacity(0.42), radius: 20, y: 10)
             .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { panelFrame = $0 }
             .onChange(of: itemIDs) { _, ids in
                 // The focused row went away under focus (an entry turned off
@@ -242,12 +236,12 @@
                 || (handOffPending && isSelected && focused != nil)
             let rowShape = RoundedRectangle(cornerRadius: 18, style: .continuous)
             return Button(action: item.action) {
-                // Labels start flush at the row's edge; an icon trails, so
-                // every label lines up whether or not its row has one.
+                // The reference uses leading monochrome symbols on each
+                // category, aligned with the label and without a focus plate.
                 HStack(spacing: 16) {
-                    // One line at one size: long provider category names
-                    // truncate rather than wrap, so every row keeps the same
-                    // height.
+                    if let icon = item.icon {
+                        railIcon(icon, accessibilityLabel: item.iconAccessibilityLabel)
+                    }
                     item.title
                         .font(.system(
                             size: 22,
@@ -256,20 +250,25 @@
                         .lineLimit(1)
                         .truncationMode(.tail)
                     Spacer(minLength: 0)
-                    if let icon = item.icon {
-                        railIcon(icon, accessibilityLabel: item.iconAccessibilityLabel)
-                    }
                 }
                 .foregroundStyle(textColor(isFocused: isItemFocused, isSelected: isSelected))
                 .frame(maxWidth: .infinity, minHeight: 60, alignment: .leading)
                 .padding(.horizontal, rowInset)
-                .background(rowShape.fill(rowFill(isFocused: isItemFocused, isSelected: isSelected)))
+                .background {
+                    rowShape.fill(
+                        isItemFocused ? TVNeonTheme.selection :
+                            LinearGradient(colors: [rowFill(isFocused: false, isSelected: isSelected),
+                                                    rowFill(isFocused: false, isSelected: isSelected)],
+                                           startPoint: .top, endPoint: .bottom)
+                    )
+                }
                 .overlay(rowShape.strokeBorder(rowBorder(isFocused: isItemFocused, isSelected: isSelected),
-                                               lineWidth: isItemFocused ? 2 : 1))
-                .shadow(color: isItemFocused ? Color.cyan.opacity(0.18) : .clear,
+                                               lineWidth: isItemFocused ? 2.4 : 1))
+                .shadow(color: isItemFocused ? TVNeonTheme.electricBlue.opacity(0.7) : .clear,
                         radius: isItemFocused ? 14 : 0)
             }
-            .buttonStyle(TVCardButtonStyle(focusScale: 1.03, suppressFocusEffects: suppressed))
+            .buttonStyle(.plain)
+            .focusEffectDisabled()
             .focused($focused, equals: item.id)
             .animation(.easeOut(duration: 0.18), value: isItemFocused)
         }
@@ -298,8 +297,8 @@
         }
 
         private func rowBorder(isFocused: Bool, isSelected: Bool) -> Color {
-            if isFocused { return .cyan }
-            return isSelected ? .cyan.opacity(0.42) : .clear
+            if isFocused { return TVNeonTheme.iceBlue }
+            return isSelected ? TVNeonTheme.electricBlue.opacity(0.55) : .clear
         }
     }
 #endif
