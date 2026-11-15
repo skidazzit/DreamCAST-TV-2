@@ -577,6 +577,9 @@ struct EPGGridScroller: View {
             preview.controller?.preferredStreamID = row.id
             previewTarget = EPGPreviewTarget(row: row, rowIndex: rowIndex, media: preview.media(row.stream))
             preview.hero?.settleGlow(onLogo: row.logoURL)
+            #if os(tvOS)
+            preview.onTune(row.stream)
+            #endif
             if let media = preview.media(row.stream) {
                 LiveChannelHistory.record(media)
             }
