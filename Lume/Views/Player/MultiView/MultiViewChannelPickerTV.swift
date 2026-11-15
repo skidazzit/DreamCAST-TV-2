@@ -202,8 +202,9 @@
             } label: {
                 HStack(spacing: 12) {
                     if let icon = section.icon {
-                        Image(systemName: icon)
+                        Text(Image(systemName: icon))
                             .font(.system(size: 20, weight: .semibold))
+                            .frame(width: 27, height: 29)
                     }
                     Text(section.title)
                         .lineLimit(1)
@@ -383,19 +384,24 @@
             var body: some View {
                 configuration.label
                     .font(.system(size: 24, weight: .semibold))
-                    .foregroundStyle(isFocused ? .black : .white)
+                    .foregroundStyle(.white)
                     .opacity(isEnabled ? 1 : 0.45)
                     .padding(.horizontal, 18)
                     .padding(.vertical, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(fill, in: .rect(cornerRadius: 14))
-                    .scaleEffect(configuration.isPressed ? 0.99 : (isFocused ? 1.02 : 1.0))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 14)
+                            .strokeBorder(isFocused ? TVNeonTheme.iceBlue : .clear,
+                                          lineWidth: isFocused ? 2 : 0)
+                    }
+                    .focusEffectDisabled()
                     .animation(.easeOut(duration: 0.16), value: isFocused)
             }
 
             private var fill: AnyShapeStyle {
-                if isFocused { return AnyShapeStyle(.white) }
-                if isSelected { return AnyShapeStyle(.white.opacity(0.16)) }
+                if isFocused { return AnyShapeStyle(TVNeonTheme.selection) }
+                if isSelected { return AnyShapeStyle(TVNeonTheme.electricBlue.opacity(0.28)) }
                 return AnyShapeStyle(.clear)
             }
         }
