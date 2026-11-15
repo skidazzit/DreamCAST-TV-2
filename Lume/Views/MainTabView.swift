@@ -386,6 +386,8 @@ struct MainTabView: View {
                         Capsule().strokeBorder(TVNeonTheme.iceBlue.opacity(0.34), lineWidth: 1)
                     }
                     .shadow(color: TVNeonTheme.electricBlue.opacity(0.12), radius: 14)
+                    // Prevent the tvOS system focus plate over the custom bar.
+                    .focusEffectDisabled()
                     .focusSection()
 
                     Spacer(minLength: 0)
@@ -502,6 +504,8 @@ struct MainTabView: View {
                 .foregroundStyle(.white)
                 .padding(.horizontal, tab == .search || tab == .settings ? 17 : 22)
                 .frame(height: 55)
+                .contentShape(Capsule())
+                .focusEffectDisabled()
                 .background {
                     if selected || focused {
                         Capsule().fill(TVNeonTheme.selection)
