@@ -27,6 +27,9 @@ struct SeriesView: View {
     @State private var showingSync = false
     @State private var showingSettings = false
     @State private var genres: [String] = []
+    #if os(tvOS)
+    @State private var selectedBrowseRail = "all"
+    #endif
 
     @AppStorage(SortStorageKey.seriesCategories) private var categorySortRaw: String = CategorySortOption.playlist.rawValue
     @AppStorage(SortStorageKey.seriesContent) private var contentSortRaw: String = ContentSortOption.playlist.rawValue
@@ -67,32 +70,19 @@ struct SeriesView: View {
                         )
                     }
                 } else {
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 24, pinnedViews: []) {
-                            SeriesCollectionRow(kind: .recentlyWatched, scope: scope, animationNamespace: animationNamespace)
-                            SeriesCollectionRow(kind: .favorites, scope: scope, animationNamespace: animationNamespace)
-                            SeriesCollectionRow(kind: .recentlyAdded, scope: scope, animationNamespace: animationNamespace)
-
-                            ForEach(layout.previews) { category in
-                                SeriesCategoryPreview(category: category, limit: previewLimit, sort: contentSort, animationNamespace: animationNamespace)
-                                    .id("\(category.id)-\(contentSort.rawValue)")
-                            }
-
-                            if !genres.isEmpty {
-                                GenreGridSection(genres: genres, type: .series)
-                            }
-
-                            ForEach(layout.remaining) { group in
-                                CategoryGridSection(group: group)
-                                    .padding(.top, 12)
-                            }
-                        }
-                        .padding(.vertical)
+                    #if os(tvOS)
+                    HStack(alignment: .top, spacing: TVSidebarRail.paneSpacing) {
+                        TVSidebarRail(
+                            items: browseRailItems(for: layout),
+                            selectedID: selectedBrowseRail
+                        )
+                        browseContent(for: layout)
+                            .frame(maxWidth: .infinity)
                     }
-                    .browseActivity()
-                    .task(id: scope.token) {
-                        genres = await GenreDerivation.seriesGenres(in: modelContext.container, scope: scope, restriction: restriction)
-                    }
+                    .padding(.horizontal, 35)
+                    #else
+                    browseContent(for: layout)
+                    #endif
                 }
             }
             .platformNavigationTitle("Series")
@@ -122,6 +112,77 @@ struct SeriesView: View {
             }
         }
     }
+
+    /// The existing category and collection rails, now beside a tvOS sidebar.
+    private func browseContent(for layout: LibraryCategoryLayout) -> some View {
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 24, pinnedViews: []) {
+                            SeriesCollectionRow(kind: .recentlyWatched, scope: scope, animationNamespace: animationNamespace)
+                            SeriesCollectionRow(kind: .favorites, scope: scope, animationNamespace: animationNamespace)
+                            SeriesCollectionRow(kind: .recentlyAdded, scope: scope, animationNamespace: animationNamespace)
+
+                            ForEach(layout.previews) { category in
+                                SeriesCategoryPreview(category: category, limit: previewLimit, sort: contentSort, animationNamespace: animationNamespace)
+                                    .id("\(category.id)-\(contentSort.rawValue)")
+                            }
+
+                            if !genres.isEmpty {
+                                GenreGridSection(genres: genres, type: .series)
+                            }
+
+                            ForEach(layout.remaining) { group in
+                                CategoryGridSection(group: group)
+                                    .padding(.top, 12)
+                            }
+                        }
+                        .padding(.vertical)
+                    }
+                    .browseActivity()
+                    .task(id: scope.token) {
+                        genres = await GenreDerivation.seriesGenres(in: modelContext.container, scope: scope, restriction: restriction)
+                    }
+    }
+
+    #if os(tvOS)
+    /// Every rail action opens the existing collection or category destination.
+    /// Moving focus alone never changes the selected category.
+    private func browseRailItems(for layout: LibraryCategoryLayout) -> [TVSidebarRailItem] {
+        var items: [TVSidebarRailItem] = [
+            TVSidebarRailItem(
+                id: "all", title: Text("All Series"), icon: "play.tv",
+                action: {
+                    selectedBrowseRail = "all"
+                    navigationPath.wrappedValue = NavigationPath()
+                }
+            )
+        ]
+
+        for kind in [LibraryCollection.Kind.recentlyWatched, .favorites, .recentlyAdded] {
+            let rowID = "collection-\(kind.rawValue)"
+            items.append(TVSidebarRailItem(
+                id: rowID, title: Text(kind.title), icon: kind.emptyIcon,
+                action: {
+                    selectedBrowseRail = rowID
+                    navigationPath.wrappedValue.append(
+                        LibraryCollection(kind: kind, type: .series)
+                    )
+                }
+            ))
+        }
+
+        let visibleCategories = layout.previews + layout.remaining.flatMap { $0.categories }
+        for category in visibleCategories.prefix(14) {
+            items.append(TVSidebarRailItem(
+                id: category.id, title: Text(category.name),
+                action: {
+                    selectedBrowseRail = category.id
+                    navigationPath.wrappedValue.append(category)
+                }
+            ))
+        }
+        return items
+    }
+    #endif
 
     /// Drives the stack from the shared `DeepLinkRouter` so an `onOpenURL` push
     /// lands here; falls back to a local path in previews where no router exists.
