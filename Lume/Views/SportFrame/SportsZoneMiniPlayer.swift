@@ -325,67 +325,85 @@ struct TVPersistentMiniPlayer: View {
 
     var body: some View {
         if let media = session.miniMedia {
-            VStack(alignment: .leading, spacing: 12) {
-                ZStack {
-                    Color.black
-                    if !canShowVideo {
-                        Color.black
-                    } else if session.failedMediaID == media.id {
-                        Label("Stream unavailable", systemImage: "exclamationmark.triangle")
-                            .font(.headline)
+            VStack(spacing: 0) {
+                // This is a section of the page, not a floating overlay.
+                Divider()
+                    .overlay(Color.white.opacity(0.18))
+
+                HStack(alignment: .center, spacing: 30) {
+                    videoSurface(for: media)
+                        .frame(width: 292, height: 164)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                    VStack(alignment: .leading, spacing: 9) {
+                        Text("NOW PLAYING")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.white.opacity(0.65))
+
+                        Text(media.title)
+                            .font(.system(size: 27, weight: .semibold))
                             .foregroundStyle(.white)
-                    } else {
-                        MultiViewTilePlayer(
-                            media: media,
-                            isMuted: false,
-                            role: .guidePreview(handle: session.handle),
-                            onFailure: {
-                                guard session.miniMedia?.id == media.id,
-                                      session.fullScreenMedia == nil,
-                                      session.handle.owner == .preview,
-                                      canShowVideo else { return }
-                                session.failedMediaID = media.id
-                            }
-                        )
-                        .id(tileID(media))
+                            .lineLimit(2)
+
+                        Text("Live channel continues while you browse")
+                            .font(.system(size: 18))
+                            .foregroundStyle(.white.opacity(0.6))
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    HStack(spacing: 16) {
+                        Button {
+                            session.openFullScreen()
+                        } label: {
+                            Label("Full Screen", systemImage: "arrow.up.left.and.arrow.down.right")
+                        }
+                        .accessibilityLabel("Open live channel full screen")
+
+                        Button {
+                            session.close()
+                        } label: {
+                            Label("Stop", systemImage: "stop.fill")
+                        }
+                        .accessibilityLabel("Stop live channel")
+                    }
+                    .buttonStyle(.bordered)
                 }
-                .frame(width: 352, height: 198)
-                .clipShape(RoundedRectangle(cornerRadius: 13))
-
-                HStack(spacing: 10) {
-                    Text(media.title)
-                        .font(.system(size: 19, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Button {
-                        session.openFullScreen()
-                    } label: {
-                        Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    }
-                    .accessibilityLabel("Open live channel full screen")
-
-                    Button {
-                        session.close()
-                    } label: {
-                        Image(systemName: "stop.fill")
-                    }
-                    .accessibilityLabel("Stop live channel")
-                }
-                .buttonStyle(.bordered)
+                .padding(.horizontal, 70)
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(14)
-            .frame(width: 380)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
-            .overlay {
-                RoundedRectangle(cornerRadius: 20)
-                    .strokeBorder(.white.opacity(0.18), lineWidth: 1)
-            }
-            .shadow(color: .black.opacity(0.5), radius: 16, y: 7)
+            .background(Color(red: 0.045, green: 0.06, blue: 0.09))
             .focusSection()
             .accessibilityElement(children: .contain)
+        }
+    }
+
+    /// Mounted once in MainTabView; moving among tabs never recreates this tile.
+    @ViewBuilder
+    private func videoSurface(for media: PlayableMedia) -> some View {
+        ZStack {
+            Color.black
+            if !canShowVideo {
+                Color.black
+            } else if session.failedMediaID == media.id {
+                Label("Stream unavailable", systemImage: "exclamationmark.triangle")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+            } else {
+                MultiViewTilePlayer(
+                    media: media,
+                    isMuted: false,
+                    role: .guidePreview(handle: session.handle),
+                    onFailure: {
+                        guard session.miniMedia?.id == media.id,
+                              session.fullScreenMedia == nil,
+                              session.handle.owner == .preview,
+                              canShowVideo else { return }
+                        session.failedMediaID = media.id
+                    }
+                )
+                .id(tileID(media))
+            }
         }
     }
 }
