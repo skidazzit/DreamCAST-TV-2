@@ -153,7 +153,10 @@
                 }
             }
             .frame(height: layout.height)
-            .padding(.bottom, layout.bottomPadding)
+            // The video remains its original 16:9 size; a separate footer
+            // reserves room for buttons beneath it, above the guide rows.
+            .padding(.bottom, layout.bottomPadding +
+                     (sharedPlayback?.miniMedia != nil ? TVPersistentMiniPlayer.controlsHeight : 0))
             .focusable(false)
             .accessibilityHidden(true)
             .onChange(of: holdsPlayback, initial: true) { _, holds in
