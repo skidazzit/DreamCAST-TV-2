@@ -35,6 +35,8 @@ struct MainTabView: View {
     @State private var sharedLivePlayback = SportsZonePlaybackSession()
     @State private var livePlayerSlotFrame: CGRect?
     @FocusState private var focusedTVTab: AppTab?
+    @State private var lastTopMenuBackPress: Date?
+    @State private var showingExitConfirmation = false
     @AppStorage(LiveTVLayoutMode.storageKey) private var tvLiveLayoutRaw = LiveTVLayoutMode.defaultMode.rawValue
     private var usesLiveList: Bool { LiveTVLayoutMode(storedValue: tvLiveLayoutRaw) == .list }
     #endif
@@ -119,6 +121,24 @@ struct MainTabView: View {
         return persistentTabHost(selection: $router.selectedTab, tabs: tabs)
         #if os(tvOS)
             .disabled(blockingOverlayOwnsScreen || router.isQuickSwitchPresented)
+            .onExitCommand {
+                handleTVBack()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .dreamCASTReturnToTopMenu)) { _ in
+                focusTopTVMenu()
+            }
+            .alert("Exit DreamCAST TV?", isPresented: $showingExitConfirmation) {
+                Button("No", role: .cancel) {
+                    lastTopMenuBackPress = nil
+                }
+                Button("Yes", role: .destructive) {
+                    sharedLivePlayback.close()
+                    // Only explicitly confirmed exits terminate the tvOS process.
+                    exit(0)
+                }
+            } message: {
+                Text("Close DreamCAST TV and return to Apple TV Home?")
+            }
             // Attached OUTSIDE `.disabled` so the same button closes the modal it
             // opened, and above the tabs but below every player: the engines are
             // presented as `fullScreenCover`s from inside a tab, so their own
@@ -369,7 +389,38 @@ struct MainTabView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(red: 0.014, green: 0.024, blue: 0.052))
+            .background {
+                TVAmbientBackground(hero: nil)
+                    .ignoresSafeArea()
+            }
+        }
+
+        private func focusTopTVMenu() {
+            lastTopMenuBackPress = nil
+            // Child controls have already consumed Back. Give the focus
+            // engine a view update before requesting the top destination.
+            Task { @MainActor in
+                focusedTVTab = router.selectedTab
+            }
+        }
+
+        private func handleTVBack() {
+            // One Back from any root page moves focus to the app menu.
+            guard focusedTVTab != nil else {
+                focusTopTVMenu()
+                return
+            }
+
+            // Back twice within 0.85s while already on the main menu
+            // prompts for confirmation instead of leaving unexpectedly.
+            let now = Date()
+            if let previous = lastTopMenuBackPress,
+               now.timeIntervalSince(previous) <= 0.85 {
+                lastTopMenuBackPress = nil
+                showingExitConfirmation = true
+            } else {
+                lastTopMenuBackPress = now
+            }
         }
 
         @ViewBuilder
@@ -432,6 +483,7 @@ struct MainTabView: View {
             }
             .buttonStyle(.plain)
             .focused($focusedTVTab, equals: tab)
+            .onExitCommand { handleTVBack() }
             .accessibilityLabel(title)
         }
 
@@ -477,6 +529,10 @@ struct MainTabView: View {
                     }
                     content()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .background {
+                    TVAmbientBackground(hero: nil)
+                        .ignoresSafeArea()
                 }
             } else {
                 Color.clear
@@ -706,6 +762,11 @@ private extension View {
 }
 
 #if os(tvOS)
+extension Notification.Name {
+    static let dreamCASTReturnToTopMenu =
+        Notification.Name("dreamcast.tv.returnToTopMenu")
+}
+
 /// The guide and other tabs publish their real layout bounds. This is only
 /// an anchor, not a player; the app-root surface is mounted once above TabView.
 struct TVEmbeddedPlayerSlot: View {
@@ -796,15 +857,9 @@ private struct TVEmbeddedPageHeader: View {
         .padding(.top, compact ? 8 : 20)
         .padding(.bottom, compact ? 10 : 28)
         .frame(maxWidth: .infinity)
-        .background(
-            LinearGradient(
-                colors: [
-                    Color(red: 0.025, green: 0.075, blue: 0.17),
-                    Color(red: 0.035, green: 0.04, blue: 0.105)
-                ],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
-        )
+        .background {
+            TVAmbientBackground(hero: nil)
+        }
     }
 }
 #endif
