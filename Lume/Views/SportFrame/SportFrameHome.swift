@@ -543,7 +543,12 @@ struct SportFrameHome: View {
                             Button(league) { selectedLeague = league }
                         }
                     } label: {
-                        Label(selectedLeague, systemImage: "chevron.down")
+                        HStack(spacing: 10) {
+                            Text(Image(systemName: "chevron.down"))
+                                .font(.system(size: 18, weight: .semibold))
+                                .frame(width: 23, height: 26)
+                            Text(selectedLeague)
+                        }
                             .lineLimit(1)
                     }
                     .buttonStyle(SportsZonePillStyle())
@@ -594,7 +599,7 @@ struct SportFrameHome: View {
             Button {
                 Task { await refresh() }
             } label: {
-                Label("Refresh", systemImage: "arrow.clockwise")
+                TVFixedButtonLabel(title: "Refresh", systemName: "arrow.clockwise")
                     .font(.system(size: 19, weight: .semibold))
             }
             .buttonStyle(.borderless)
@@ -753,7 +758,11 @@ struct SportFrameHome: View {
                     .frame(width: 650)
                     .focused($focusedControl, equals: .date)
                 }
-                Button { Task { await refresh() } } label: { Image(systemName: "arrow.clockwise") }
+                Button { Task { await refresh() } } label: {
+                    Text(Image(systemName: "arrow.clockwise"))
+                        .font(.system(size: 24, weight: .semibold))
+                        .frame(width: 32, height: 34)
+                }
                     .accessibilityLabel("Refresh sports")
                     .buttonStyle(SportsZonePillStyle())
                     .focused($focusedControl, equals: .refresh)
@@ -896,7 +905,7 @@ struct SportFrameHome: View {
                     Spacer()
                     Text("\(followedSports.count) selected")
                         .font(.title3).foregroundStyle(.secondary)
-                    Image(systemName: sportsFollowExpanded ? "chevron.up" : "chevron.down")
+                    Text(Image(systemName: sportsFollowExpanded ? "chevron.up" : "chevron.down"))
                         .font(.title2)
                 }
                 .padding(15)
@@ -924,7 +933,12 @@ struct SportFrameHome: View {
                             if selected { saved.remove(sport) } else { saved.insert(sport) }
                             followedValue = sportOrder.filter { saved.contains($0) }.joined(separator: "|")
                         } label: {
-                            Label(sport, systemImage: selected ? "checkmark.circle.fill" : "circle")
+                            HStack(spacing: 9) {
+                                Text(Image(systemName: selected ? "checkmark.circle.fill" : "circle"))
+                                    .font(.system(size: 20))
+                                    .frame(width: 26, height: 27)
+                                Text(sport)
+                            }
                                 .frame(maxWidth: .infinity, alignment: .leading).padding(8)
                         }
                         .buttonStyle(SportsZonePillStyle())
@@ -951,7 +965,7 @@ struct SportFrameHome: View {
                             let selectedCount = selectedLeagueNames(for: sport, available: leagues).count
                             Text(leagues.isEmpty ? "No leagues found" : "\(selectedCount) of \(leagues.count) leagues")
                                 .foregroundStyle(.secondary)
-                            Image(systemName: expandedLeagueSport == sport ? "chevron.up" : "chevron.down")
+                            Text(Image(systemName: expandedLeagueSport == sport ? "chevron.up" : "chevron.down"))
                         }
                         .padding(14)
                     }
