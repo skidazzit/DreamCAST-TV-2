@@ -227,7 +227,6 @@ struct SearchView: View {
             }
             #if os(tvOS)
             .listStyle(.plain)
-            .scrollContentBackground(.hidden)
             #else
             .searchField(text: $searchText)
             #endif
