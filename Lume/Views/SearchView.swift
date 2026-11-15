@@ -67,7 +67,76 @@ struct SearchView: View {
         let scope = catalogScope
         let searched = searchedScope
         NavigationStack {
+            Group {
+                #if os(tvOS)
+                HStack(alignment: .top, spacing: TVSidebarRail.paneSpacing) {
+                    TVSidebarRail(
+                        items: ContentFilter.allCases.map { filter in
+                            TVSidebarRailItem(
+                                id: filter.id, title: Text(filter.label),
+                                icon: searchFilterSymbol(filter),
+                                action: { selectedFilter = filter }
+                            )
+                        },
+                        selectedID: selectedFilter.id
+                    )
+                    resultList
+                        .frame(maxWidth: .infinity)
+                }
+                .padding(.horizontal, 35)
+                #else
+                resultList
+                #endif
+            }
+            .navigationDestination(for: Movie.self) { movie in
+                MovieDetailView(movie: movie, animationNamespace: animationNamespace)
+                #if os(iOS)
+                    .navigationTransition(.zoom(sourceID: movie.id, in: animationNamespace))
+                #endif
+            }
+            .navigationDestination(for: Series.self) { series in
+                SeriesDetailView(series: series, animationNamespace: animationNamespace)
+                #if os(iOS)
+                    .navigationTransition(.zoom(sourceID: series.id, in: animationNamespace))
+                #endif
+            }
+            .task(id: searchText) {
+                // Debounce raw keystrokes. .task(id:) cancels the in-flight task
+                // (including this sleep) the instant searchText changes, so the
+                // fetch below only fires once typing actually pauses.
+                let trimmed = trimmedQuery
+                guard !trimmed.isEmpty else {
+                    debouncedSearchText = ""
+                    return
+                }
+                try? await Task.sleep(for: Self.debounce)
+                guard !Task.isCancelled else { return }
+                debouncedSearchText = trimmed
+            }
+            .task(id: SearchKey(
+                text: debouncedSearchText,
+                filter: selectedFilter,
+                allPlaylists: searchAllPlaylists,
+                scopeToken: scope.token
+            )) {
+                // Re-run whenever the settled query or the filter changes.
+                // Filter changes are instant (no debounce on the segmented control).
+                await updateResults()
+            }
+        }
+        #if os(iOS) || os(tvOS)
+        .fullScreenCover(item: $playingMedia) { media in
+            FullScreenPlayerView(media: media)
+        }
+        #endif
+        .recordActionFlow(observesWhileVisible: false)
+    }
+
+    /// Search results and keyboard stay attached to the same List on tvOS,
+    /// while the new filter sidebar changes the query without moving focus.
+    private var resultList: some View {
             List {
+                #if !os(tvOS)
                 if showsFilter {
                     Picker("Filter", selection: $selectedFilter) {
                         ForEach(ContentFilter.allCases) { filter in
@@ -78,6 +147,7 @@ struct SearchView: View {
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
                 }
+                #endif
 
                 if trimmedQuery.isEmpty {
                     ContentUnavailableView(
@@ -135,49 +205,18 @@ struct SearchView: View {
                 }
             }
             .searchField(text: $searchText)
-            .navigationDestination(for: Movie.self) { movie in
-                MovieDetailView(movie: movie, animationNamespace: animationNamespace)
-                #if os(iOS)
-                    .navigationTransition(.zoom(sourceID: movie.id, in: animationNamespace))
-                #endif
-            }
-            .navigationDestination(for: Series.self) { series in
-                SeriesDetailView(series: series, animationNamespace: animationNamespace)
-                #if os(iOS)
-                    .navigationTransition(.zoom(sourceID: series.id, in: animationNamespace))
-                #endif
-            }
-            .task(id: searchText) {
-                // Debounce raw keystrokes. .task(id:) cancels the in-flight task
-                // (including this sleep) the instant searchText changes, so the
-                // fetch below only fires once typing actually pauses.
-                let trimmed = trimmedQuery
-                guard !trimmed.isEmpty else {
-                    debouncedSearchText = ""
-                    return
-                }
-                try? await Task.sleep(for: Self.debounce)
-                guard !Task.isCancelled else { return }
-                debouncedSearchText = trimmed
-            }
-            .task(id: SearchKey(
-                text: debouncedSearchText,
-                filter: selectedFilter,
-                allPlaylists: searchAllPlaylists,
-                scopeToken: scope.token
-            )) {
-                // Re-run whenever the settled query or the filter changes.
-                // Filter changes are instant (no debounce on the segmented control).
-                await updateResults()
-            }
-        }
-        #if os(iOS) || os(tvOS)
-        .fullScreenCover(item: $playingMedia) { media in
-            FullScreenPlayerView(media: media)
-        }
-        #endif
-        .recordActionFlow(observesWhileVisible: false)
     }
+
+    #if os(tvOS)
+    private func searchFilterSymbol(_ filter: ContentFilter) -> String {
+        switch filter {
+        case .all: "square.grid.2x2"
+        case .liveTV: "tv"
+        case .movies: "film"
+        case .series: "play.tv"
+        }
+    }
+    #endif
 
     // MARK: - Playback
 
