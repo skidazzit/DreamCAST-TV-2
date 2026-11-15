@@ -219,6 +219,15 @@
                     }
                     .buttonStyle(TVBrowserRowStyle(isSelected: isCurrent))
                     .focused($focus, equals: .channel(channel.id))
+                    .overlay(alignment: .leading) {
+                        TVFixedFocusIcon(
+                            url: URL(string: channel.streamIcon ?? ""),
+                            systemName: "tv", size: 50
+                        )
+                        .frame(width: 84, height: 56)
+                        .padding(.leading, 18)
+                        .allowsHitTesting(false)
+                    }
                     .id(FocusTarget.channel(channel.id))
                 }
             }
@@ -226,18 +235,9 @@
 
         private func channelLabel(_ channel: LiveStream, isCurrent: Bool) -> some View {
             HStack(spacing: 16) {
-                CachedAsyncImage(url: URL(string: channel.streamIcon ?? ""), maxPixelSize: 120) { phase in
-                    switch phase {
-                    case let .success(image):
-                        image.resizable().aspectRatio(contentMode: .fit).padding(6)
-                    default:
-                        Image(systemName: "tv")
-                            .font(.system(size: 20))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .frame(width: 84, height: 56)
-                .background(.white.opacity(0.08), in: .rect(cornerRadius: 10))
+                Color.clear
+                    .frame(width: 84, height: 56)
+                    .background(.white.opacity(0.08), in: .rect(cornerRadius: 10))
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(channel.name)
@@ -260,7 +260,7 @@
                 }
 
                 if isCurrent {
-                    Image(systemName: "play.fill")
+                    Text(Image(systemName: "play.fill"))
                         .font(.system(size: 18, weight: .semibold))
                 }
             }
