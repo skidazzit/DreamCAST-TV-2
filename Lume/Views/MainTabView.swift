@@ -399,6 +399,13 @@ struct MainTabView: View {
                     // Prevent the tvOS system focus plate over the custom bar.
                     .focusEffectDisabled()
                     .focusSection()
+                    .onChange(of: focusedTVTab) { _, newValue in
+                        if newValue != nil {
+                            backFocus.markFocused(.topMenu)
+                        } else if backFocus.zone == .topMenu {
+                            backFocus.markFocused(.content)
+                        }
+                    }
 
                     Spacer(minLength: 0)
                 }
@@ -555,13 +562,6 @@ struct MainTabView: View {
             .buttonStyle(.borderless)
             .focusEffectDisabled()
             .focused($focusedTVTab, equals: tab)
-            .onChange(of: focusedTVTab) { _, newValue in
-                if newValue != nil {
-                    backFocus.markFocused(.topMenu)
-                } else if backFocus.zone == .topMenu {
-                    backFocus.markFocused(.content)
-                }
-            }
             .onExitCommand { handleTVBack() }
             .accessibilityLabel(title)
         }
