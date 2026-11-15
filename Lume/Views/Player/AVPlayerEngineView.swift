@@ -163,7 +163,11 @@ struct AVPlayerEngineView: View {
                 PlayerErrorIndicator(
                     title: media.title,
                     onRetry: { retryPlayback() },
-                    onClose: { closePlayer() }
+                    onClose: { closePlayer() },
+
+                    failedMedia: media,
+
+                    onSelectMedia: onSelectMedia
                 )
                 .transition(.opacity)
             }
