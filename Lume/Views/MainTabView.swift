@@ -178,6 +178,17 @@ struct MainTabView: View {
                 // joining Combined, or Pro unlocking it, counts as a switch too.
                 let deferred = playlistSwitch?.consumeDeferredDueSync() == true
                 enqueueDueSyncs(deferred ? [] : playlists.members(of: catalogScope))
+                #if os(tvOS)
+                    // A new library must not keep playing the previous library's
+                    // live stream or expose its channel across profiles.
+                    sharedLivePlayback.close()
+                #endif
+            }
+            .onChange(of: profileManager?.activeProfileIsChild) { _, _ in
+                #if os(tvOS)
+                    // Child and adult profiles may allow different channels.
+                    sharedLivePlayback.close()
+                #endif
             }
             .onChange(of: scenePhase) { _, phase in
                 // Returning to the foreground re-checks staleness — for a long-lived
