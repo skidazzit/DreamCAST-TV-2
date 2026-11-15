@@ -144,7 +144,7 @@ struct FullScreenPlayerView: View {
     @State var adoption: PreviewAdoption?
     #if os(tvOS)
     /// Only injected when launched from SportsZone, never for normal Live TV.
-    @Environment(SportsZonePlaybackSession.self) private var sportsZonePlayback: SportsZonePlaybackSession?
+    @Environment(SportsZonePlaybackSession.self) var sportsZonePlayback: SportsZonePlaybackSession?
     #endif
 
     init(media: PlayableMedia, adopting handle: PreviewPlayerHandle? = nil) {
