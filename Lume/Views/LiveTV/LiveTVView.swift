@@ -215,6 +215,21 @@ struct LiveTVView: View {
             .paywall(isPresented: $showingPaywall, highlight: .multiView)
             .recordActionFlow(observesWhileVisible: false)
         }
+        #if os(tvOS)
+        .task {
+            // The list layout has no guide hero to seed first playback.
+            // Restore the last permitted channel only when no stream is live.
+            guard layoutMode == .list,
+                  let sharedPlayback, sharedPlayback.miniMedia == nil,
+                  let lastID = LiveChannelHistory.currentChannelId(),
+                  let stream = PlayerContentLookup.liveStream(lastID, in: modelContext),
+                  !stream.isHidden,
+                  !restriction.hides(categoryID: stream.categoryId),
+                  let owner = playlists.owner(ofContentID: stream.id),
+                  catalogScope.members(for: .liveTV).contains(owner.id) else { return }
+            tuneSharedPreview(stream, onlyIfEmpty: true)
+        }
+        #endif
     }
 
     // MARK: - Platform-specific layouts
