@@ -654,9 +654,12 @@ private extension View {
 /// The guide and other tabs publish their real layout bounds. This is only
 /// an anchor, not a player; the app-root surface is mounted once above TabView.
 struct TVEmbeddedPlayerSlot: View {
+    var width: CGFloat = 640
+    var height: CGFloat = 360
+
     var body: some View {
         Color.clear
-            .frame(width: 640, height: 360)
+            .frame(width: width, height: height)
             .anchorPreference(key: TVPlayerSlotAnchorKey.self, value: .bounds) { $0 }
             .accessibilityHidden(true)
     }
@@ -675,6 +678,10 @@ struct TVPlayerSlotAnchorKey: PreferenceKey {
 private struct TVEmbeddedPageHeader: View {
     let tab: AppTab
     let media: PlayableMedia
+
+    // Search keeps more space for its inline remote keyboard and results.
+    private var videoWidth: CGFloat { tab == .search ? 520 : 640 }
+    private var videoHeight: CGFloat { tab == .search ? 292 : 360 }
 
     private var page: (title: String, description: String, symbol: String) {
         switch tab {
@@ -727,12 +734,11 @@ private struct TVEmbeddedPageHeader: View {
             .padding(.leading, 7)
 
             // This slot is never a second player.
-            TVEmbeddedPlayerSlot()
-                .frame(width: 640, height: 360)
+            TVEmbeddedPlayerSlot(width: videoWidth, height: videoHeight)
         }
         .padding(.horizontal, 64)
-        .padding(.top, 20)
-        .padding(.bottom, 28)
+        .padding(.top, tab == .search ? 10 : 20)
+        .padding(.bottom, tab == .search ? 14 : 28)
         .frame(maxWidth: .infinity)
         .background(
             LinearGradient(
