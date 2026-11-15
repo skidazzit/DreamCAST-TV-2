@@ -75,6 +75,7 @@ struct LiveTVView: View {
     @State private var showingSettings = false
     #if os(tvOS)
         @Environment(DeepLinkRouter.self) private var router
+        @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
         @State private var guidePreview = GuidePreviewController()
         @State private var guideHero = GuideHeroModel()
     #else
@@ -295,6 +296,8 @@ struct LiveTVView: View {
                     media: { [playlists] stream in
                         PlayableMedia.from(stream: stream, ownedByOneOf: playlists)
                     },
+                    onTune: { tuneSharedPreview($0, onlyIfEmpty: false) },
+                    onAutoTune: { tuneSharedPreview($0, onlyIfEmpty: true) },
                     playlistIDs: catalogScope.members(for: .liveTV),
                     controller: guidePreview,
                     hero: guideHero
@@ -416,6 +419,21 @@ struct LiveTVView: View {
         present(media)
     }
 
+    #if os(tvOS)
+    /// A settled guide row can start the app-root preview once; only an
+    /// explicit Select may retune a stream that is already playing.
+    private func tuneSharedPreview(_ stream: LiveStream, onlyIfEmpty: Bool) {
+        guard let sharedPlayback,
+              !onlyIfEmpty || sharedPlayback.miniMedia == nil,
+              let media = PlayableMedia.from(
+                  stream: stream, ownedByOneOf: playlists,
+                  surfScope: LiveSurfScope(catalogScope)
+              ) else { return }
+        sharedPlayback.matchedChannels = []
+        sharedPlayback.tune(media, previewMode: .small)
+    }
+    #endif
+
     /// Replays a past programme from the channel's catch-up archive.
     private func playCatchup(_ stream: LiveStream, cell: EPGProgramCell) {
         guard let playlist = playlists.owner(ofContentID: stream.id),
@@ -465,8 +483,15 @@ struct LiveTVView: View {
         #if os(macOS)
             MacPlayerWindowRouter.shared.play(media, using: openWindow)
         #elseif os(tvOS)
-            guidePreview.prepareToPresent(media)
-            playingMedia = media
+            if let sharedPlayback, media.isLive {
+                // Hand-off lives at MainTabView, not inside this tab.
+                sharedPlayback.matchedChannels = []
+                sharedPlayback.tune(media, previewMode: .small)
+                sharedPlayback.openFullScreen()
+            } else {
+                guidePreview.prepareToPresent(media)
+                playingMedia = media
+            }
         #else
             playingMedia = media
         #endif
