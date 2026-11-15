@@ -734,9 +734,10 @@ private struct TVEmbeddedPageHeader: View {
     let tab: AppTab
     let media: PlayableMedia
 
-    // Search keeps more space for its inline remote keyboard and results.
-    private var videoWidth: CGFloat { tab == .search ? 520 : 640 }
-    private var videoHeight: CGFloat { tab == .search ? 292 : 360 }
+    // Search and Settings reserve more space below for keys, results and lists.
+    private var compact: Bool { tab == .search || tab == .settings }
+    private var videoWidth: CGFloat { compact ? 386 : 640 }
+    private var videoHeight: CGFloat { compact ? 217 : 360 }
 
     private var page: (title: String, description: String, symbol: String) {
         switch tab {
@@ -763,11 +764,11 @@ private struct TVEmbeddedPageHeader: View {
         HStack(alignment: .center, spacing: 50) {
             VStack(alignment: .leading, spacing: 16) {
                 Label(page.title, systemImage: page.symbol)
-                    .font(.system(size: 47, weight: .bold, design: .rounded))
+                    .font(.system(size: compact ? 35 : 47, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
 
                 Text(page.description)
-                    .font(.system(size: 24))
+                    .font(.system(size: compact ? 20 : 24))
                     .foregroundStyle(.white.opacity(0.72))
                     .lineLimit(2)
 
@@ -779,11 +780,11 @@ private struct TVEmbeddedPageHeader: View {
                         .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(.white)
                     Text(media.title)
-                        .font(.system(size: 22))
+                        .font(.system(size: compact ? 18 : 22))
                         .foregroundStyle(.white.opacity(0.82))
                         .lineLimit(2)
                 }
-                .padding(.top, 18)
+                .padding(.top, compact ? 7 : 18)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.leading, 7)
@@ -792,8 +793,8 @@ private struct TVEmbeddedPageHeader: View {
             TVEmbeddedPlayerSlot(width: videoWidth, height: videoHeight)
         }
         .padding(.horizontal, 64)
-        .padding(.top, tab == .search ? 10 : 20)
-        .padding(.bottom, tab == .search ? 14 : 28)
+        .padding(.top, compact ? 8 : 20)
+        .padding(.bottom, compact ? 10 : 28)
         .frame(maxWidth: .infinity)
         .background(
             LinearGradient(
