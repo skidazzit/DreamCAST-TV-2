@@ -436,6 +436,13 @@ struct MainTabView: View {
         }
 
         private func handleTVBack() {
+            // Full-screen playback and blocking dialogs own their own Back
+            // behavior; do not shift focus behind an active modal.
+            guard !blockingOverlayOwnsScreen,
+                  !router.isQuickSwitchPresented,
+                  sharedLivePlayback.fullScreenMedia == nil
+            else { return }
+
             // Never leave the current tab or rebuild the stream while moving
             // Back. Only change which existing focus section owns the remote.
             if focusedTVTab != nil {
