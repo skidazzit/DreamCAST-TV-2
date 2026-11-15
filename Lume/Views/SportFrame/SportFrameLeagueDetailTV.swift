@@ -71,11 +71,8 @@ struct SportFrameLeagueDetailTV: View {
     private func presentPendingMedia() {
         guard let media = pendingMedia else { return }
         pendingMedia = nil
-        playback.tune(
-            media,
-            previewMode: GuidePreviewMode(storedValue:
-                UserDefaults.standard.string(forKey: PlayerSettings.tvGuidePreviewModeKey))
-        )
+        // The shared tvOS mini-player stays live across all six app tabs.
+        playback.tune(media, previewMode: .small)
     }
 
     private var header: some View {
