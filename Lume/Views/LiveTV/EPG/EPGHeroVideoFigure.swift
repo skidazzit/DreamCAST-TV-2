@@ -41,7 +41,14 @@
                     shape.strokeBorder(.white.opacity(0.18), lineWidth: 1)
                 }
             }
-            .background { shape.fill(.black).shadow(color: .black.opacity(0.5), radius: 35, y: 30) }
+            .background {
+                // Do not draw a second black video card beneath the
+                // shared player. The single root surface fills this slot.
+                if sharedPlayback?.miniMedia == nil {
+                    shape.fill(.black)
+                        .shadow(color: .black.opacity(0.5), radius: 35, y: 30)
+                }
+            }
         }
 
         @ViewBuilder
