@@ -325,54 +325,52 @@ struct TVPersistentMiniPlayer: View {
 
     var body: some View {
         if let media = session.miniMedia {
-            VStack(spacing: 0) {
-                // This is a section of the page, not a floating overlay.
-                Divider()
-                    .overlay(Color.white.opacity(0.18))
+            // Match the 16:9 guide hero at the upper-right of every tvOS page.
+            // The player has no floating card, external toolbar or bottom rail.
+            ZStack(alignment: .bottom) {
+                videoSurface(for: media)
+                    .frame(width: 640, height: 360)
 
-                HStack(alignment: .center, spacing: 30) {
-                    videoSurface(for: media)
-                        .frame(width: 292, height: 164)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.75)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 98)
+                .allowsHitTesting(false)
 
-                    VStack(alignment: .leading, spacing: 9) {
-                        Text("NOW PLAYING")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(.white.opacity(0.65))
+                HStack(spacing: 16) {
+                    Text(media.title)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
-                        Text(media.title)
-                            .font(.system(size: 27, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .lineLimit(2)
-
-                        Text("Live channel continues while you browse")
-                            .font(.system(size: 18))
-                            .foregroundStyle(.white.opacity(0.6))
+                    Button {
+                        session.openFullScreen()
+                    } label: {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityLabel("Open live channel full screen")
 
-                    HStack(spacing: 16) {
-                        Button {
-                            session.openFullScreen()
-                        } label: {
-                            Label("Full Screen", systemImage: "arrow.up.left.and.arrow.down.right")
-                        }
-                        .accessibilityLabel("Open live channel full screen")
-
-                        Button {
-                            session.close()
-                        } label: {
-                            Label("Stop", systemImage: "stop.fill")
-                        }
-                        .accessibilityLabel("Stop live channel")
+                    Button {
+                        session.close()
+                    } label: {
+                        Image(systemName: "stop.fill")
                     }
-                    .buttonStyle(.bordered)
+                    .accessibilityLabel("Stop live channel")
                 }
-                .padding(.horizontal, 70)
-                .padding(.vertical, 12)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .buttonStyle(.bordered)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 14)
             }
-            .background(Color(red: 0.045, green: 0.06, blue: 0.09))
+            .frame(width: 640, height: 360)
+            .clipShape(RoundedRectangle(cornerRadius: 28))
+            .overlay {
+                RoundedRectangle(cornerRadius: 28)
+                    .strokeBorder(.white.opacity(0.18), lineWidth: 1)
+                    .allowsHitTesting(false)
+            }
             .focusSection()
             .accessibilityElement(children: .contain)
         }
