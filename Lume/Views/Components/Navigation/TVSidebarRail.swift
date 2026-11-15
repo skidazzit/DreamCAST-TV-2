@@ -273,10 +273,11 @@
                 .shadow(color: isItemFocused ? TVNeonTheme.electricBlue.opacity(0.7) : .clear,
                         radius: isItemFocused ? 14 : 0)
             }
-            .buttonStyle(.plain)
+            // Borderless removes the tvOS white focus platter; the row's
+            // blue fill and cyan stroke above are the only focus artwork.
+            .buttonStyle(.borderless)
             .focusEffectDisabled()
             .focused($focused, equals: item.id)
-            .focusEffectDisabled()
             .animation(.easeOut(duration: 0.18), value: isItemFocused)
         }
 
