@@ -76,6 +76,7 @@ struct LiveTVView: View {
     #if os(tvOS)
         @Environment(DeepLinkRouter.self) private var router
         @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
+        @Environment(TVAmbientThemeSession.self) private var ambientTheme: TVAmbientThemeSession?
         @State private var guidePreview = GuidePreviewController()
         @State private var guideHero = GuideHeroModel()
     #else
@@ -322,14 +323,18 @@ struct LiveTVView: View {
                     hero: guideHero
                 )
             )
+            // Publish the guide's channel tint to the single app-root
+            // background, including above the tab bar. Do not clear it when
+            // switching tabs: live audio/video can continue on other pages.
+            .onAppear {
+                ambientTheme?.liveHero = layoutMode == .list ? nil : guideHero
+            }
+            .onChange(of: layoutModeRaw) { _, _ in
+                ambientTheme?.liveHero = layoutMode == .list ? nil : guideHero
+            }
             // Never from an `onDisappear`, which a `fullScreenCover` doesn't
             // deliver.
             .guidePreviewSuspension(guidePreview, playingMedia: $playingMedia)
-            // The list has no settled channel to tint the glow from.
-            .background {
-                TVAmbientBackground(hero: layoutMode != .list ? guideHero : nil)
-                    .ignoresSafeArea()
-            }
         }
     #endif
 
