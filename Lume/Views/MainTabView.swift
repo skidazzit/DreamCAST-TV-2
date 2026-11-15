@@ -493,8 +493,13 @@ struct MainTabView: View {
             } label: {
                 HStack(spacing: 10) {
                     if let symbol {
-                        Image(systemName: symbol)
+                        // tvOS borderless buttons automatically enlarge the
+                        // first Image in their label on focus. Rendering the
+                        // SF Symbol inside Text keeps its size fixed.
+                        Text(Image(systemName: symbol))
                             .font(.system(size: 24, weight: .semibold))
+                            .frame(width: 27, height: 29)
+                            .accessibilityHidden(true)
                     }
                     if tab != .search && tab != .settings {
                         Text(title)
