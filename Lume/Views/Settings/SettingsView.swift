@@ -308,10 +308,6 @@ struct SettingsView: View {
                     NotificationCenter.default.post(name: .dreamCASTReturnToTopMenu, object: nil)
                 }
                 .overlay(alignment: .top) { tvTabBarEntryCatcher }
-                .background {
-                    TVAmbientBackground(hero: nil)
-                        .ignoresSafeArea()
-                }
                 .paywall(isPresented: $showPaywall, highlight: paywallHighlight)
                 .fullScreenCover(isPresented: $showingAddPlaylist) {
                     LoginView(isModal: true)
