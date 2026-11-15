@@ -33,6 +33,9 @@ struct SearchView: View {
     @State private var selectedFilter: ContentFilter = .all
     @State private var results: [SearchResult] = []
     @State private var playingMedia: PlayableMedia?
+    #if os(tvOS)
+    @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
+    #endif
 
     /// Max matches fetched per content type. Keeps the result set bounded so the
     /// list stays responsive even when a playlist holds tens of thousands of items.
@@ -65,7 +68,6 @@ struct SearchView: View {
 
     var body: some View {
         let scope = catalogScope
-        let searched = searchedScope
         NavigationStack {
             Group {
                 #if os(tvOS)
@@ -135,7 +137,8 @@ struct SearchView: View {
     /// Search results and keyboard stay attached to the same List on tvOS,
     /// while the new filter sidebar changes the query without moving focus.
     private var resultList: some View {
-            List {
+        let searched = searchedScope
+        return List {
                 #if !os(tvOS)
                 if showsFilter {
                     Picker("Filter", selection: $selectedFilter) {
@@ -247,6 +250,14 @@ struct SearchView: View {
         if ExternalPlayback.open(media) { return }
         #if os(macOS)
             MacPlayerWindowRouter.shared.play(media, using: openWindow)
+        #elseif os(tvOS)
+            if let sharedPlayback {
+                sharedPlayback.matchedChannels = []
+                sharedPlayback.tune(media, previewMode: .small)
+                sharedPlayback.openFullScreen()
+            } else {
+                playingMedia = media
+            }
         #else
             playingMedia = media
         #endif
