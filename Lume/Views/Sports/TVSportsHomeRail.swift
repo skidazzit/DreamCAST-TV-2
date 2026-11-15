@@ -103,7 +103,7 @@ import SwiftUI
                     showPaywall = true
                 } label: {
                     HStack(spacing: 20) {
-                        Image(systemName: "sportscourt.fill")
+                        Text(Image(systemName: "sportscourt.fill"))
                             .font(.largeTitle)
                             .foregroundStyle(.white)
                             .accessibilityHidden(true)
@@ -128,7 +128,7 @@ import SwiftUI
                         RoundedRectangle(cornerRadius: 20, style: .continuous).fill(.white.opacity(0.08))
                     )
                 }
-                .buttonStyle(TVCardButtonStyle(focusScale: 1.03))
+                .buttonStyle(TVCardButtonStyle(focusScale: 1.0))
                 .padding(.horizontal)
             }
             .focusSection()
@@ -141,7 +141,7 @@ import SwiftUI
                     showManageTeams = true
                 } label: {
                     HStack(spacing: 20) {
-                        Image(systemName: "sportscourt.fill")
+                        Text(Image(systemName: "sportscourt.fill"))
                             .font(.largeTitle)
                             .foregroundStyle(.white)
                             .accessibilityHidden(true)
@@ -155,7 +155,7 @@ import SwiftUI
                                 .lineLimit(2)
                         }
                         Spacer(minLength: 12)
-                        Image(systemName: "chevron.forward")
+                        Text(Image(systemName: "chevron.forward"))
                             .font(.title3.weight(.bold))
                             .foregroundStyle(.white.opacity(0.6))
                             .accessibilityHidden(true)
@@ -166,7 +166,7 @@ import SwiftUI
                         RoundedRectangle(cornerRadius: 20, style: .continuous).fill(.white.opacity(0.08))
                     )
                 }
-                .buttonStyle(TVCardButtonStyle(focusScale: 1.03))
+                .buttonStyle(TVCardButtonStyle(focusScale: 1.0))
                 .padding(.horizontal)
             }
             .focusSection()
@@ -329,7 +329,7 @@ struct TVSportsZoneHomeRail: View {
                                 .frame(width: 420, height: 180)
                                 .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 18))
                             }
-                            .buttonStyle(TVCardButtonStyle(focusScale: 1.03))
+                            .buttonStyle(TVCardButtonStyle(focusScale: 1.0))
                         }
                     }
                     .padding(.horizontal)
