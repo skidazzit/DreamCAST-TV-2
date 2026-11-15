@@ -335,13 +335,39 @@ struct SettingsView: View {
             Task { @MainActor in contentManagementFocused = true }
         }
 
-        /// The categories in the iOS root list's order, ungrouped and without icons.
+        /// Match the leading symbols and glass rail in the Live TV mockup.
         private var railItems: [TVSidebarRailItem] {
             SettingsCategory.visible(hasConnectedServices: hasConnectedServices).map { category in
                 let badge = showsBadge(for: category)
-                return TVSidebarRailItem(id: category.id, title: Text(category.title), icon: badge ? "exclamationmark.circle" : nil, iconAccessibilityLabel: badge ? Text("Recovery key not viewed") : nil) {
+                return TVSidebarRailItem(
+                    id: category.id, title: Text(category.title),
+                    icon: badge ? "exclamationmark.circle" : tvRailIcon(for: category),
+                    iconAccessibilityLabel: badge ? Text("Recovery key not viewed") : nil
+                ) {
                     activate(category)
                 }
+            }
+        }
+
+        private func tvRailIcon(for category: SettingsCategory) -> String {
+            switch category {
+            case .premium: "crown"
+            case .profiles: "person.crop.circle"
+            case .playlists: "rectangle.stack"
+            case .epg: "calendar"
+            case .library: "square.stack.3d.up"
+            case .home: "house"
+            case .liveTV: "tv"
+            case .sports: "trophy"
+            case .appearance: "paintbrush"
+            case .player: "play.rectangle"
+            case .downloads: "arrow.down.circle"
+            case .iCloud: "cloud"
+            case .connectedServices: "link"
+            case .storage: "externaldrive"
+            case .help: "questionmark.circle"
+            case .about: "info.circle"
+            case .developer: "hammer"
             }
         }
 
