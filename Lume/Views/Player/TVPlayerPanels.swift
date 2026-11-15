@@ -65,10 +65,14 @@
                 let pressed = configuration.isPressed
                 configuration.label
                     .font(.system(size: glyphSize, weight: .semibold))
-                    .foregroundStyle(isFocused ? .black : .white)
+                    .foregroundStyle(.white)
                     .frame(width: diameter, height: diameter)
-                    .glassEffectCompat(isFocused ? .tintedInteractive(.white) : .regularInteractive, in: Circle())
-                    .scaleEffect(pressed ? 1.05 : (isFocused ? 1.14 : 1.0))
+                    .background(isFocused ? TVNeonTheme.electricBlue : TVNeonTheme.glass, in: Circle())
+                    .overlay {
+                        Circle().strokeBorder(isFocused ? TVNeonTheme.iceBlue : .clear,
+                                              lineWidth: isFocused ? 2 : 0)
+                    }
+                    .focusEffectDisabled()
                     .opacity(isEnabled ? 1 : 0.35)
                     .shadow(color: .black.opacity(isFocused ? 0.4 : 0), radius: 16, y: 8)
                     .animation(.easeOut(duration: 0.18), value: isFocused)
@@ -583,7 +587,7 @@
         @ViewBuilder
         private func actionLabel(_ action: TVPlayerInfoAction) -> some View {
             if let systemImage = action.systemImage {
-                Label(action.title, systemImage: systemImage)
+                TVFixedButtonLabel(title: action.title, systemName: systemImage)
             } else {
                 Text(action.title)
             }
