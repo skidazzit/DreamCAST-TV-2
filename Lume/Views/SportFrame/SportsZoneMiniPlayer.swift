@@ -313,6 +313,12 @@ struct SportsZoneMiniPlayer: View {
 /// This keeps the same live decoder and audio running as viewers browse.
 struct TVPersistentMiniPlayer: View {
     let session: SportsZonePlaybackSession
+    @Environment(TVBackFocusCoordinator.self) private var backFocus: TVBackFocusCoordinator?
+    @FocusState private var focusedAction: MiniPlayerAction?
+
+    private enum MiniPlayerAction: Hashable {
+        case fullScreen, stop
+    }
 
     private var canShowVideo: Bool {
         guard session.guidePreview.isSuspended else { return true }
@@ -379,6 +385,7 @@ struct TVPersistentMiniPlayer: View {
                                 .font(.system(size: 18, weight: .semibold))
                         }
                         .accessibilityLabel("Open live channel full screen")
+                        .focused($focusedAction, equals: .fullScreen)
 
                         Button {
                             session.close()
@@ -387,6 +394,7 @@ struct TVPersistentMiniPlayer: View {
                                 .font(.system(size: 18, weight: .semibold))
                         }
                         .accessibilityLabel("Stop live channel")
+                        .focused($focusedAction, equals: .stop)
                     }
                     .buttonStyle(.borderless)
                     .focusEffectDisabled()
@@ -399,6 +407,24 @@ struct TVPersistentMiniPlayer: View {
                 .shadow(color: TVNeonTheme.electricBlue.opacity(0.26), radius: 10)
             }
             .focusSection()
+            .onChange(of: backFocus?.playerFocusRequest) { _, _ in
+                // Keep the video running. Only the footer's first button
+                // receives focus, without activating Full Screen.
+                Task { @MainActor in focusedAction = .fullScreen }
+            }
+            .onChange(of: focusedAction) { _, next in
+                if next != nil {
+                    backFocus?.markFocused(.miniPlayer)
+                } else if backFocus?.zone == .miniPlayer {
+                    backFocus?.markFocused(.content)
+                }
+            }
+            .onExitCommand {
+                NotificationCenter.default.post(
+                    name: .dreamCASTReturnToTopMenu,
+                    object: nil
+                )
+            }
             .accessibilityElement(children: .contain)
         }
     }
