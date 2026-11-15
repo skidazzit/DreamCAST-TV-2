@@ -275,12 +275,18 @@ struct MainTabView: View {
                     GeometryReader { geometry in
                         let measured = anchor.map { geometry[$0] }
                         let slot = measured ?? livePlayerSlotFrame
+                        // The Live TV guide reports the picture-only frame.
+                        // Its controls sit below that frame; the other tabs
+                        // include their footer in the measured player slot.
+                        let guideFooter: CGFloat =
+                            selection.wrappedValue == .liveTV && !usesLiveList
+                            ? TVPersistentMiniPlayer.controlsHeight : 0
                         ZStack(alignment: .topLeading) {
                             if sharedLivePlayback.miniMedia != nil,
                                let slot, slot.width > 0, slot.height > 0 {
                                 TVPersistentMiniPlayer(session: sharedLivePlayback)
-                                    .frame(width: slot.width, height: slot.height)
-                                    .position(x: slot.midX, y: slot.midY)
+                                    .frame(width: slot.width, height: slot.height + guideFooter)
+                                    .position(x: slot.midX, y: slot.midY + guideFooter / 2)
                             }
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -900,7 +906,10 @@ private struct TVEmbeddedPageHeader: View {
             .padding(.leading, 7)
 
             // This slot is never a second player.
-            TVEmbeddedPlayerSlot(width: videoWidth, height: videoHeight)
+            TVEmbeddedPlayerSlot(
+                width: videoWidth,
+                height: videoHeight + TVPersistentMiniPlayer.controlsHeight
+            )
         }
         .padding(.horizontal, 64)
         .padding(.top, compact ? 8 : 20)
