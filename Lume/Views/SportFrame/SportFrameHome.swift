@@ -75,6 +75,11 @@ struct SportFrameHome: View {
     @State private var selectedEvent: SportEvent?
     @State private var openedLeague: SportFrameLeagueRoute?
     @State private var sportsPlayback = SportsZonePlaybackSession()
+    @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
+
+    private var activePlayback: SportsZonePlaybackSession {
+        sharedPlayback ?? sportsPlayback
+    }
     @State private var pendingMedia: PlayableMedia?
     @State private var premiumKeyInput = ""
     @State private var keyMessage: String?
@@ -174,13 +179,17 @@ struct SportFrameHome: View {
                 // A single player host remains mounted while the main page
                 // and league pages exchange their scrollable content.
                 // It occupies the same fixed, top position as the Live TV guide.
-                SportsZoneMiniPlayer(session: sportsPlayback)
-                    .padding(.horizontal, 55)
+                // The tvOS app root hosts the same video on every tab.
+                // Keep this local host only for standalone previews and iOS.
+                if sharedPlayback == nil {
+                    SportsZoneMiniPlayer(session: sportsPlayback)
+                        .padding(.horizontal, 55)
+                }
 
                 if let openedLeague {
                     SportFrameLeagueDetailTV(
                         league: openedLeague,
-                        playback: sportsPlayback,
+                        playback: activePlayback,
                         onBack: { self.openedLeague = nil },
                         scores: fixtures
                     )
@@ -664,7 +673,7 @@ struct SportFrameHome: View {
             selectedEvent = nil
             return
         }
-        sportsPlayback.rememberMatches(matches, selected: channel)
+        activePlayback.rememberMatches(matches, selected: channel)
         pendingMedia = media
         selectedEvent = nil
     }
@@ -672,11 +681,15 @@ struct SportFrameHome: View {
     private func presentPendingMedia() {
         guard let media = pendingMedia else { return }
         pendingMedia = nil
-        sportsPlayback.tune(
+        #if os(tvOS)
+        activePlayback.tune(media, previewMode: .small)
+        #else
+        activePlayback.tune(
             media,
             previewMode: GuidePreviewMode(storedValue:
                 UserDefaults.standard.string(forKey: PlayerSettings.tvGuidePreviewModeKey))
         )
+        #endif
     }
 
     private func refresh() async {
