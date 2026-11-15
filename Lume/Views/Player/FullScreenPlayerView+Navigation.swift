@@ -74,6 +74,9 @@ extension FullScreenPlayerView {
         // Restart the fallback chain from the primary engine for the new stream.
         engineAttempt = 0
         activeMedia = newMedia
+        #if os(tvOS)
+        sportsZonePlayback?.didSwitchFullScreen(to: newMedia)
+        #endif
         // Slide the outgoing channel into the recall slot so `right` can jump back.
         LiveChannelHistory.record(newMedia)
     }
