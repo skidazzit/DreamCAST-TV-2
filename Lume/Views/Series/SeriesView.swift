@@ -112,7 +112,6 @@ struct SeriesView: View {
             }
         }
         #if os(tvOS)
-        .background(TVAmbientBackground(hero: nil).ignoresSafeArea())
         .onExitCommand {
             NotificationCenter.default.post(name: .dreamCASTReturnToTopMenu, object: nil)
         }
