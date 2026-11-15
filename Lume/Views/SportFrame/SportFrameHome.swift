@@ -698,7 +698,7 @@ struct SportFrameHome: View {
     }
 }
 
-/// Matches the main Lume tab bar: dark at rest, white with dark text on focus.
+/// Match the app's neon blue focus styling without the old white plate.
 private struct SportsZonePillStyle: ButtonStyle {
     var isSelected = false
 
@@ -714,14 +714,27 @@ private struct SportsZonePillStyle: ButtonStyle {
         var body: some View {
             configuration.label
                 .font(.system(size: 23, weight: .semibold))
-                .foregroundStyle(isFocused || isSelected ? Color.black : Color.white)
+                .foregroundStyle(Color.white)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 14)
-                .background(isFocused ? Color.white : (isSelected ? Color.cyan : Color.white.opacity(0.10)),
-                            in: Capsule())
-                .scaleEffect(isFocused ? 1.05 : 1.0)
+                .background {
+                    Capsule().fill(
+                        isFocused || isSelected
+                            ? TVNeonTheme.electricBlue
+                            : Color.white.opacity(0.10)
+                    )
+                }
+                .overlay {
+                    Capsule().strokeBorder(
+                        isFocused ? TVNeonTheme.iceBlue : .clear,
+                        lineWidth: isFocused ? 2 : 0
+                    )
+                }
+                .shadow(color: isFocused ? TVNeonTheme.electricBlue.opacity(0.45) : .clear,
+                        radius: isFocused ? 10 : 0)
                 .animation(.easeOut(duration: 0.16), value: isFocused)
                 .contentShape(Capsule())
+                .focusEffectDisabled()
         }
     }
 }
