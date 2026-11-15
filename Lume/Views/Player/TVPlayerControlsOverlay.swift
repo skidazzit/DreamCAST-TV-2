@@ -323,8 +323,9 @@
                 }
 
                 Button(action: onTogglePlay) {
-                    Image(systemName: coordinator.isPlaying ? "pause.fill" : "play.fill")
-                        .symbolReplaceTransition(value: coordinator.isPlaying)
+                    Text(Image(systemName: coordinator.isPlaying ? "pause.fill" : "play.fill"))
+                        .font(.system(size: 30, weight: .semibold))
+                        .frame(width: 36, height: 40)
                 }
                 .buttonStyle(TVPlayerCircleButtonStyle(diameter: 78, glyphSize: 30))
                 .focused($focus, equals: .transport)
@@ -377,7 +378,9 @@
             action: @escaping () -> Void
         ) -> some View {
             Button(action: action) {
-                Image(systemName: systemImage)
+                Text(Image(systemName: systemImage))
+                    .font(.system(size: 24, weight: .semibold))
+                    .frame(width: 30, height: 33)
             }
             .buttonStyle(TVPlayerCircleButtonStyle())
             .focused($focus, equals: target)
