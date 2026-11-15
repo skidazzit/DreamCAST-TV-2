@@ -94,10 +94,6 @@ struct SearchView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
                 .padding(.horizontal, 35)
-                .background {
-                    TVAmbientBackground(hero: nil)
-                        .ignoresSafeArea(edges: .bottom)
-                }
                 #else
                 resultList
                 #endif
@@ -139,7 +135,6 @@ struct SearchView: View {
             }
         }
         #if os(tvOS)
-        .background(TVAmbientBackground(hero: nil).ignoresSafeArea())
         .onExitCommand {
             NotificationCenter.default.post(name: .dreamCASTReturnToTopMenu, object: nil)
         }
