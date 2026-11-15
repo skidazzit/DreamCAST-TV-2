@@ -33,6 +33,9 @@ struct MainTabView: View {
     #if os(tvOS)
     /// This session belongs to the app root, not a tab. No tab switch unmounts it.
     @State private var sharedLivePlayback = SportsZonePlaybackSession()
+    @State private var livePlayerSlotFrame: CGRect?
+    @AppStorage(LiveTVLayoutMode.storageKey) private var tvLiveLayoutRaw = LiveTVLayoutMode.defaultMode.rawValue
+    private var usesLiveList: Bool { LiveTVLayoutMode(storedValue: tvLiveLayoutRaw) == .list }
     #endif
 
     /// The stream a `lume://resume` or `lume://play/...` (widget, Top Shelf)
@@ -241,18 +244,27 @@ struct MainTabView: View {
     @ViewBuilder
     private func persistentTabHost(selection: Binding<AppTab>, tabs: Set<PlaylistTab>) -> some View {
         #if os(tvOS)
-            // Keep a single decoder mounted at app-root. Its fixed video slot
-            // lines up with the Live TV guide's existing upper-right hero.
-            // Other tabs reserve that space so the player is part of the page,
-            // rather than a popover covering posters or settings controls.
-            ZStack(alignment: .topTrailing) {
+            // The decoder lives outside activeOnly. Every page exposes a real
+            // 16:9 hero slot and its measured position locates this single view.
+            // No guessed offsets and no player covering focusable page content.
+            ZStack(alignment: .topLeading) {
                 tabView(selection: selection, tabs: tabs)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                if sharedLivePlayback.miniMedia != nil {
+
+                if sharedLivePlayback.miniMedia != nil,
+                   let frame = livePlayerSlotFrame, frame.width > 0, frame.height > 0 {
                     TVPersistentMiniPlayer(session: sharedLivePlayback)
-                        .padding(.top, 142)
-                        .padding(.trailing, 88)
+                        .frame(width: frame.width, height: frame.height)
+                        .position(x: frame.midX, y: frame.midY)
+                        .zIndex(1)
                 }
+            }
+            .coordinateSpace(name: "dreamcastPageRoot")
+            .onPreferenceChange(TVPlayerSlotFrameKey.self) { frame in
+                // Retain the last frame through a one-frame tab transition.
+                // That keeps the live decoder mounted instead of reconnecting.
+                guard let frame, frame.width > 0, frame.height > 0 else { return }
+                if livePlayerSlotFrame != frame { livePlayerSlotFrame = frame }
             }
             .environment(sharedLivePlayback)
             .guidePreviewSuspension(
@@ -398,15 +410,14 @@ struct MainTabView: View {
         @ViewBuilder
         private func activeOnly(_ tab: AppTab, selection: AppTab, @ViewBuilder content: () -> some View) -> some View {
             if selection == tab {
-                if sharedLivePlayback.miniMedia != nil && tab != .liveTV {
-                    // A real, unfocusable space under the root-level video.
-                    // The tab can scroll normally below the embedded player.
-                    content()
-                        .safeAreaInset(edge: .top, spacing: 0) {
-                            Color.clear
-                                .frame(height: 382)
-                                .accessibilityHidden(true)
-                        }
+                if let media = sharedLivePlayback.miniMedia, tab != .liveTV || usesLiveList {
+                    // The header is in normal layout flow. It has a real video
+                    // slot on its right and browse content starts beneath it.
+                    VStack(spacing: 0) {
+                        TVEmbeddedPageHeader(tab: tab, media: media)
+                        content()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
                 } else {
                     content()
                 }
@@ -636,6 +647,108 @@ private extension View {
         #endif
     }
 }
+
+#if os(tvOS)
+/// A measured hero slot in normal page flow. The single video view remains
+/// owned by MainTabView and moves with this slot without losing decoder state.
+struct TVEmbeddedPlayerSlot: View {
+    var body: some View {
+        GeometryReader { geometry in
+            Color.clear
+                .preference(
+                    key: TVPlayerSlotFrameKey.self,
+                    value: geometry.frame(in: .named("dreamcastPageRoot"))
+                )
+        }
+        .frame(width: 640, height: 360)
+        .accessibilityHidden(true)
+    }
+}
+
+struct TVPlayerSlotFrameKey: PreferenceKey {
+    static var defaultValue: CGRect? { nil }
+
+    static func reduce(value: inout CGRect?, nextValue: () -> CGRect?) {
+        if let next = nextValue() { value = next }
+    }
+}
+
+/// Unified header for the five non-guide tabs and the Live TV list layout.
+/// It replaces the old empty top inset with useful content and a real slot.
+private struct TVEmbeddedPageHeader: View {
+    let tab: AppTab
+    let media: PlayableMedia
+
+    private var page: (title: String, description: String, symbol: String) {
+        switch tab {
+        case .liveTV:
+            ("Live TV", "Browse channels while the live stream keeps playing.", "tv")
+        case .sports:
+            ("SportsZone", "Live scores, leagues and upcoming fixtures.", "sportscourt")
+        case .movies:
+            ("Movies", "Keep watching and discover more from your library.", "film.stack")
+        case .series:
+            ("Series", "Your shows, new episodes and what to watch next.", "play.tv")
+        case .search:
+            ("Search", "Find live channels, movies and series in one place.", "magnifyingglass")
+        case .settings:
+            ("Settings", "Make DreamCAST TV work the way you want.", "gearshape")
+        case .home:
+            ("Home", "Your media, all in one place.", "house")
+        @unknown default:
+            ("DreamCAST TV", "Continue browsing your library.", "tv")
+        }
+    }
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 50) {
+            VStack(alignment: .leading, spacing: 16) {
+                Label(page.title, systemImage: page.symbol)
+                    .font(.system(size: 47, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+
+                Text(page.description)
+                    .font(.system(size: 24))
+                    .foregroundStyle(.white.opacity(0.72))
+                    .lineLimit(2)
+
+                HStack(spacing: 10) {
+                    Circle()
+                        .fill(.red)
+                        .frame(width: 10, height: 10)
+                    Text("LIVE")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(.white)
+                    Text(media.title)
+                        .font(.system(size: 22))
+                        .foregroundStyle(.white.opacity(0.82))
+                        .lineLimit(2)
+                }
+                .padding(.top, 18)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.leading, 7)
+
+            // This slot is never a second player.
+            TVEmbeddedPlayerSlot()
+                .frame(width: 640, height: 360)
+        }
+        .padding(.horizontal, 64)
+        .padding(.top, 20)
+        .padding(.bottom, 28)
+        .frame(maxWidth: .infinity)
+        .background(
+            LinearGradient(
+                colors: [
+                    Color(red: 0.025, green: 0.075, blue: 0.17),
+                    Color(red: 0.035, green: 0.04, blue: 0.105)
+                ],
+                startPoint: .topLeading, endPoint: .bottomTrailing
+            )
+        )
+    }
+}
+#endif
 
 #Preview("No Playlists") {
     MainTabView()
