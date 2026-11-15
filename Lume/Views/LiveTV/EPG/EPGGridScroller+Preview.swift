@@ -153,9 +153,14 @@ nonisolated enum GuidePreviewRetunePolicy {
         /// the band; the grid below takes whatever height the band leaves.
         @AppStorage(PlayerSettings.tvGuidePreviewModeKey)
         private var modeRaw = PlayerSettings.tvGuidePreviewModeDefault.rawValue
+        @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
 
         private var mode: GuidePreviewMode {
-            GuidePreviewMode(storedValue: modeRaw)
+            // Reserve the full guide hero slot while the always-mounted video
+            // is active. Otherwise a compact/off guide could put programme
+            // rows under the persistent player's upper-right frame.
+            if sharedPlayback?.miniMedia != nil { return .large }
+            return GuidePreviewMode(storedValue: modeRaw)
         }
 
         static func == (lhs: Self, rhs: Self) -> Bool {
