@@ -16,6 +16,8 @@
         let title: Text
         /// Appears before the title; nil leaves the row without one.
         var icon: String?
+        /// Optional league art. Only SportsZone supplies it.
+        var badgeURL: URL?
         /// A group title drawn above the row — a Combined member's name over
         /// its first category. Plain text, so focus steps over it.
         var header: String?
@@ -242,7 +244,19 @@
                 // The reference uses leading monochrome symbols on each
                 // category, aligned with the label and without a focus plate.
                 HStack(spacing: 16) {
-                    if let icon = item.icon {
+                    if let badgeURL = item.badgeURL {
+                        AsyncImage(url: badgeURL) { phase in
+                            if let image = phase.image {
+                                image.resizable().scaledToFit()
+                            } else {
+                                Text(Image(systemName: item.icon ?? "sportscourt"))
+                                    .font(.system(size: iconSize, weight: .semibold))
+                                    .foregroundStyle(.white.opacity(0.8))
+                            }
+                        }
+                        .frame(width: 32, height: 32)
+                        .focusEffectDisabled()
+                    } else if let icon = item.icon {
                         railIcon(icon, accessibilityLabel: item.iconAccessibilityLabel)
                     }
                     item.title
