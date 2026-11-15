@@ -271,7 +271,7 @@ struct SearchView: View {
                     Button {
                         searchText = ""
                     } label: {
-                        Image(systemName: "xmark.circle.fill")
+                        Text(Image(systemName: "xmark.circle.fill"))
                     }
                     .accessibilityLabel("Clear search")
                     .buttonStyle(.bordered)
