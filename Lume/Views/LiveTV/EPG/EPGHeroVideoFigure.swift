@@ -42,7 +42,11 @@
 
         @ViewBuilder
         private var content: some View {
-            if let target, !isFailed, isAllowed, sharedPlayback == nil, let media = target.media {
+            if sharedPlayback?.miniMedia != nil {
+                // The app-root player covers this reserved frame. Do not
+                // create a second video stream or show a stale channel logo.
+                Color.black
+            } else if let target, !isFailed, isAllowed, sharedPlayback == nil, let media = target.media {
                 ZStack {
                     Color.black
                     MultiViewTilePlayer(
