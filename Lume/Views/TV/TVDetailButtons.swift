@@ -29,11 +29,11 @@
             @Environment(\.isFocused) private var isFocused
 
             var body: some View {
-                let foreground: Color = isFocused ? .black : .white
+                let foreground: Color = .white
                 let background: AnyShapeStyle = isFocused
-                    ? AnyShapeStyle(.white)
-                    : AnyShapeStyle(.regularMaterial)
-                let shadowOpacity: Double = isFocused ? 0.4 : 0
+                    ? AnyShapeStyle(TVNeonTheme.selection)
+                    : AnyShapeStyle(TVNeonTheme.glass)
+                let shadowOpacity: Double = isFocused ? 0.25 : 0
                 return configuration.label
                     .foregroundStyle(foreground)
                     .frame(maxWidth: .infinity)
@@ -42,8 +42,13 @@
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
                             .fill(background)
                     )
-                    .scaleEffect(isFocused ? 1.06 : 1.0)
-                    .shadow(color: .black.opacity(shadowOpacity), radius: 18, y: 10)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 14)
+                            .strokeBorder(isFocused ? TVNeonTheme.iceBlue : .clear,
+                                          lineWidth: isFocused ? 2 : 0)
+                    }
+                    .shadow(color: TVNeonTheme.electricBlue.opacity(shadowOpacity), radius: 11)
+                    .focusEffectDisabled()
                     .animation(.easeOut(duration: 0.18), value: isFocused)
             }
         }
@@ -100,7 +105,7 @@
 
         var body: some View {
             Button(action: action) {
-                Label(title, systemImage: systemImage)
+                TVFixedButtonLabel(title: title, systemName: systemImage)
             }
             .buttonStyle(TVGlassButtonStyle())
             .disabled(!isEnabled)
@@ -117,9 +122,9 @@
 
         var body: some View {
             Button(action: action) {
-                Image(systemName: systemImage)
-                    .symbolReplaceTransition(value: systemImage)
+                Text(Image(systemName: systemImage))
                     .font(.system(size: 30, weight: .semibold))
+                    .frame(width: 36, height: 40)
             }
             .buttonStyle(TVGlassButtonStyle())
             .accessibilityLabel(title)
