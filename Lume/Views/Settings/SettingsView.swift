@@ -303,6 +303,7 @@ struct SettingsView: View {
                         .focused($detailFocused)
                         .onExitCommand(perform: handleDetailMenu)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .overlay(alignment: .top) { tvTabBarEntryCatcher }
                 .background {
                     TVAmbientBackground(hero: nil)
@@ -582,10 +583,13 @@ struct SettingsView: View {
                 // Lume Pro lays its benefits out in two columns across the
                 // whole pane.
                 .tvSettingsPaneContent(maxWidth: selectedCategory == .premium ? .infinity : TVSettingsMetrics.detailMaxWidth)
+                // Give the final row space to scroll fully above the TV edge.
+                .padding(.bottom, 100)
                 .id(Self.tvDetailTopID)
             }
             // A fresh scroll position per category; sub-pages keep theirs.
             .id(selectedCategory)
+            .scrollIndicators(.visible)
             .focusSection()
         }
     }
