@@ -82,8 +82,15 @@ struct SearchView: View {
                         },
                         selectedID: selectedFilter.id
                     )
-                    resultList
-                        .frame(maxWidth: .infinity)
+                    // Keep both the keyboard and results inside this column.
+                    // A native tvOS searchField would expand its keyboard over
+                    // the sidebar and hide the app's top tab bar.
+                    VStack(alignment: .leading, spacing: 12) {
+                        tvSearchKeyboard
+                        resultList
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
                 .padding(.horizontal, 35)
                 #else
@@ -207,10 +214,83 @@ struct SearchView: View {
                     }
                 }
             }
+            #if os(tvOS)
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            #else
             .searchField(text: $searchText)
+            #endif
     }
 
     #if os(tvOS)
+    /// Remote-friendly keys stay inside the Search content column. No system
+    /// search controller is presented, so the top tabs remain visible.
+    private var tvSearchKeyboard: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            HStack(spacing: 18) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.cyan)
+                Text(searchText.isEmpty ? "Search channels, movies, series..." : searchText)
+                    .foregroundStyle(searchText.isEmpty ? .white.opacity(0.6) : .white)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if !searchText.isEmpty {
+                    Button {
+                        searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                    }
+                    .accessibilityLabel("Clear search")
+                    .buttonStyle(.bordered)
+                }
+            }
+            .font(.system(size: 26, weight: .medium))
+            .padding(.horizontal, 23)
+            .frame(height: 65)
+            .background(Color(red: 0.055, green: 0.10, blue: 0.19),
+                        in: RoundedRectangle(cornerRadius: 16))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(Color.cyan.opacity(0.7), lineWidth: 2)
+            }
+
+            searchKeyRow(["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"])
+            searchKeyRow(["K", "L", "M", "N", "O", "P", "Q", "R", "S", "T"])
+            searchKeyRow(["U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4"])
+            searchKeyRow(["5", "6", "7", "8", "9", "0", "SPACE", "DELETE"])
+        }
+        .padding(16)
+        .background(Color(red: 0.025, green: 0.047, blue: 0.095),
+                    in: RoundedRectangle(cornerRadius: 22))
+        .focusSection()
+    }
+
+    private func searchKeyRow(_ keys: [String]) -> some View {
+        HStack(spacing: 9) {
+            ForEach(keys, id: \.self) { key in
+                Button {
+                    switch key {
+                    case "SPACE":
+                        searchText.append(" ")
+                    case "DELETE":
+                        if !searchText.isEmpty { searchText.removeLast() }
+                    default:
+                        if searchText.count < 100 {
+                            searchText.append(key.lowercased())
+                        }
+                    }
+                } label: {
+                    Text(key == "DELETE" ? "⌫" : key == "SPACE" ? "Space" : key)
+                        .font(.system(size: key.count > 1 ? 17 : 22, weight: .medium))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 43)
+                }
+                .buttonStyle(.bordered)
+                .accessibilityLabel(key == "DELETE" ? "Delete last character" : key)
+            }
+        }
+    }
+
     private func searchFilterSymbol(_ filter: ContentFilter) -> String {
         switch filter {
         case .all: "square.grid.2x2"
