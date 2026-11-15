@@ -277,6 +277,72 @@
         }
     }
 
+    // MARK: - SportsZone matched channels panel
+
+    /// Reuses the channel matches from the previous fixture picker without
+    /// re-fetching every stream or scanning the EPG while video is playing.
+    struct TVPlayerSportsZoneChannelsPanel: View {
+        let channels: [ResolvedChannel]
+        let currentChannelID: String?
+        var focus: FocusState<TVPlayerFocus?>.Binding
+        let onSelect: (ResolvedChannel) -> Void
+        let onClose: () -> Void
+
+        var body: some View {
+            ScrollView(.horizontal) {
+                LazyHStack(alignment: .top, spacing: 30) {
+                    ForEach(channels) { channel in
+                        Button { onSelect(channel) } label: {
+                            VStack(alignment: .leading, spacing: 10) {
+                                ZStack(alignment: .topLeading) {
+                                    CachedAsyncImage(
+                                        url: channel.stream.streamIcon.flatMap(URL.init(string:)),
+                                        maxPixelSize: 200
+                                    ) { phase in
+                                        switch phase {
+                                        case let .success(image):
+                                            image.resizable().aspectRatio(contentMode: .fit).padding(18)
+                                        case .empty:
+                                            ProgressView()
+                                        default:
+                                            Image(systemName: "tv")
+                                                .font(.system(size: 44))
+                                                .foregroundStyle(.white.opacity(0.5))
+                                        }
+                                    }
+                                    .frame(width: 200, height: 180)
+                                    .background(Color.white.opacity(0.08))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                                    if channel.id == currentChannelID {
+                                        Text("NOW PLAYING")
+                                            .font(.system(size: 14, weight: .bold))
+                                            .foregroundStyle(.black)
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 4)
+                                            .background(Capsule().fill(.white))
+                                            .padding(8)
+                                    }
+                                }
+                                Text(channel.stream.name)
+                                    .font(.system(size: 22, weight: .semibold))
+                                    .foregroundStyle(.white)
+                                    .lineLimit(2)
+                            }
+                            .frame(width: 200, alignment: .leading)
+                        }
+                        .buttonStyle(TVCardButtonStyle(focusScale: 1.06))
+                        .focused(focus, equals: .channel(channel.id))
+                    }
+                }
+                .padding(.vertical, 18)
+            }
+            .frame(height: 300)
+            .scrollClipDisabled()
+            .focusSection()
+        }
+    }
+
     // MARK: - Recent channels panel
 
     /// The "Recent" slide-up for live TV: a horizontal rail of recently-watched
