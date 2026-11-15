@@ -140,6 +140,9 @@ struct SearchView: View {
         }
         #if os(tvOS)
         .background(TVAmbientBackground(hero: nil).ignoresSafeArea())
+        .onExitCommand {
+            NotificationCenter.default.post(name: .dreamCASTReturnToTopMenu, object: nil)
+        }
         #endif
         #if os(iOS) || os(tvOS)
         .fullScreenCover(item: $playingMedia) { media in
