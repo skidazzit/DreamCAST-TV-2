@@ -34,6 +34,7 @@ struct MainTabView: View {
     /// This session belongs to the app root, not a tab. No tab switch unmounts it.
     @State private var sharedLivePlayback = SportsZonePlaybackSession()
     @State private var livePlayerSlotFrame: CGRect?
+    @FocusState private var focusedTVTab: AppTab?
     @AppStorage(LiveTVLayoutMode.storageKey) private var tvLiveLayoutRaw = LiveTVLayoutMode.defaultMode.rawValue
     private var usesLiveList: Bool { LiveTVLayoutMode(storedValue: tvLiveLayoutRaw) == .list }
     #endif
@@ -332,52 +333,106 @@ struct MainTabView: View {
             }
         }
 
+        /// Focus changes highlight a destination, but never select it.
+        /// Native tvOS TabView changes tabs on focus and also lets Search
+        /// replace the top bar with its system keyboard.
         private func tabView(selection: Binding<AppTab>, tabs: Set<PlaylistTab>) -> some View {
-            TabView(selection: selection) {
-                if tabs.showsTab(.liveTV) {
-                    Tab(value: AppTab.liveTV) {
-                        activeOnly(.liveTV, selection: selection.wrappedValue) { LiveTVView() }
-                    } label: {
-                        Text("Live TV")
+            VStack(spacing: 0) {
+                HStack(spacing: 5) {
+                    if tabs.showsTab(.liveTV) {
+                        tvTabButton("Live TV", .liveTV, selection: selection)
+                    }
+                    if sportsTabEnabled {
+                        tvTabButton("SportsZone", .sports, selection: selection)
+                    }
+                    if tabs.showsTab(.movies) {
+                        tvTabButton("Movies", .movies, selection: selection)
+                    }
+                    if tabs.showsTab(.series) {
+                        tvTabButton("Series", .series, selection: selection)
+                    }
+                    tvTabButton("Search", .search, symbol: "magnifyingglass", selection: selection)
+                    tvTabButton("Settings", .settings, symbol: "gearshape", selection: selection)
+                }
+                .padding(6)
+                .background(Color(red: 0.075, green: 0.11, blue: 0.18),
+                            in: Capsule())
+                .overlay {
+                    Capsule().strokeBorder(Color.cyan.opacity(0.2), lineWidth: 1)
+                }
+                .padding(.top, 8)
+                .padding(.bottom, 10)
+                .focusSection()
+                .zIndex(2)
+
+                tvCurrentPage(selection: selection.wrappedValue, tabs: tabs)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(red: 0.014, green: 0.024, blue: 0.052))
+        }
+
+        @ViewBuilder
+        private func tvCurrentPage(selection: AppTab, tabs: Set<PlaylistTab>) -> some View {
+            switch selection {
+            case .liveTV:
+                if tabs.showsTab(.liveTV) { activeOnly(.liveTV, selection: selection) { LiveTVView() } }
+            case .sports:
+                if sportsTabEnabled { activeOnly(.sports, selection: selection) { SportFrameHome() } }
+            case .movies:
+                if tabs.showsTab(.movies) { activeOnly(.movies, selection: selection) { MoviesView() } }
+            case .series:
+                if tabs.showsTab(.series) { activeOnly(.series, selection: selection) { SeriesView() } }
+            case .search:
+                activeOnly(.search, selection: selection) { SearchView() }
+            case .settings:
+                activeOnly(.settings, selection: selection) { SettingsView() }
+            case .home:
+                Color.clear
+            @unknown default:
+                Color.clear
+            }
+        }
+
+        private func tvTabButton(
+            _ title: String,
+            _ tab: AppTab,
+            symbol: String? = nil,
+            selection: Binding<AppTab>
+        ) -> some View {
+            let selected = selection.wrappedValue == tab
+            let focused = focusedTVTab == tab
+            return Button {
+                // A remote click, not moving focus, changes the active page.
+                selection.wrappedValue = tab
+            } label: {
+                Group {
+                    if let symbol {
+                        Image(systemName: symbol)
+                            .font(.system(size: 25, weight: .semibold))
+                            .frame(width: 46)
+                    } else {
+                        Text(title)
+                            .font(.system(size: 21, weight: .semibold))
                     }
                 }
-
-                if sportsTabEnabled {
-                    Tab(value: AppTab.sports) {
-                        activeOnly(.sports, selection: selection.wrappedValue) { SportFrameHome() }
-                    } label: {
-                        Text("SportsZone")
-                    }
-                }
-
-                if tabs.showsTab(.movies) {
-                    Tab(value: AppTab.movies) {
-                        activeOnly(.movies, selection: selection.wrappedValue) { MoviesView() }
-                    } label: {
-                        Text("Movies")
-                    }
-                }
-
-                if tabs.showsTab(.series) {
-                    Tab(value: AppTab.series) {
-                        activeOnly(.series, selection: selection.wrappedValue) { SeriesView() }
-                    } label: {
-                        Text("Series")
-                    }
-                }
-
-                Tab(value: AppTab.search) {
-                    activeOnly(.search, selection: selection.wrappedValue) { SearchView() }
-                } label: {
-                    Image(systemName: "magnifyingglass")
-                }
-
-                Tab(value: AppTab.settings) {
-                    activeOnly(.settings, selection: selection.wrappedValue) { SettingsView() }
-                } label: {
-                    Image(systemName: "gear")
+                .foregroundStyle(focused ? Color.black : Color.white)
+                .padding(.horizontal, 17)
+                .frame(height: 50)
+                .background(
+                    Capsule().fill(focused ? Color.white :
+                        (selected ? Color(red: 0.07, green: 0.36, blue: 0.77) : Color.clear))
+                )
+                .overlay {
+                    Capsule().strokeBorder(
+                        focused ? Color.cyan : (selected ? Color.cyan.opacity(0.3) : .clear),
+                        lineWidth: focused ? 2 : 1
+                    )
                 }
             }
+            .buttonStyle(.plain)
+            .focused($focusedTVTab, equals: tab)
+            .accessibilityLabel(title)
         }
 
         /// Whether something layered over the tabs owns the screen: tvOS focus is
