@@ -1,9 +1,9 @@
 {
   "images" : [
     {
+      "filename" : "icon-mac-512x512@2x.png",
       "idiom" : "universal",
       "platform" : "ios",
-      "filename" : "DreamCAST-TV-2.png",
       "size" : "1024x1024"
     },
     {

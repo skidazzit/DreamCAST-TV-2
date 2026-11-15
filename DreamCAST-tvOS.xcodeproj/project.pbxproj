@@ -86,104 +86,104 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		C6339AC72FE20238008DDD93 /* Lume.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; name = "DreamCAST TV StoreKit"; path = Lume.storekit; sourceTree = "<group>"; };
-		C67C02C02F880F2200842DBA /* DreamCASTTV.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "DreamCAST TV.app"; path = DreamCASTTV.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C67C02D12F880F2400842DBA /* LumeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "DreamCAST TV Tests.xctest"; path = LumeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		C67C02DB2F880F2400842DBA /* LumeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "DreamCAST TV UI Tests.xctest"; path = LumeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		C6AA31012FDD00020000AB01 /* LumeWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; name = "DreamCAST TV Widgets.appex"; path = LumeWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		C6BD5701000000000000A002 /* LumeTopShelf.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; name = "DreamCAST TV Top Shelf.appex"; path = LumeTopShelf.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		C6BE110000000000000000A1 /* LumePerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "DreamCAST TV Performance Tests.xctest"; path = LumePerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6339AC72FE20238008DDD93 /* DreamCAST TV StoreKit */ = {isa = PBXFileReference; lastKnownFileType = text; name = "DreamCAST TV StoreKit"; path = Lume.storekit; sourceTree = "<group>"; };
+		C67C02C02F880F2200842DBA /* DreamCASTTV.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DreamCASTTV.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C67C02D12F880F2400842DBA /* LumeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LumeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C67C02DB2F880F2400842DBA /* LumeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LumeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6AA31012FDD00020000AB01 /* LumeWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LumeWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6BD5701000000000000A002 /* LumeTopShelf.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LumeTopShelf.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6BE110000000000000000A1 /* LumePerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LumePerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		C67C02E32F880F2400842DBA /* Exceptions for "Lume" folder in "Lume" target */ = {
+		C67C02E32F880F2400842DBA /* Exceptions for "DreamCAST TV" folder in "DreamCAST TV" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = C67C02BF2F880F2200842DBA /* Lume */;
+			target = C67C02BF2F880F2200842DBA /* DreamCAST TV */;
 		};
-		C6AA310F2FDD00020000AB0F /* Exceptions for "LumeWidgets" folder in "LumeWidgets" target */ = {
+		C6AA310F2FDD00020000AB0F /* Exceptions for "DreamCAST TV Widgets" folder in "DreamCAST TV Widgets" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = C6AA31032FDD00020000AB03 /* LumeWidgets */;
+			target = C6AA31032FDD00020000AB03 /* DreamCAST TV Widgets */;
 		};
-		C6AA31102FDD00020000AB10 /* Exceptions for "LumeWidgets" folder in "Lume" target */ = {
+		C6AA31102FDD00020000AB10 /* Exceptions for "DreamCAST TV Widgets" folder in "DreamCAST TV" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				DownloadActivityAttributes.swift,
 			);
-			target = C67C02BF2F880F2200842DBA /* Lume */;
+			target = C67C02BF2F880F2200842DBA /* DreamCAST TV */;
 		};
-		C6BD5701000000000000C002 /* Exceptions for "LumeTopShelf" folder in "LumeTopShelf" target */ = {
+		C6BD5701000000000000C002 /* Exceptions for "DreamCAST TV Top Shelf" folder in "DreamCAST TV Top Shelf" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = C6BD5701000000000000E001 /* LumeTopShelf */;
+			target = C6BD5701000000000000E001 /* DreamCAST TV Top Shelf */;
 		};
-		C6E0F1A52FE0000000000001 /* Exceptions for "LumeTests" folder in "LumeTests" target */ = {
+		C6E0F1A52FE0000000000001 /* Exceptions for "DreamCAST TV Tests" folder in "DreamCAST TV Tests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Fixtures/Hue/README.md,
 			);
-			target = C67C02D02F880F2400842DBA /* LumeTests */;
+			target = C67C02D02F880F2400842DBA /* DreamCAST TV Tests */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		C67C02C22F880F2200842DBA /* Lume */ = {
+		C67C02C22F880F2200842DBA /* DreamCAST TV */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				C67C02E32F880F2400842DBA /* Exceptions for "Lume" folder in "Lume" target */,
+				C67C02E32F880F2400842DBA /* Exceptions for "DreamCAST TV" folder in "DreamCAST TV" target */,
 			);
 			name = "DreamCAST TV";
 			path = Lume;
 			sourceTree = "<group>";
 		};
-		C67C02D42F880F2400842DBA /* LumeTests */ = {
+		C67C02D42F880F2400842DBA /* DreamCAST TV Tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				C6E0F1A52FE0000000000001 /* Exceptions for "LumeTests" folder in "LumeTests" target */,
+				C6E0F1A52FE0000000000001 /* Exceptions for "DreamCAST TV Tests" folder in "DreamCAST TV Tests" target */,
 			);
 			name = "DreamCAST TV Tests";
 			path = LumeTests;
 			sourceTree = "<group>";
 		};
-		C67C02DE2F880F2400842DBA /* LumeUITests */ = {
+		C67C02DE2F880F2400842DBA /* DreamCAST TV UI Tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			name = "DreamCAST TV UI Tests";
 			path = LumeUITests;
 			sourceTree = "<group>";
 		};
-		C6AA31022FDD00020000AB02 /* LumeWidgets */ = {
+		C6AA31022FDD00020000AB02 /* DreamCAST TV Widgets */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				C6AA31102FDD00020000AB10 /* Exceptions for "LumeWidgets" folder in "Lume" target */,
-				C6AA310F2FDD00020000AB0F /* Exceptions for "LumeWidgets" folder in "LumeWidgets" target */,
+				C6AA31102FDD00020000AB10 /* Exceptions for "DreamCAST TV Widgets" folder in "DreamCAST TV" target */,
+				C6AA310F2FDD00020000AB0F /* Exceptions for "DreamCAST TV Widgets" folder in "DreamCAST TV Widgets" target */,
 			);
 			name = "DreamCAST TV Widgets";
 			path = LumeWidgets;
 			sourceTree = "<group>";
 		};
-		C6BD5701000000000000B001 /* LumeShared */ = {
+		C6BD5701000000000000B001 /* DreamCAST TV Shared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			name = "DreamCAST TV Shared";
 			path = LumeShared;
 			sourceTree = "<group>";
 		};
-		C6BD5701000000000000B003 /* LumeTopShelf */ = {
+		C6BD5701000000000000B003 /* DreamCAST TV Top Shelf */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				C6BD5701000000000000C002 /* Exceptions for "LumeTopShelf" folder in "LumeTopShelf" target */,
+				C6BD5701000000000000C002 /* Exceptions for "DreamCAST TV Top Shelf" folder in "DreamCAST TV Top Shelf" target */,
 			);
 			name = "DreamCAST TV Top Shelf";
 			path = LumeTopShelf;
 			sourceTree = "<group>";
 		};
-		C6BE110000000000000000A2 /* LumePerformanceTests */ = {
+		C6BE110000000000000000A2 /* DreamCAST TV Performance Tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			name = "DreamCAST TV Performance Tests";
 			path = LumePerformanceTests;
@@ -247,14 +247,14 @@
 		C67C02B72F880F2200842DBA = {
 			isa = PBXGroup;
 			children = (
-				C6339AC72FE20238008DDD93 /* Lume.storekit */,
-				C67C02C22F880F2200842DBA /* Lume */,
-				C6AA31022FDD00020000AB02 /* LumeWidgets */,
-				C67C02D42F880F2400842DBA /* LumeTests */,
-				C67C02DE2F880F2400842DBA /* LumeUITests */,
-				C6BE110000000000000000A2 /* LumePerformanceTests */,
-				C6BD5701000000000000B001 /* LumeShared */,
-				C6BD5701000000000000B003 /* LumeTopShelf */,
+				C6339AC72FE20238008DDD93 /* DreamCAST TV StoreKit */,
+				C67C02C22F880F2200842DBA /* DreamCAST TV */,
+				C6AA31022FDD00020000AB02 /* DreamCAST TV Widgets */,
+				C67C02D42F880F2400842DBA /* DreamCAST TV Tests */,
+				C67C02DE2F880F2400842DBA /* DreamCAST TV UI Tests */,
+				C6BE110000000000000000A2 /* DreamCAST TV Performance Tests */,
+				C6BD5701000000000000B001 /* DreamCAST TV Shared */,
+				C6BD5701000000000000B003 /* DreamCAST TV Top Shelf */,
 				C67C02C12F880F2200842DBA /* Products */,
 			);
 			sourceTree = "<group>";
@@ -275,9 +275,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		C67C02BF2F880F2200842DBA /* Lume */ = {
+		C67C02BF2F880F2200842DBA /* DreamCAST TV */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C67C02E42F880F2400842DBA /* Build configuration list for PBXNativeTarget "Lume" */;
+			buildConfigurationList = C67C02E42F880F2400842DBA /* Build configuration list for PBXNativeTarget "DreamCAST TV" */;
 			buildPhases = (
 				C66C81692FC5A59D0048468D /* Fix Embedded Framework CFBundleIdentifier */,
 				C67C02BC2F880F2200842DBA /* Sources */,
@@ -294,8 +294,8 @@
 				C6BD5701000000000000F007 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				C67C02C22F880F2200842DBA /* Lume */,
-				C6BD5701000000000000B001 /* LumeShared */,
+				C67C02C22F880F2200842DBA /* DreamCAST TV */,
+				C6BD5701000000000000B001 /* DreamCAST TV Shared */,
 			);
 			name = "DreamCAST TV";
 			packageProductDependencies = (
@@ -311,9 +311,9 @@
 			productReference = C67C02C02F880F2200842DBA /* DreamCASTTV.app */;
 			productType = "com.apple.product-type.application";
 		};
-		C67C02D02F880F2400842DBA /* LumeTests */ = {
+		C67C02D02F880F2400842DBA /* DreamCAST TV Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C67C02E92F880F2400842DBA /* Build configuration list for PBXNativeTarget "LumeTests" */;
+			buildConfigurationList = C67C02E92F880F2400842DBA /* Build configuration list for PBXNativeTarget "DreamCAST TV Tests" */;
 			buildPhases = (
 				C67C02CD2F880F2400842DBA /* Sources */,
 				C67C02CE2F880F2400842DBA /* Frameworks */,
@@ -325,7 +325,7 @@
 				C67C02D32F880F2400842DBA /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				C67C02D42F880F2400842DBA /* LumeTests */,
+				C67C02D42F880F2400842DBA /* DreamCAST TV Tests */,
 			);
 			name = "DreamCAST TV Tests";
 			packageProductDependencies = (
@@ -334,9 +334,9 @@
 			productReference = C67C02D12F880F2400842DBA /* LumeTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		C67C02DA2F880F2400842DBA /* LumeUITests */ = {
+		C67C02DA2F880F2400842DBA /* DreamCAST TV UI Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C67C02EC2F880F2400842DBA /* Build configuration list for PBXNativeTarget "LumeUITests" */;
+			buildConfigurationList = C67C02EC2F880F2400842DBA /* Build configuration list for PBXNativeTarget "DreamCAST TV UI Tests" */;
 			buildPhases = (
 				C67C02D72F880F2400842DBA /* Sources */,
 				C67C02D82F880F2400842DBA /* Frameworks */,
@@ -348,7 +348,7 @@
 				C67C02DD2F880F2400842DBA /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				C67C02DE2F880F2400842DBA /* LumeUITests */,
+				C67C02DE2F880F2400842DBA /* DreamCAST TV UI Tests */,
 			);
 			name = "DreamCAST TV UI Tests";
 			packageProductDependencies = (
@@ -357,9 +357,9 @@
 			productReference = C67C02DB2F880F2400842DBA /* LumeUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
-		C6AA31032FDD00020000AB03 /* LumeWidgets */ = {
+		C6AA31032FDD00020000AB03 /* DreamCAST TV Widgets */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C6AA31072FDD00020000AB07 /* Build configuration list for PBXNativeTarget "LumeWidgets" */;
+			buildConfigurationList = C6AA31072FDD00020000AB07 /* Build configuration list for PBXNativeTarget "DreamCAST TV Widgets" */;
 			buildPhases = (
 				C6AA31042FDD00020000AB04 /* Sources */,
 				C6AA31052FDD00020000AB05 /* Frameworks */,
@@ -370,8 +370,8 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				C6AA31022FDD00020000AB02 /* LumeWidgets */,
-				C6BD5701000000000000B001 /* LumeShared */,
+				C6AA31022FDD00020000AB02 /* DreamCAST TV Widgets */,
+				C6BD5701000000000000B001 /* DreamCAST TV Shared */,
 			);
 			name = "DreamCAST TV Widgets";
 			packageProductDependencies = (
@@ -380,9 +380,9 @@
 			productReference = C6AA31012FDD00020000AB01 /* LumeWidgets.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		C6BD5701000000000000E001 /* LumeTopShelf */ = {
+		C6BD5701000000000000E001 /* DreamCAST TV Top Shelf */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C6BD5701000000000000E002 /* Build configuration list for PBXNativeTarget "LumeTopShelf" */;
+			buildConfigurationList = C6BD5701000000000000E002 /* Build configuration list for PBXNativeTarget "DreamCAST TV Top Shelf" */;
 			buildPhases = (
 				C6BD5701000000000000E003 /* Sources */,
 				C6BD5701000000000000E004 /* Frameworks */,
@@ -393,8 +393,8 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				C6BD5701000000000000B001 /* LumeShared */,
-				C6BD5701000000000000B003 /* LumeTopShelf */,
+				C6BD5701000000000000B001 /* DreamCAST TV Shared */,
+				C6BD5701000000000000B003 /* DreamCAST TV Top Shelf */,
 			);
 			name = "DreamCAST TV Top Shelf";
 			packageProductDependencies = (
@@ -403,9 +403,9 @@
 			productReference = C6BD5701000000000000A002 /* LumeTopShelf.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		C6BE110000000000000000A6 /* LumePerformanceTests */ = {
+		C6BE110000000000000000A6 /* DreamCAST TV Performance Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C6BE110000000000000000A9 /* Build configuration list for PBXNativeTarget "LumePerformanceTests" */;
+			buildConfigurationList = C6BE110000000000000000A9 /* Build configuration list for PBXNativeTarget "DreamCAST TV Performance Tests" */;
 			buildPhases = (
 				C6BE110000000000000000A4 /* Sources */,
 				C6BE110000000000000000A3 /* Frameworks */,
@@ -417,7 +417,7 @@
 				C6BE110000000000000000A8 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				C6BE110000000000000000A2 /* LumePerformanceTests */,
+				C6BE110000000000000000A2 /* DreamCAST TV Performance Tests */,
 			);
 			name = "DreamCAST TV Performance Tests";
 			packageProductDependencies = (
@@ -458,7 +458,7 @@
 					};
 				};
 			};
-			buildConfigurationList = C67C02BB2F880F2200842DBA /* Build configuration list for PBXProject "Lume" */;
+			buildConfigurationList = C67C02BB2F880F2200842DBA /* Build configuration list for PBXProject "DreamCAST-tvOS" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -490,12 +490,12 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				C67C02BF2F880F2200842DBA /* Lume */,
-				C6AA31032FDD00020000AB03 /* LumeWidgets */,
-				C67C02D02F880F2400842DBA /* LumeTests */,
-				C67C02DA2F880F2400842DBA /* LumeUITests */,
-				C6BE110000000000000000A6 /* LumePerformanceTests */,
-				C6BD5701000000000000E001 /* LumeTopShelf */,
+				C67C02BF2F880F2200842DBA /* DreamCAST TV */,
+				C6AA31032FDD00020000AB03 /* DreamCAST TV Widgets */,
+				C67C02D02F880F2400842DBA /* DreamCAST TV Tests */,
+				C67C02DA2F880F2400842DBA /* DreamCAST TV UI Tests */,
+				C6BE110000000000000000A6 /* DreamCAST TV Performance Tests */,
+				C6BD5701000000000000E001 /* DreamCAST TV Top Shelf */,
 			);
 		};
 /* End PBXProject section */
@@ -636,18 +636,18 @@
 /* Begin PBXTargetDependency section */
 		C67C02D32F880F2400842DBA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = C67C02BF2F880F2200842DBA /* Lume */;
+			target = C67C02BF2F880F2200842DBA /* DreamCAST TV */;
 			targetProxy = C67C02D22F880F2400842DBA /* PBXContainerItemProxy */;
 		};
 		C67C02DD2F880F2400842DBA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = C67C02BF2F880F2200842DBA /* Lume */;
+			target = C67C02BF2F880F2200842DBA /* DreamCAST TV */;
 			targetProxy = C67C02DC2F880F2400842DBA /* PBXContainerItemProxy */;
 		};
 		C6AA310E2FDD00020000AB0E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			platformFilter = ios;
-			target = C6AA31032FDD00020000AB03 /* LumeWidgets */;
+			target = C6AA31032FDD00020000AB03 /* DreamCAST TV Widgets */;
 			targetProxy = C6AA310D2FDD00020000AB0D /* PBXContainerItemProxy */;
 		};
 		C6BD5701000000000000F007 /* PBXTargetDependency */ = {
@@ -655,12 +655,12 @@
 			platformFilters = (
 				tvos,
 			);
-			target = C6BD5701000000000000E001 /* LumeTopShelf */;
+			target = C6BD5701000000000000E001 /* DreamCAST TV Top Shelf */;
 			targetProxy = C6BD5701000000000000F005 /* PBXContainerItemProxy */;
 		};
 		C6BE110000000000000000A8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = C67C02BF2F880F2200842DBA /* Lume */;
+			target = C67C02BF2F880F2200842DBA /* DreamCAST TV */;
 			targetProxy = C6BE110000000000000000A7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -672,14 +672,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = DreamCASTTV;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CODE_SIGN_ENTITLEMENTS = Lume/DreamCASTTV-tvOS.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Lume/DreamCASTTV-tvOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvos*]" = "Lume/DreamCASTTV-tvOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvsimulator*]" = "Lume/DreamCASTTV-tvOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "Lume/DreamCASTTV-iOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = "Lume/DreamCASTTV-iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				ENABLE_APP_SANDBOX = YES;
 				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -712,8 +712,8 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
-				PRODUCT_NAME = DreamCASTTV;
 				PRODUCT_MODULE_NAME = Lume;
+				PRODUCT_NAME = DreamCASTTV;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -736,14 +736,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = DreamCASTTV;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CODE_SIGN_ENTITLEMENTS = Lume/DreamCASTTV-tvOS.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Lume/DreamCASTTV-tvOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvos*]" = "Lume/DreamCASTTV-tvOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvsimulator*]" = "Lume/DreamCASTTV-tvOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "Lume/DreamCASTTV-iOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = "Lume/DreamCASTTV-iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				ENABLE_APP_SANDBOX = YES;
 				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -776,8 +776,8 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
-				PRODUCT_NAME = DreamCASTTV;
 				PRODUCT_MODULE_NAME = Lume;
+				PRODUCT_NAME = DreamCASTTV;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -916,7 +916,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -967,7 +967,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -992,7 +992,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -1073,14 +1073,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = DreamCASTTV;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CODE_SIGN_ENTITLEMENTS = Lume/DreamCASTTV-FreeTesting.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Lume/DreamCASTTV-FreeTesting.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvos*]" = "Lume/DreamCASTTV-FreeTesting.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvsimulator*]" = "Lume/DreamCASTTV-FreeTesting.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "Lume/DreamCASTTV-iOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = "Lume/DreamCASTTV-iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				ENABLE_APP_SANDBOX = YES;
 				"ENABLE_APP_SANDBOX[sdk=macosx*]" = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -1113,8 +1113,8 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
-				PRODUCT_NAME = DreamCASTTV;
 				PRODUCT_MODULE_NAME = Lume;
+				PRODUCT_NAME = DreamCASTTV;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1162,7 +1162,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -1188,7 +1188,7 @@
 				CODE_SIGN_ENTITLEMENTS = LumeWidgets/LumeWidgets.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeWidgets/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
@@ -1220,7 +1220,7 @@
 				CODE_SIGN_ENTITLEMENTS = LumeWidgets/LumeWidgets.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeWidgets/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
@@ -1252,7 +1252,7 @@
 				CODE_SIGN_ENTITLEMENTS = LumeWidgets/LumeWidgets.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeWidgets/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
@@ -1284,7 +1284,7 @@
 				CODE_SIGN_ENTITLEMENTS = LumeTopShelf/LumeTopShelf.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeTopShelf/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
@@ -1315,7 +1315,7 @@
 				CODE_SIGN_ENTITLEMENTS = LumeTopShelf/LumeTopShelf.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeTopShelf/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
@@ -1343,10 +1343,10 @@
 		C6BD5701000000000000E008 /* Sideload */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Lume/DreamCASTTV-FreeTesting.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Lume/DreamCASTTV-FreeTesting.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeTopShelf/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
@@ -1377,7 +1377,7 @@
 				CODE_SIGN_ENTITLEMENTS = LumeTopShelf/LumeTopShelf.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeTopShelf/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
@@ -1408,7 +1408,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -1434,7 +1434,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -1460,7 +1460,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -1486,7 +1486,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -1568,10 +1568,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = DreamCASTTV;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CODE_SIGN_ENTITLEMENTS = Lume/DreamCASTTV-tvOS.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Lume/DreamCASTTV-tvOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				ENABLE_APP_SANDBOX = YES;
 				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -1604,8 +1604,8 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 3.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
-				PRODUCT_NAME = DreamCASTTV;
 				PRODUCT_MODULE_NAME = Lume;
+				PRODUCT_NAME = DreamCASTTV;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1653,7 +1653,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -1679,7 +1679,7 @@
 				CODE_SIGN_ENTITLEMENTS = LumeWidgets/LumeWidgets.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P4AHC7Y8S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LumeWidgets/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "DreamCAST TV";
@@ -1708,7 +1708,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C67C02BB2F880F2200842DBA /* Build configuration list for PBXProject "Lume" */ = {
+		C67C02BB2F880F2200842DBA /* Build configuration list for PBXProject "DreamCAST-tvOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C67C02E72F880F2400842DBA /* Debug */,
@@ -1719,7 +1719,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C67C02E42F880F2400842DBA /* Build configuration list for PBXNativeTarget "Lume" */ = {
+		C67C02E42F880F2400842DBA /* Build configuration list for PBXNativeTarget "DreamCAST TV" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C67C02E52F880F2400842DBA /* Debug */,
@@ -1730,7 +1730,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C67C02E92F880F2400842DBA /* Build configuration list for PBXNativeTarget "LumeTests" */ = {
+		C67C02E92F880F2400842DBA /* Build configuration list for PBXNativeTarget "DreamCAST TV Tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C67C02EA2F880F2400842DBA /* Debug */,
@@ -1741,7 +1741,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C67C02EC2F880F2400842DBA /* Build configuration list for PBXNativeTarget "LumeUITests" */ = {
+		C67C02EC2F880F2400842DBA /* Build configuration list for PBXNativeTarget "DreamCAST TV UI Tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C67C02ED2F880F2400842DBA /* Debug */,
@@ -1752,7 +1752,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C6AA31072FDD00020000AB07 /* Build configuration list for PBXNativeTarget "LumeWidgets" */ = {
+		C6AA31072FDD00020000AB07 /* Build configuration list for PBXNativeTarget "DreamCAST TV Widgets" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C6AA31082FDD00020000AB08 /* Debug */,
@@ -1763,7 +1763,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C6BD5701000000000000E002 /* Build configuration list for PBXNativeTarget "LumeTopShelf" */ = {
+		C6BD5701000000000000E002 /* Build configuration list for PBXNativeTarget "DreamCAST TV Top Shelf" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C6BD5701000000000000E006 /* Debug */,
@@ -1774,7 +1774,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C6BE110000000000000000A9 /* Build configuration list for PBXNativeTarget "LumePerformanceTests" */ = {
+		C6BE110000000000000000A9 /* Build configuration list for PBXNativeTarget "DreamCAST TV Performance Tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C6BE110000000000000000AA /* Debug */,
