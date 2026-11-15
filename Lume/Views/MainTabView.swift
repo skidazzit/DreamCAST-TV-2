@@ -190,6 +190,19 @@ struct MainTabView: View {
                     sharedLivePlayback.close()
                 #endif
             }
+            .onChange(of: contentRestriction.visibilityToken) {
+                #if os(tvOS)
+                    // Hiding or restricting a playing channel must revoke it
+                    // from the always-mounted player as well as the browse list.
+                    if let media = sharedLivePlayback.miniMedia,
+                       case let .live(id) = media.contentRef {
+                        let stream = PlayerContentLookup.liveStream(id, in: modelContext)
+                        if stream == nil || contentRestriction.hides(categoryID: stream?.categoryId) {
+                            sharedLivePlayback.close()
+                        }
+                    }
+                #endif
+            }
             .onChange(of: scenePhase) { _, phase in
                 // Returning to the foreground re-checks staleness — for a long-lived
                 // app this is the practical equivalent of "on launch".
