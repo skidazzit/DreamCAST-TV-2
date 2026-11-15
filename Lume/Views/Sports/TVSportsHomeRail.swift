@@ -346,7 +346,7 @@ struct TVSportsZoneHomeRail: View {
             }
         }
         .fullScreenCover(item: $selectedEvent) { event in
-            SportFrameMatchSheet(event: event) { channel in
+            SportFrameMatchSheet(event: event) { channel, _ in
                 guard let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
                 selectedEvent = nil
                 Task { @MainActor in
