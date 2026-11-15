@@ -1841,14 +1841,17 @@
 		};
 		C6AA10022FDD00010000AA02 /* LumeEngine */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = C6AA10032FDD00010000AA03 /* XCLocalSwiftPackageReference "../LumeEngine" */;
 			productName = LumeEngine;
 		};
 		C6BB20022FDE00030000BB02 /* LumeRecorderKit */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = C6BB20032FDE00030000BB03 /* XCLocalSwiftPackageReference "../LumeRecorder/Kit" */;
 			productName = LumeRecorderKit;
 		};
 		C6CC30022FDF00040000CC02 /* LumeCloudKit */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = C6CC30032FDF00040000CC03 /* XCLocalSwiftPackageReference "../LumeCloud/LumeCloudKit" */;
 			productName = LumeCloudKit;
 		};
 		C6CC40022FE000040000CC02 /* GoogleCastDynamic */ = {
@@ -1858,6 +1861,7 @@
 		};
 		C6DD50022FE100050000DD02 /* LumeAetherBridge */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = C6DD50032FE100050000DD03 /* XCLocalSwiftPackageReference "LumeAetherBridge" */;
 			productName = LumeAetherBridge;
 		};
 		C6FF000B2FC5A59D00484602 /* VLCKit */ = {
