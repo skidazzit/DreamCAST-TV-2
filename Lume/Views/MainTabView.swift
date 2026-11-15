@@ -467,21 +467,27 @@ struct MainTabView: View {
                             .font(.system(size: 21, weight: .semibold))
                     }
                 }
-                .foregroundStyle(focused ? Color.black : Color.white)
+                .foregroundStyle(Color.white)
                 .padding(.horizontal, 17)
                 .frame(height: 50)
+                // No white fill on focus. Keep the selected tab blue, and
+                // highlight remote focus with a subtle cyan outline only.
                 .background(
-                    Capsule().fill(focused ? Color.white :
-                        (selected ? Color(red: 0.07, green: 0.36, blue: 0.77) : Color.clear))
+                    Capsule().fill(
+                        selected ? Color(red: 0.07, green: 0.36, blue: 0.77)
+                                 : (focused ? Color(red: 0.075, green: 0.17, blue: 0.30) : .clear)
+                    )
                 )
                 .overlay {
                     Capsule().strokeBorder(
-                        focused ? Color.cyan : (selected ? Color.cyan.opacity(0.3) : .clear),
-                        lineWidth: focused ? 2 : 1
+                        focused ? Color.cyan.opacity(0.9) : .clear,
+                        lineWidth: focused ? 2 : 0
                     )
                 }
             }
             .buttonStyle(.plain)
+            // Disable tvOS's large white focus plate and zoom animation.
+            .focusEffectDisabled()
             .focused($focusedTVTab, equals: tab)
             .onExitCommand { handleTVBack() }
             .accessibilityLabel(title)
