@@ -171,9 +171,7 @@ struct SportFrameHome: View {
 
     var body: some View {
         ZStack {
-            TVAmbientBackground(hero: nil)
-                .ignoresSafeArea()
-
+            // The app root paints a single continuous glow for all tabs.
             VStack(spacing: 0) {
                 // A single player host remains mounted while the main page
                 // and league pages exchange their scrollable content.
