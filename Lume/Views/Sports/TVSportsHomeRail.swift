@@ -117,7 +117,7 @@ import SwiftUI
                                 .lineLimit(2)
                         }
                         Spacer(minLength: 12)
-                        Image(systemName: "crown.fill")
+                        Text(Image(systemName: "crown.fill"))
                             .font(.title3.weight(.bold))
                             .foregroundStyle(.white.opacity(0.6))
                             .accessibilityHidden(true)
