@@ -390,19 +390,25 @@ struct EPGProgramBlock: View {
     }
 
     private var fill: Color {
-        if isCard {
-            return EPGColors.cardFill
-        }
-        // A focused gap keeps a light fill: a no-EPG row is one gap
-        // spanning the whole track, and a solid card bar reads as noise.
-        if isFocused {
-            return .primary.opacity(0.18)
-        }
+        if isCard { return EPGColors.cardFill }
+        #if os(tvOS)
+        // The reference uses slate glass tiles instead of flat grey strips.
+        return isFocused
+            ? TVNeonTheme.electricBlue.opacity(0.26)
+            : Color(red: 0.13, green: 0.18, blue: 0.27).opacity(isLive ? 0.94 : 0.80)
+        #else
+        // A focused gap keeps a light fill on touch platforms.
+        if isFocused { return .primary.opacity(0.18) }
         return .primary.opacity(isLive ? 0.12 : 0.05)
+        #endif
     }
 
     private var borderColor: Color {
+        #if os(tvOS)
+        isCard ? TVNeonTheme.iceBlue : .white.opacity(0.19)
+        #else
         isCard ? EPGColors.cardBorder : .primary.opacity(0.1)
+        #endif
     }
 
     private var opacity: Double {
