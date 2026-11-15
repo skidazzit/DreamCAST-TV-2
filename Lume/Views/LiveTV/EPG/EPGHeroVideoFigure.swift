@@ -38,7 +38,7 @@
             .clipShape(shape)
             .overlay {
                 if sharedPlayback?.miniMedia == nil {
-                    shape.strokeBorder(.white.opacity(0.18), lineWidth: 1)
+                    shape.strokeBorder(TVNeonTheme.iceBlue.opacity(0.86), lineWidth: 2)
                 }
             }
             .background {
@@ -46,7 +46,7 @@
                 // shared player. The single root surface fills this slot.
                 if sharedPlayback?.miniMedia == nil {
                     shape.fill(.black)
-                        .shadow(color: .black.opacity(0.5), radius: 35, y: 30)
+                        .shadow(color: TVNeonTheme.electricBlue.opacity(0.26), radius: 19, y: 8)
                 }
             }
         }
