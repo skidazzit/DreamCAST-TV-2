@@ -244,28 +244,32 @@ struct MainTabView: View {
     @ViewBuilder
     private func persistentTabHost(selection: Binding<AppTab>, tabs: Set<PlaylistTab>) -> some View {
         #if os(tvOS)
-            // The decoder lives outside activeOnly. Every page exposes a real
-            // 16:9 hero slot and its measured position locates this single view.
-            // No guessed offsets and no player covering focusable page content.
-            ZStack(alignment: .topLeading) {
-                tabView(selection: selection, tabs: tabs)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                if sharedLivePlayback.miniMedia != nil,
-                   let frame = livePlayerSlotFrame, frame.width > 0, frame.height > 0 {
-                    TVPersistentMiniPlayer(session: sharedLivePlayback)
-                        .frame(width: frame.width, height: frame.height)
-                        .position(x: frame.midX, y: frame.midY)
-                        .zIndex(1)
+            // Anchor the single decoder to the guide's actual hero bounds.
+            // Resolving the anchor inside this TabView overlay avoids counting
+            // the tvOS safe-area offsets a second time (80pt / 64pt).
+            tabView(selection: selection, tabs: tabs)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .overlayPreferenceValue(TVPlayerSlotAnchorKey.self) { anchor in
+                    GeometryReader { geometry in
+                        let measured = anchor.map { geometry[$0] }
+                        let slot = measured ?? livePlayerSlotFrame
+                        ZStack(alignment: .topLeading) {
+                            if sharedLivePlayback.miniMedia != nil,
+                               let slot, slot.width > 0, slot.height > 0 {
+                                TVPersistentMiniPlayer(session: sharedLivePlayback)
+                                    .frame(width: slot.width, height: slot.height)
+                                    .position(x: slot.midX, y: slot.midY)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .onChange(of: measured, initial: true) { _, next in
+                            // Retain the last slot during a tab transition so
+                            // the player/decoder is never unmounted for one frame.
+                            guard let next, next.width > 0, next.height > 0 else { return }
+                            if livePlayerSlotFrame != next { livePlayerSlotFrame = next }
+                        }
+                    }
                 }
-            }
-            .coordinateSpace(name: "dreamcastPageRoot")
-            .onPreferenceChange(TVPlayerSlotFrameKey.self) { frame in
-                // Retain the last frame through a one-frame tab transition.
-                // That keeps the live decoder mounted instead of reconnecting.
-                guard let frame, frame.width > 0, frame.height > 0 else { return }
-                if livePlayerSlotFrame != frame { livePlayerSlotFrame = frame }
-            }
             .environment(sharedLivePlayback)
             .guidePreviewSuspension(
                 sharedLivePlayback.guidePreview,
@@ -647,26 +651,21 @@ private extension View {
 }
 
 #if os(tvOS)
-/// A measured hero slot in normal page flow. The single video view remains
-/// owned by MainTabView and moves with this slot without losing decoder state.
+/// The guide and other tabs publish their real layout bounds. This is only
+/// an anchor, not a player; the app-root surface is mounted once above TabView.
 struct TVEmbeddedPlayerSlot: View {
     var body: some View {
-        GeometryReader { geometry in
-            Color.clear
-                .preference(
-                    key: TVPlayerSlotFrameKey.self,
-                    value: geometry.frame(in: .named("dreamcastPageRoot"))
-                )
-        }
-        .frame(width: 640, height: 360)
-        .accessibilityHidden(true)
+        Color.clear
+            .frame(width: 640, height: 360)
+            .anchorPreference(key: TVPlayerSlotAnchorKey.self, value: .bounds) { $0 }
+            .accessibilityHidden(true)
     }
 }
 
-struct TVPlayerSlotFrameKey: PreferenceKey {
-    static var defaultValue: CGRect? { nil }
+struct TVPlayerSlotAnchorKey: PreferenceKey {
+    static var defaultValue: Anchor<CGRect>? { nil }
 
-    static func reduce(value: inout CGRect?, nextValue: () -> CGRect?) {
+    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {
         if let next = nextValue() { value = next }
     }
 }
