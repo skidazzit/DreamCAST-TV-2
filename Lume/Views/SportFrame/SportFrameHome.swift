@@ -1363,6 +1363,8 @@ struct SportFrameMatchSheet: View {
     @State private var broadcasterChannels: [ResolvedChannel] = []
     @State private var searchingBroadcaster = false
     @State private var loading = true
+    @FocusState private var focusedBroadcaster: String?
+    @FocusState private var focusedChannel: String?
 
     private var broadcasterMatches: [ResolvedChannel] {
         broadcasterChannels
@@ -1406,19 +1408,39 @@ struct SportFrameMatchSheet: View {
                                         selectedBroadcaster = broadcaster.name
                                     } label: {
                                         HStack(spacing: 15) {
-                                            AsyncImage(url: broadcaster.logoURL) { image in image.resizable().scaledToFit() }
-                                                placeholder: { Image(systemName: "tv") }
-                                                .frame(width: 52, height: 36)
+                                            Color.clear.frame(width: 52, height: 36)
                                             Text(broadcaster.name).font(.system(size: 21)).lineLimit(2)
                                             Spacer(minLength: 0)
                                             if selectedBroadcaster == broadcaster.name {
-                                                Image(systemName: "checkmark.circle.fill").foregroundStyle(.cyan)
+                                                Text(Image(systemName: "checkmark.circle.fill"))
+                                                    .foregroundStyle(TVNeonTheme.iceBlue)
                                             }
                                         }
                                         .padding(10)
                                         .frame(maxWidth: .infinity, alignment: .leading)
+                                        .background {
+                                            RoundedRectangle(cornerRadius: 14)
+                                                .fill(focusedBroadcaster == broadcaster.name ||
+                                                      selectedBroadcaster == broadcaster.name
+                                                      ? TVNeonTheme.selection : TVNeonTheme.glass)
+                                        }
+                                        .overlay {
+                                            RoundedRectangle(cornerRadius: 14)
+                                                .strokeBorder(focusedBroadcaster == broadcaster.name
+                                                              ? TVNeonTheme.iceBlue : .clear,
+                                                              lineWidth: 2)
+                                        }
                                     }
-                                    .buttonStyle(.bordered)
+                                    .buttonStyle(.borderless)
+                                    .focusEffectDisabled()
+                                    .focused($focusedBroadcaster, equals: broadcaster.name)
+                                    .overlay(alignment: .leading) {
+                                        TVFixedFocusIcon(url: broadcaster.logoURL,
+                                                         systemName: "tv", size: 36)
+                                            .frame(width: 52, height: 36)
+                                            .padding(.leading, 10)
+                                            .allowsHitTesting(false)
+                                    }
                                 }
                             }
                         }
@@ -1483,17 +1505,39 @@ struct SportFrameMatchSheet: View {
     }
 
     private func channelRow(_ channel: ResolvedChannel) -> some View {
-        Button { onPlay(channel, broadcasterMatches + epgMatches) } label: {
-            HStack {
-                AsyncImage(url: channel.stream.streamIcon.flatMap(URL.init(string:))) { image in image.resizable().scaledToFit() }
-                    placeholder: { Image(systemName: "play.tv") }.frame(width: 60, height: 40)
+        let focused = focusedChannel == channel.id
+        return Button { onPlay(channel, broadcasterMatches + epgMatches) } label: {
+            HStack(spacing: 13) {
+                Color.clear.frame(width: 60, height: 40)
                 Text(channel.stream.name).font(.system(size: 21)).lineLimit(2)
                 Spacer()
-                Image(systemName: "play.fill")
+                Text(Image(systemName: "play.fill"))
+                    .font(.system(size: 20))
+                    .frame(width: 28, height: 30)
             }
-            .padding(.vertical, 7)
+            .padding(.horizontal, 13)
+            .frame(minHeight: 62)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(focused ? TVNeonTheme.selection : TVNeonTheme.glass)
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 14)
+                    .strokeBorder(focused ? TVNeonTheme.iceBlue : .white.opacity(0.1),
+                                  lineWidth: focused ? 2 : 1)
+            }
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(.borderless)
+        .focusEffectDisabled()
+        .focused($focusedChannel, equals: channel.id)
+        .overlay(alignment: .leading) {
+            TVFixedFocusIcon(url: channel.stream.streamIcon.flatMap(URL.init(string:)),
+                             systemName: "play.tv", size: 40)
+                .frame(width: 60, height: 40)
+                .padding(.leading, 13)
+                .allowsHitTesting(false)
+        }
     }
 
     private func makeFixture() -> SportsFixture {
