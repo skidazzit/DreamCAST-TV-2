@@ -100,7 +100,9 @@
                     // the panel's corner like the rest of the rows; it also
                     // holds the focused row's lift.
                     .padding(panelPadding)
+                    .padding(.bottom, 60)
                 }
+                .scrollIndicators(.visible)
                 // tvOS scroll views draw outside their bounds (for focus
                 // effects), so a long list would run out of the panel's
                 // bottom; it scrolls inside the glass instead.
