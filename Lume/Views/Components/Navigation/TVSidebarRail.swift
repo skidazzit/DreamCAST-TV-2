@@ -109,9 +109,15 @@
             }
             .frame(width: Self.width, alignment: .leading)
             .frame(maxHeight: .infinity, alignment: .top)
-            .background(panelShape.fill(.white.opacity(0.06)))
+            .background(panelShape.fill(
+                LinearGradient(
+                    colors: [Color(red: 0.055, green: 0.105, blue: 0.19),
+                             Color(red: 0.035, green: 0.055, blue: 0.12)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                )
+            ))
             .glassEffectCompat(.regular, in: panelShape)
-            .overlay(panelShape.strokeBorder(.white.opacity(0.12), lineWidth: 1))
+            .overlay(panelShape.strokeBorder(Color.cyan.opacity(0.25), lineWidth: 1))
             .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { panelFrame = $0 }
             .onChange(of: itemIDs) { _, ids in
                 // The focused row went away under focus (an entry turned off
@@ -256,7 +262,10 @@
                 .frame(maxWidth: .infinity, minHeight: 60, alignment: .leading)
                 .padding(.horizontal, rowInset)
                 .background(rowShape.fill(rowFill(isFocused: isItemFocused, isSelected: isSelected)))
-                .overlay(rowShape.strokeBorder(rowBorder(isFocused: isItemFocused, isSelected: isSelected), lineWidth: 1))
+                .overlay(rowShape.strokeBorder(rowBorder(isFocused: isItemFocused, isSelected: isSelected),
+                                               lineWidth: isItemFocused ? 2 : 1))
+                .shadow(color: isItemFocused ? Color.cyan.opacity(0.18) : .clear,
+                        radius: isItemFocused ? 14 : 0)
             }
             .buttonStyle(TVCardButtonStyle(focusScale: 1.03, suppressFocusEffects: suppressed))
             .focused($focused, equals: item.id)
@@ -276,19 +285,19 @@
         }
 
         private func textColor(isFocused: Bool, isSelected: Bool) -> Color {
-            if isFocused { return EPGColors.ink }
-            if isSelected { return .white }
+            if isFocused || isSelected { return .white }
             return .white.opacity(0.82)
         }
 
         private func rowFill(isFocused: Bool, isSelected: Bool) -> Color {
-            if isFocused { return EPGColors.cardFill }
-            if isSelected { return .white.opacity(0.16) }
+            if isFocused { return Color(red: 0.06, green: 0.39, blue: 0.87) }
+            if isSelected { return Color(red: 0.08, green: 0.25, blue: 0.51) }
             return .clear
         }
 
         private func rowBorder(isFocused: Bool, isSelected: Bool) -> Color {
-            isSelected && !isFocused ? .white.opacity(0.22) : .clear
+            if isFocused { return .cyan }
+            return isSelected ? .cyan.opacity(0.42) : .clear
         }
     }
 #endif
