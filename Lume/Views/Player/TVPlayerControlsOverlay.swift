@@ -71,7 +71,6 @@
         @State var epgNext: EPGListing?
         @State var seriesPlaylist: Playlist?
         @State var recentChannels: [LiveStream] = []
-        @State var sportsZoneChannels: [LiveStream] = []
         @State var recentNowTitles: [String: String] = [:]
         /// Programme-level context for the caption (the owning playlist),
         /// resolved once per stream off the main actor and held as a value.
@@ -184,10 +183,9 @@
                 )
                 .transition(.opacity)
             case .sportsZone:
-                TVPlayerRecentChannelsPanel(
-                    channels: sportsZoneChannels,
+                TVPlayerSportsZoneChannelsPanel(
+                    channels: sportsZonePlayback?.matchedChannels ?? [],
                     currentChannelID: liveStream?.id,
-                    nowTitles: [:],
                     focus: $focus,
                     onSelect: selectSportsZoneChannel,
                     onClose: closePanel
@@ -286,7 +284,7 @@
             }
             if media.isLive {
                 var tabs: [TabKind] = []
-                if !sportsZoneChannels.isEmpty { tabs.append(.sportsZone) }
+                if sportsZonePlayback?.matchedChannels.isEmpty == false { tabs.append(.sportsZone) }
                 if recentChannels.count > 1 { tabs.append(.recent) }
                 return tabs + [.info]
             }
