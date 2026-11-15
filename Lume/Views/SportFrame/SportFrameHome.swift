@@ -171,8 +171,7 @@ struct SportFrameHome: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(red: 0.03, green: 0.1, blue: 0.19), .black],
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
+            TVAmbientBackground(hero: nil)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
