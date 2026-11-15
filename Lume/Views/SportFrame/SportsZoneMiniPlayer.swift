@@ -303,4 +303,87 @@ struct SportsZoneMiniPlayer: View {
         .accessibilityLabel("SportsZone channel: \(media.title)")
     }
 }
+
+#if os(tvOS)
+/// One always-mounted mini-player, owned by MainTabView rather than its tabs.
+/// This keeps the same live decoder and audio running as viewers browse.
+struct TVPersistentMiniPlayer: View {
+    let session: SportsZonePlaybackSession
+
+    private var canShowVideo: Bool {
+        guard session.guidePreview.isSuspended else { return true }
+        return session.handle.owner == .fullScreen || session.handle.owner == .returning
+    }
+
+    private func tileID(_ media: PlayableMedia) -> String {
+        "\(media.id)-\(session.reloadToken)-\(session.guidePreview.restartToken)"
+    }
+
+    var body: some View {
+        if let media = session.miniMedia {
+            VStack(alignment: .leading, spacing: 12) {
+                ZStack {
+                    Color.black
+                    if !canShowVideo {
+                        Color.black
+                    } else if session.failedMediaID == media.id {
+                        Label("Stream unavailable", systemImage: "exclamationmark.triangle")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                    } else {
+                        MultiViewTilePlayer(
+                            media: media,
+                            isMuted: false,
+                            role: .guidePreview(handle: session.handle),
+                            onFailure: {
+                                guard session.miniMedia?.id == media.id,
+                                      session.fullScreenMedia == nil,
+                                      session.handle.owner == .preview,
+                                      canShowVideo else { return }
+                                session.failedMediaID = media.id
+                            }
+                        )
+                        .id(tileID(media))
+                    }
+                }
+                .frame(width: 352, height: 198)
+                .clipShape(RoundedRectangle(cornerRadius: 13))
+
+                HStack(spacing: 10) {
+                    Text(media.title)
+                        .font(.system(size: 19, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Button {
+                        session.openFullScreen()
+                    } label: {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    }
+                    .accessibilityLabel("Open live channel full screen")
+
+                    Button {
+                        session.close()
+                    } label: {
+                        Image(systemName: "stop.fill")
+                    }
+                    .accessibilityLabel("Stop live channel")
+                }
+                .buttonStyle(.bordered)
+            }
+            .padding(14)
+            .frame(width: 380)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+            .overlay {
+                RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(.white.opacity(0.18), lineWidth: 1)
+            }
+            .shadow(color: .black.opacity(0.5), radius: 16, y: 7)
+            .focusSection()
+            .accessibilityElement(children: .contain)
+        }
+    }
+}
+#endif
 #endif
