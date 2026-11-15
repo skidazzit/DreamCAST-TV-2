@@ -36,7 +36,11 @@
             }
             .frame(width: layout.videoWidth, height: layout.height)
             .clipShape(shape)
-            .overlay { shape.strokeBorder(.white.opacity(0.18), lineWidth: 1) }
+            .overlay {
+                if sharedPlayback?.miniMedia == nil {
+                    shape.strokeBorder(.white.opacity(0.18), lineWidth: 1)
+                }
+            }
             .background { shape.fill(.black).shadow(color: .black.opacity(0.5), radius: 35, y: 30) }
         }
 
