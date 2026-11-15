@@ -410,16 +410,14 @@ struct MainTabView: View {
         @ViewBuilder
         private func activeOnly(_ tab: AppTab, selection: AppTab, @ViewBuilder content: () -> some View) -> some View {
             if selection == tab {
-                if let media = sharedLivePlayback.miniMedia, tab != .liveTV || usesLiveList {
-                    // The header is in normal layout flow. It has a real video
-                    // slot on its right and browse content starts beneath it.
-                    VStack(spacing: 0) {
+                // Keep each tab's content in the same VStack when playback
+                // starts or stops; only the header enters or leaves.
+                VStack(spacing: 0) {
+                    if let media = sharedLivePlayback.miniMedia, tab != .liveTV || usesLiveList {
                         TVEmbeddedPageHeader(tab: tab, media: media)
-                        content()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
-                } else {
                     content()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             } else {
                 Color.clear
