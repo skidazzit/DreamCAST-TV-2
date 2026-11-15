@@ -323,63 +323,80 @@ struct TVPersistentMiniPlayer: View {
         "\(media.id)-\(session.reloadToken)-\(session.guidePreview.restartToken)"
     }
 
+    /// Space reserved by every page for controls below its video.
+    static let controlsHeight: CGFloat = 66
+
     var body: some View {
         if let media = session.miniMedia {
-            // The host supplies the size of each page's *real* hero slot.
-            // Only the frame changes between tabs, never this player's identity.
+            // The stream view itself stays mounted on every tab. The footer is
+            // below the video, so buttons never cover the broadcast picture.
             GeometryReader { geometry in
-                ZStack(alignment: .bottom) {
-                    videoSurface(for: media)
-                        .frame(width: geometry.size.width, height: geometry.size.height)
+                let pictureHeight = max(0, geometry.size.height - Self.controlsHeight)
 
-                    LinearGradient(
-                        colors: [.clear, .black.opacity(0.75)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: 82)
-                    .allowsHitTesting(false)
+                VStack(spacing: 0) {
+                    ZStack(alignment: .bottomLeading) {
+                        videoSurface(for: media)
+                            .frame(width: geometry.size.width, height: pictureHeight)
+
+                        LinearGradient(
+                            colors: [.clear, .black.opacity(0.72)],
+                            startPoint: .top, endPoint: .bottom
+                        )
+                        .frame(height: min(68, pictureHeight))
+                        .allowsHitTesting(false)
+
+                        HStack(spacing: 10) {
+                            Text("LIVE")
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 9)
+                                .padding(.vertical, 5)
+                                .background(Color.red.opacity(0.88), in: Capsule())
+
+                            Text(media.title)
+                                .font(.system(size: 19, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .lineLimit(1)
+                        }
+                        .padding(.horizontal, 13)
+                        .padding(.bottom, 10)
+                    }
+                    .frame(width: geometry.size.width, height: pictureHeight)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 20)
+                            .strokeBorder(TVNeonTheme.iceBlue.opacity(0.85), lineWidth: 2)
+                            .allowsHitTesting(false)
+                    }
 
                     HStack(spacing: 12) {
-                        Text("LIVE")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 9)
-                            .padding(.vertical, 5)
-                            .background(Color.red.opacity(0.88), in: Capsule())
-
-                        Text(media.title)
-                            .font(.system(size: 19, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .lineLimit(1)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Spacer(minLength: 0)
 
                         Button {
                             session.openFullScreen()
                         } label: {
-                            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                            Label("Full Screen", systemImage: "arrow.up.left.and.arrow.down.right")
+                                .font(.system(size: 18, weight: .semibold))
                         }
                         .accessibilityLabel("Open live channel full screen")
 
                         Button {
                             session.close()
                         } label: {
-                            Image(systemName: "stop.fill")
+                            Label("Stop", systemImage: "stop.fill")
+                                .font(.system(size: 18, weight: .semibold))
                         }
                         .accessibilityLabel("Stop live channel")
                     }
-                    .buttonStyle(.bordered)
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 10)
+                    .buttonStyle(.borderless)
+                    .focusEffectDisabled()
+                    .padding(.horizontal, 13)
+                    .frame(width: geometry.size.width, height: Self.controlsHeight)
+                    .background(TVNeonTheme.glass)
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
-                .clipShape(RoundedRectangle(cornerRadius: 22))
-                .shadow(color: TVNeonTheme.electricBlue.opacity(0.36), radius: 12)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 22)
-                        .strokeBorder(TVNeonTheme.iceBlue.opacity(0.9), lineWidth: 2)
-                        .allowsHitTesting(false)
-                }
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .shadow(color: TVNeonTheme.electricBlue.opacity(0.26), radius: 10)
             }
             .focusSection()
             .accessibilityElement(children: .contain)
