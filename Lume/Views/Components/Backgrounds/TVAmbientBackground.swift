@@ -31,6 +31,13 @@
         }
     }
 
+    /// App-root backdrop state. The guide writes the settled channel tint once;
+    /// tab changes read it without rebuilding the live playback view.
+    @MainActor @Observable
+    final class TVAmbientThemeSession {
+        var liveHero: GuideHeroModel?
+    }
+
     struct TVAmbientBackground: View {
         /// `nil` paints the Live TV accent; only this view reads its glow.
         let hero: GuideHeroModel?
