@@ -98,6 +98,10 @@
         /// Told when focus settles into (`true`) or out of (`false`) the rail.
         var onFocusChange: (Bool) -> Void = { _ in }
 
+        /// Coordinates Back focus with the app-root mini-player and menu.
+        /// Optional so standalone rail previews still work.
+        @Environment(TVBackFocusCoordinator.self) private var backFocus: TVBackFocusCoordinator?
+
         /// The focused row's id.
         @FocusState private var focused: String?
         /// Whether focus is settled inside the rail. Cleared when focus
@@ -175,6 +179,11 @@
             .onChange(of: focusRequest) { _, _ in
                 focusSelection(proxy)
             }
+            .onChange(of: backFocus?.sidebarFocusRequest) { _, _ in
+                // Back from a mini-player (or a page with no player) enters
+                // this exact tab's selected sidebar row, not a random row.
+                focusSelection(proxy)
+            }
             .onChange(of: focusHandOffRequest) { _, _ in
                 railOwnsFocus = false
                 handOffPending = true
@@ -190,6 +199,9 @@
                 }
             }
             .onChange(of: focused) { _, newValue in
+                if newValue != nil {
+                    backFocus?.markFocused(.sidebar)
+                }
                 focusDidChange(to: newValue, proxy: proxy)
             }
         }
@@ -213,6 +225,9 @@
                         guard !Task.isCancelled, focused == nil else { return }
                     } while systemFocusIsInPanel
                     railOwnsFocus = false
+                    if backFocus?.zone == .sidebar {
+                        backFocus?.markFocused(.content)
+                    }
                     onFocusChange(false)
                 }
                 return
