@@ -521,8 +521,9 @@ struct MainTabView: View {
                 .shadow(color: focused ? TVNeonTheme.electricBlue.opacity(0.75) : .clear,
                         radius: focused ? 14 : 0)
             }
-            .buttonStyle(.plain)
-            // Disable tvOS's large white focus plate and zoom animation.
+            // .plain can still show the system's white tvOS focus platter.
+            // .borderless keeps Select and @FocusState without that plate.
+            .buttonStyle(.borderless)
             .focusEffectDisabled()
             .focused($focusedTVTab, equals: tab)
             .onExitCommand { handleTVBack() }
