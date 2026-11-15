@@ -35,6 +35,7 @@ struct SearchView: View {
     @State private var playingMedia: PlayableMedia?
     #if os(tvOS)
     @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
+    @FocusState private var searchTextFocused: Bool
     #endif
 
     /// Max matches fetched per content type. Keeps the result set bounded so the
@@ -144,6 +145,9 @@ struct SearchView: View {
                 await updateResults()
             }
         }
+        #if os(tvOS)
+        .background(Color(red: 0.018, green: 0.034, blue: 0.073).ignoresSafeArea())
+        #endif
         #if os(iOS) || os(tvOS)
         .fullScreenCover(item: $playingMedia) { media in
             FullScreenPlayerView(media: media)
@@ -154,9 +158,33 @@ struct SearchView: View {
 
     /// Search results and keyboard stay attached to the same List on tvOS,
     /// while the new filter sidebar changes the query without moving focus.
+    /// A native List draws dark-grey gutters on Apple TV and clips long
+    /// results when the on-screen keyboard takes up vertical space.
+    @ViewBuilder
     private var resultList: some View {
+        #if os(tvOS)
+        ScrollView(.vertical) {
+            LazyVStack(alignment: .leading, spacing: 15) {
+                searchResultContents
+            }
+            .padding(.horizontal, 8)
+            .padding(.top, 8)
+            .padding(.bottom, 100)
+        }
+        .scrollIndicators(.visible)
+        .focusSection()
+        .background(Color(red: 0.018, green: 0.034, blue: 0.073))
+        #else
+        List {
+            searchResultContents
+        }
+        .searchField(text: $searchText)
+        #endif
+    }
+
+    @ViewBuilder
+    private var searchResultContents: some View {
         let searched = searchedScope
-        return List {
                 #if !os(tvOS)
                 if showsFilter {
                     Picker("Filter", selection: $selectedFilter) {
@@ -224,26 +252,27 @@ struct SearchView: View {
                         }
                     }
                 }
-            }
-            #if os(tvOS)
-            .listStyle(.plain)
-            #else
-            .searchField(text: $searchText)
-            #endif
+
     }
 
     #if os(tvOS)
     /// Remote-friendly keys stay inside the Search content column. No system
     /// search controller is presented, so the top tabs remain visible.
     private var tvSearchKeyboard: some View {
-        VStack(alignment: .leading, spacing: 11) {
-            HStack(spacing: 18) {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 13) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.cyan)
-                Text(searchText.isEmpty ? "Search channels, movies, series..." : searchText)
-                    .foregroundStyle(searchText.isEmpty ? Color.white.opacity(0.6) : Color.white)
-                    .lineLimit(1)
+                // Select this real field to type, dictate or use a paired
+                // keyboard. The inline remote keys below remain available.
+                TextField("Search channels, movies, series...", text: $searchText)
+                    .textFieldStyle(.plain)
+                    .focused($searchTextFocused)
+                    .submitLabel(.search)
+                    .onSubmit { searchTextFocused = false }
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityLabel("Search text")
                 if !searchText.isEmpty {
                     Button {
                         searchText = ""
@@ -254,9 +283,9 @@ struct SearchView: View {
                     .buttonStyle(.bordered)
                 }
             }
-            .font(.system(size: 26, weight: .medium))
-            .padding(.horizontal, 23)
-            .frame(height: 65)
+            .font(.system(size: 23, weight: .medium))
+            .padding(.horizontal, 20)
+            .frame(height: 55)
             .background(Color(red: 0.055, green: 0.10, blue: 0.19),
                         in: RoundedRectangle(cornerRadius: 16))
             .overlay {
@@ -269,7 +298,7 @@ struct SearchView: View {
             searchKeyRow(["U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4"])
             searchKeyRow(["5", "6", "7", "8", "9", "0", "SPACE", "DELETE"])
         }
-        .padding(16)
+        .padding(12)
         .background(Color(red: 0.025, green: 0.047, blue: 0.095),
                     in: RoundedRectangle(cornerRadius: 22))
         .focusSection()
@@ -293,7 +322,7 @@ struct SearchView: View {
                     Text(key == "DELETE" ? "⌫" : key == "SPACE" ? "Space" : key)
                         .font(.system(size: key.count > 1 ? 17 : 22, weight: .medium))
                         .frame(maxWidth: .infinity)
-                        .frame(height: 43)
+                        .frame(height: 38)
                 }
                 .buttonStyle(.bordered)
                 .accessibilityLabel(Text(key == "DELETE" ? "Delete last character" : key))
