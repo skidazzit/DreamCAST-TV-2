@@ -10,6 +10,9 @@
 //
 
 import SwiftUI
+#if os(tvOS)
+import SwiftData
+#endif
 
 /// Centered "playback failed" overlay. `title` is the stream name (shown so the
 /// viewer knows which stream failed); `onRetry` re-prepares the stream in place
@@ -19,50 +22,139 @@ struct PlayerErrorIndicator: View {
     let title: String?
     let onRetry: () -> Void
     let onClose: () -> Void
+    /// SportsZone sets these when playback is opened from a matched fixture.
+    var failedMedia: PlayableMedia? = nil
+    var onSelectMedia: ((PlayableMedia) -> Void)? = nil
 
     #if os(tvOS)
+        @Environment(\.modelContext) private var modelContext
+        @Environment(SportsZonePlaybackSession.self) private var sportsZonePlayback: SportsZonePlaybackSession?
+        @State private var showsMatchedChannels = false
         @FocusState private var retryFocused: Bool
+        @FocusState private var matchFocus: TVPlayerFocus?
+
+        private var availableMatches: [ResolvedChannel] {
+            sportsZonePlayback?.matchedChannels ?? []
+        }
+
+        private var failedChannelID: String? {
+            guard let failedMedia, case let .live(id) = failedMedia.contentRef else { return nil }
+            return id
+        }
+
+        private var canChooseMatchedChannels: Bool {
+            onSelectMedia != nil && !availableMatches.isEmpty
+        }
     #endif
 
     var body: some View {
         ZStack {
-            // A heavier dim than the loading spinner: there is no video coming
-            // through behind it, so the message should read clearly.
             Color.black.opacity(0.6)
                 .ignoresSafeArea()
+            #if os(tvOS)
+                if showsMatchedChannels {
+                    matchedChannelSelection
+                } else {
+                    failedMessage
+                }
+            #else
+                failedMessage
+            #endif
+        }
+        #if os(tvOS)
+            .onExitCommand {
+                if showsMatchedChannels {
+                    showsMatchedChannels = false
+                } else {
+                    onClose()
+                }
+            }
+        #endif
+    }
 
-            VStack(spacing: spacing) {
-                Image(systemName: "wifi.exclamationmark")
-                    .font(iconFont)
+    private var failedMessage: some View {
+        VStack(spacing: spacing) {
+            Image(systemName: "wifi.exclamationmark")
+                .font(iconFont)
+                .foregroundStyle(.white)
+
+            VStack(spacing: 8) {
+                Text("Playback Failed")
+                    .font(titleFont)
                     .foregroundStyle(.white)
 
-                VStack(spacing: 8) {
-                    Text("Playback Failed")
-                        .font(titleFont)
-                        .foregroundStyle(.white)
-
-                    if let title, !title.isEmpty {
-                        Text(title)
-                            .font(streamFont)
-                            .foregroundStyle(.white.opacity(0.8))
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                    }
-
-                    Text("This stream couldn’t be loaded. It may be offline or temporarily unavailable.")
-                        .font(messageFont)
-                        .foregroundStyle(.white.opacity(0.65))
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: maxTextWidth)
+                if let title, !title.isEmpty {
+                    Text(title)
+                        .font(streamFont)
+                        .foregroundStyle(.white.opacity(0.8))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
                 }
 
-                buttons
-                    .padding(.top, buttonTopPadding)
+                Text("This stream couldn’t be loaded. It may be offline or temporarily unavailable.")
+                    .font(messageFont)
+                    .foregroundStyle(.white.opacity(0.65))
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: maxTextWidth)
             }
-            .padding(.horizontal, 40)
-            .shadow(radius: 8)
+
+            buttons
+                .padding(.top, buttonTopPadding)
         }
+        .padding(.horizontal, 40)
+        .shadow(radius: 8)
     }
+
+    #if os(tvOS)
+        /// Reuse the saved picker results. Focus movement does not tune video.
+        private var matchedChannelSelection: some View {
+            VStack(alignment: .leading, spacing: 26) {
+                HStack(alignment: .center, spacing: 32) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Choose Channel")
+                            .font(.system(size: 40, weight: .bold))
+                            .foregroundStyle(.white)
+                        Text("Highlight a matched channel, then press Select to play.")
+                            .font(.system(size: 23))
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+                    Spacer()
+                    Button {
+                        showsMatchedChannels = false
+                    } label: {
+                        Label("Back", systemImage: "chevron.left")
+                            .font(.system(size: 24, weight: .semibold))
+                    }
+                    .buttonStyle(TVGlassButtonStyle())
+                }
+                TVPlayerSportsZoneChannelsPanel(
+                    channels: availableMatches,
+                    currentChannelID: nil,
+                    failedChannelID: failedChannelID,
+                    focus: $matchFocus,
+                    onSelect: playMatchedChannel,
+                    onClose: { showsMatchedChannels = false }
+                )
+            }
+            .padding(64)
+            .frame(maxWidth: 1500)
+            .onAppear {
+                let firstOther = availableMatches.first { $0.id != failedChannelID }
+                matchFocus = .channel(firstOther?.id ?? availableMatches.first?.id ?? "")
+            }
+        }
+
+        private func playMatchedChannel(_ channel: ResolvedChannel) {
+            guard let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
+            if media.id == failedMedia?.id {
+                // Re-selecting the same dead stream means retrying it.
+                showsMatchedChannels = false
+                onRetry()
+            } else {
+                onSelectMedia?(media)
+            }
+        }
+    #endif
 
     // MARK: - Buttons
 
@@ -77,17 +169,24 @@ struct PlayerErrorIndicator: View {
                 .buttonStyle(TVGlassButtonStyle())
                 .focused($retryFocused)
 
+                if canChooseMatchedChannels {
+                    Button {
+                        showsMatchedChannels = true
+                    } label: {
+                        Label("Choose Channel", systemImage: "list.bullet.rectangle")
+                            .font(.system(size: 24, weight: .semibold))
+                    }
+                    .buttonStyle(TVGlassButtonStyle())
+                }
+
                 Button(action: onClose) {
                     Label("Back", systemImage: "xmark")
                         .font(.system(size: 24, weight: .semibold))
                 }
                 .buttonStyle(TVGlassButtonStyle())
             }
-            .frame(width: 720)
+            .frame(maxWidth: 1200)
             .onAppear { retryFocused = true }
-            // Menu on the failure overlay leaves the player, matching the Back
-            // button, rather than falling through to the engine.
-            .onExitCommand(perform: onClose)
         #else
             HStack(spacing: 14) {
                 glassButton("Try Again", systemImage: "arrow.clockwise", action: onRetry)
