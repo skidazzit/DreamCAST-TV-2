@@ -65,23 +65,44 @@ struct EPGChannelCell: View {
         .frame(width: metrics.channelColumnWidth, height: metrics.rowHeight, alignment: .leading)
         .background(fill, in: shape)
         .overlay {
-            shape.strokeBorder(border, lineWidth: 1)
+            shape.strokeBorder(border, lineWidth: isHub ? 2 : 1)
         }
+        #if os(tvOS)
+        .shadow(color: isHub ? TVNeonTheme.electricBlue.opacity(0.55) : .clear,
+                radius: isHub ? 10 : 0)
+        #endif
     }
 
     private var fill: Color {
         switch highlight {
         case .hub: EPGColors.cardFill
-        case .row: .primary.opacity(0.15)
-        case .none: .primary.opacity(0.05)
+        case .row:
+            #if os(tvOS)
+            Color(red: 0.15, green: 0.23, blue: 0.34)
+            #else
+            .primary.opacity(0.15)
+            #endif
+        case .none:
+            #if os(tvOS)
+            Color(red: 0.08, green: 0.13, blue: 0.21)
+            #else
+            .primary.opacity(0.05)
+            #endif
         }
     }
 
     private var border: Color {
         switch highlight {
-        case .hub: EPGColors.cardBorder
-        case .row: .primary.opacity(0.24)
-        case .none: .primary.opacity(0.08)
+        case .hub:
+            #if os(tvOS)
+            TVNeonTheme.iceBlue
+            #else
+            EPGColors.cardBorder
+            #endif
+        case .row:
+            .primary.opacity(0.24)
+        case .none:
+            .primary.opacity(0.08)
         }
     }
 
