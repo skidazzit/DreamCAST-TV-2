@@ -260,14 +260,15 @@
             return Button {
                 follows.toggle(team.id, kind: .team)
             } label: {
-                Label(following ? "Following" : "Follow", systemImage: following ? "star.fill" : "star")
+                TVFixedButtonLabel(title: following ? "Following" : "Follow",
+                                   systemName: following ? "star.fill" : "star")
                     .font(.system(size: 24, weight: .semibold))
                     .padding(.horizontal, 26)
                     .padding(.vertical, 14)
                     .foregroundStyle(following ? .yellow : .white)
                     .background(Capsule().fill(.white.opacity(0.12)))
             }
-            .buttonStyle(TVCardButtonStyle(focusScale: 1.05))
+            .buttonStyle(TVCardButtonStyle(focusScale: 1.0))
             .accessibilityLabel(following ? Text("Unfollow \(team.name)") : Text("Follow \(team.name)"))
             .padding(.top, 6)
         }
@@ -310,7 +311,7 @@
                         channelSubtitle(channel)
                     }
                     Spacer(minLength: 16)
-                    Label("Watch", systemImage: "play.fill")
+                    TVFixedButtonLabel(title: "Watch", systemName: "play.fill")
                         .font(.system(size: 30, weight: .semibold))
                 }
                 .padding(.horizontal, 32)
