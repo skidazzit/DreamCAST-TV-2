@@ -241,7 +241,10 @@
                 focus = .episode(episode?.id ?? seasonEpisodes.first?.id ?? "")
             case .sportsZone:
                 onPanelOpenChange(true)
-                focus = .channel(liveStream?.id ?? sportsZonePlayback?.matchedChannels.first?.id ?? "")
+                let matches = sportsZonePlayback?.matchedChannels ?? []
+                let current = liveStream?.id
+                let focusID = matches.first(where: { $0.id == current })?.id ?? matches.first?.id
+                focus = .channel(focusID ?? "")
             case .recent:
                 onPanelOpenChange(true)
                 focus = .channel(liveStream?.id ?? recentChannels.first?.id ?? "")
