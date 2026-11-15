@@ -134,7 +134,7 @@
                 Button {
                     toggleLeague(league)
                 } label: {
-                    Image(systemName: following ? "star.fill" : "star")
+                    Text(Image(systemName: following ? "star.fill" : "star"))
                         .foregroundStyle(following ? .yellow : .white)
                 }
                 .buttonStyle(TVContentIconButtonStyle())
@@ -154,7 +154,7 @@
                         Spacer(minLength: 0)
                         Text("Teams")
                             .font(.system(size: TVSettingsMetrics.secondaryFontSize, weight: .medium))
-                        Image(systemName: "chevron.forward")
+                        Text(Image(systemName: "chevron.forward"))
                             .font(.system(size: 22, weight: .semibold))
                     }
                 }
@@ -241,7 +241,7 @@
                 toggleTeam(team)
             } label: {
                 HStack(spacing: 16) {
-                    Image(systemName: following ? "star.fill" : "star")
+                    Text(Image(systemName: following ? "star.fill" : "star"))
                         .foregroundStyle(following ? .yellow : .secondary)
                         .font(.system(size: 24, weight: .semibold))
                     TeamCrest(team: team, size: 34)
