@@ -75,6 +75,20 @@
                                 y: Self.glowCenter.y * scale - size.height / 2
                             )
                     }
+                    // Keep the cool blue header glow blended into the
+                    // channel-color warmth below it, never as a second layer
+                    // that begins abruptly at the content/tab boundary.
+                    .overlay {
+                        LinearGradient(
+                            stops: [
+                                .init(color: TVNeonTheme.electricBlue.opacity(0.24), location: 0),
+                                .init(color: TVNeonTheme.electricBlue.opacity(0.1), location: 0.3),
+                                .init(color: .clear, location: 0.62)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    }
                     .overlay(Self.darkening)
                     .overlay {
                         // Subtle corner light streaks from the approved mockup.
