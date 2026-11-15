@@ -16,6 +16,8 @@ final class SportsZonePlaybackSession {
     #endif
     var miniMedia: PlayableMedia?
     var fullScreenMedia: PlayableMedia?
+    /// The exact channel list shown in the last SportsZone match picker.
+    var matchedChannels: [ResolvedChannel] = []
     var failedMediaID: String?
     var reloadToken = 0
     // Prevent repeated dismissal callbacks from restarting a live stream.
@@ -41,6 +43,23 @@ final class SportsZonePlaybackSession {
         if previewMode == .off {
             openFullScreen()
         }
+    }
+
+    /// Retain the match order; never re-run broadcaster/EPG searches in the player.
+    func rememberMatches(_ matches: [ResolvedChannel], selected: ResolvedChannel) {
+        var seen = Set<String>()
+        matchedChannels = (matches + [selected]).filter { seen.insert($0.id).inserted }
+    }
+
+    /// Keep the SportsZone preview aimed at the channel last picked in full screen.
+    /// Do not update fullScreenMedia: that value owns the current cover's identity.
+    func didSwitchFullScreen(to media: PlayableMedia) {
+        guard fullScreenMedia != nil else { return }
+        miniMedia = media
+        failedMediaID = nil
+        #if os(tvOS)
+        guidePreview.preferredStreamID = media.id
+        #endif
     }
 
     func openFullScreen() {
