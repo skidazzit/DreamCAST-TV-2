@@ -340,6 +340,13 @@ struct TVPersistentMiniPlayer: View {
                 .allowsHitTesting(false)
 
                 HStack(spacing: 16) {
+                    Text("LIVE")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Color.red.opacity(0.88), in: Capsule())
+
                     Text(media.title)
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(.white)
@@ -368,7 +375,7 @@ struct TVPersistentMiniPlayer: View {
             .clipShape(RoundedRectangle(cornerRadius: 28))
             .overlay {
                 RoundedRectangle(cornerRadius: 28)
-                    .strokeBorder(.white.opacity(0.18), lineWidth: 1)
+                    .strokeBorder(Color.cyan.opacity(0.62), lineWidth: 2)
                     .allowsHitTesting(false)
             }
             .focusSection()
