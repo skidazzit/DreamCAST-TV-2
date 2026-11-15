@@ -93,6 +93,17 @@ struct SearchView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
                 .padding(.horizontal, 35)
+                .background {
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.025, green: 0.047, blue: 0.095),
+                            Color(red: 0.014, green: 0.025, blue: 0.065)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .ignoresSafeArea(edges: .bottom)
+                }
                 #else
                 resultList
                 #endif
