@@ -101,6 +101,7 @@
 
         private let metrics = EPGMetrics.current
         @Environment(\.epgHeroLayout) private var layout
+        @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
         @AppStorage(TVGuideDesign.storageKey) private var guideDesignRaw = TVGuideDesign.classic.rawValue
         /// Per pane, so a stale pane's late `onDisappear` can't release the
         /// hold of the pane that replaced it.
