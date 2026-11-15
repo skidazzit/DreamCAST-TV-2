@@ -146,8 +146,9 @@
         var body: some View {
             Button(action: action) {
                 HStack(spacing: 16) {
-                    Image(systemName: systemImage)
+                    Text(Image(systemName: systemImage))
                         .font(.system(size: 22, weight: .medium))
+                        .frame(width: 28, height: 31)
                     Text(title)
                     Spacer(minLength: 0)
                     if isBusy { ProgressView() }
@@ -234,7 +235,7 @@
                 Button {
                     onMove(-1)
                 } label: {
-                    Image(systemName: "chevron.up")
+                    Text(Image(systemName: "chevron.up"))
                 }
                 .buttonStyle(TVContentIconButtonStyle())
                 .disabled(index == 0)
@@ -243,7 +244,7 @@
                 Button {
                     onMove(1)
                 } label: {
-                    Image(systemName: "chevron.down")
+                    Text(Image(systemName: "chevron.down"))
                 }
                 .buttonStyle(TVContentIconButtonStyle())
                 .disabled(index == count - 1)
@@ -251,7 +252,7 @@
 
                 if let onRemove {
                     Button(action: onRemove) {
-                        Image(systemName: "minus")
+                        Text(Image(systemName: "minus"))
                     }
                     .buttonStyle(TVContentIconButtonStyle())
                     .accessibilityLabel("Remove \(name)")
