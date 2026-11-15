@@ -1851,6 +1851,7 @@
 		};
 		C6DD50022FE100050000DD02 /* LumeAetherBridge */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = C6DD50032FE100050000DD03 /* XCLocalSwiftPackageReference "LumeAetherBridge" */;
 			productName = LumeAetherBridge;
 		};
 		C6FF000B2FC5A59D00484602 /* VLCKit */ = {
