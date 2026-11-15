@@ -358,31 +358,39 @@ struct MainTabView: View {
         /// replace the top bar with its system keyboard.
         private func tabView(selection: Binding<AppTab>, tabs: Set<PlaylistTab>) -> some View {
             VStack(spacing: 0) {
-                HStack(spacing: 5) {
-                    if tabs.showsTab(.liveTV) {
-                        tvTabButton("Live TV", .liveTV, selection: selection)
+                HStack(spacing: 24) {
+                    tvBrand
+                        .frame(width: 348, alignment: .leading)
+
+                    HStack(spacing: 5) {
+                        if tabs.showsTab(.liveTV) {
+                            tvTabButton("Live TV", .liveTV, symbol: "tv", selection: selection)
+                        }
+                        if sportsTabEnabled {
+                            tvTabButton("SportsZone", .sports, symbol: "trophy", selection: selection)
+                        }
+                        if tabs.showsTab(.movies) {
+                            tvTabButton("Movies", .movies, symbol: "film", selection: selection)
+                        }
+                        if tabs.showsTab(.series) {
+                            tvTabButton("Series", .series, symbol: "square.stack.3d.up", selection: selection)
+                        }
+                        tvTabButton("Search", .search, symbol: "magnifyingglass", selection: selection)
+                        tvTabButton("Settings", .settings, symbol: "gearshape", selection: selection)
                     }
-                    if sportsTabEnabled {
-                        tvTabButton("SportsZone", .sports, selection: selection)
+                    .padding(6)
+                    .background(TVNeonTheme.glass, in: Capsule())
+                    .overlay {
+                        Capsule().strokeBorder(TVNeonTheme.iceBlue.opacity(0.34), lineWidth: 1)
                     }
-                    if tabs.showsTab(.movies) {
-                        tvTabButton("Movies", .movies, selection: selection)
-                    }
-                    if tabs.showsTab(.series) {
-                        tvTabButton("Series", .series, selection: selection)
-                    }
-                    tvTabButton("Search", .search, symbol: "magnifyingglass", selection: selection)
-                    tvTabButton("Settings", .settings, symbol: "gearshape", selection: selection)
+                    .shadow(color: TVNeonTheme.electricBlue.opacity(0.12), radius: 14)
+                    .focusSection()
+
+                    Spacer(minLength: 0)
                 }
-                .padding(6)
-                .background(Color(red: 0.075, green: 0.11, blue: 0.18),
-                            in: Capsule())
-                .overlay {
-                    Capsule().strokeBorder(Color.cyan.opacity(0.2), lineWidth: 1)
-                }
+                .padding(.horizontal, 35)
                 .padding(.top, 8)
-                .padding(.bottom, 10)
-                .focusSection()
+                .padding(.bottom, 15)
                 .zIndex(2)
 
                 tvCurrentPage(selection: selection.wrappedValue, tabs: tabs)
@@ -445,6 +453,26 @@ struct MainTabView: View {
             }
         }
 
+        private var tvBrand: some View {
+            HStack(spacing: 13) {
+                Image(systemName: "tv")
+                    .font(.system(size: 36, weight: .bold))
+                    .foregroundStyle(TVNeonTheme.electricBlue)
+                    .shadow(color: TVNeonTheme.electricBlue.opacity(0.55), radius: 9)
+                HStack(spacing: 1) {
+                    Text("DreamCAST")
+                        .foregroundStyle(Color.white)
+                    Text(" TV 2")
+                        .foregroundStyle(TVNeonTheme.iceBlue)
+                }
+                .font(.system(size: 31, weight: .bold, design: .rounded))
+                .italic()
+                .lineLimit(1)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("DreamCAST TV 2")
+        }
+
         private func tvTabButton(
             _ title: String,
             _ tab: AppTab,
@@ -457,33 +485,33 @@ struct MainTabView: View {
                 // A remote click, not moving focus, changes the active page.
                 selection.wrappedValue = tab
             } label: {
-                Group {
+                HStack(spacing: 10) {
                     if let symbol {
                         Image(systemName: symbol)
-                            .font(.system(size: 25, weight: .semibold))
-                            .frame(width: 46)
-                    } else {
+                            .font(.system(size: 24, weight: .semibold))
+                    }
+                    if tab != .search && tab != .settings {
                         Text(title)
-                            .font(.system(size: 21, weight: .semibold))
+                            .font(.system(size: 22, weight: .semibold))
                     }
                 }
-                .foregroundStyle(Color.white)
-                .padding(.horizontal, 17)
-                .frame(height: 50)
-                // No white fill on focus. Keep the selected tab blue, and
-                // highlight remote focus with a subtle cyan outline only.
-                .background(
-                    Capsule().fill(
-                        selected ? Color(red: 0.07, green: 0.36, blue: 0.77)
-                                 : (focused ? Color(red: 0.075, green: 0.17, blue: 0.30) : .clear)
-                    )
-                )
+                .foregroundStyle(.white)
+                .padding(.horizontal, tab == .search || tab == .settings ? 17 : 22)
+                .frame(height: 55)
+                .background {
+                    if selected || focused {
+                        Capsule().fill(TVNeonTheme.selection)
+                    }
+                }
                 .overlay {
                     Capsule().strokeBorder(
-                        focused ? Color.cyan.opacity(0.9) : .clear,
-                        lineWidth: focused ? 2 : 0
+                        focused ? TVNeonTheme.iceBlue :
+                            (selected ? TVNeonTheme.electricBlue.opacity(0.9) : .clear),
+                        lineWidth: focused ? 2.5 : 1
                     )
                 }
+                .shadow(color: focused ? TVNeonTheme.electricBlue.opacity(0.75) : .clear,
+                        radius: focused ? 14 : 0)
             }
             .buttonStyle(.plain)
             // Disable tvOS's large white focus plate and zoom animation.
