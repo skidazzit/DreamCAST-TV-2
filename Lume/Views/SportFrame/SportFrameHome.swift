@@ -269,6 +269,450 @@ struct SportFrameHome: View {
         // No programmatic Up/Down moves compete with the system focus engine.
     }
 
+    // MARK: - SportsZone NFL-hub layout
+
+    /// Use real followed sports, saved league picks and live fixtures. The
+    /// mockup's NFL / NBA / NHL labels are shortcuts, not hardcoded data.
+    private func hubSportTitle(_ sport: String) -> String {
+        switch sport {
+        case "American Football": "NFL"
+        case "Basketball": "NBA"
+        case "Baseball": "MLB"
+        case "Ice Hockey": "NHL"
+        case "Mixed Martial Arts": "UFC"
+        case "Motorsport": "Motorsports"
+        default: sport
+        }
+    }
+
+    private func hubSportSymbol(_ sport: String) -> String {
+        switch sport {
+        case "American Football": "sportscourt"
+        case "Basketball": "basketball"
+        case "Baseball": "baseball"
+        case "Ice Hockey": "hockey.puck"
+        case "Soccer": "soccerball"
+        case "Tennis": "tennis.racket"
+        case "Golf": "figure.golf"
+        case "Motorsport": "flag.checkered"
+        case "Boxing": "figure.boxing"
+        case "Mixed Martial Arts": "figure.martial.arts"
+        default: "sportscourt"
+        }
+    }
+
+    /// A league shortcut only becomes a league filter when the catalog
+    /// actually has that league and the viewer follows it.
+    private func hubPreferredLeague(for sport: String) -> SportsCatalogLeague? {
+        let aliases: [String]
+        switch sport {
+        case "American Football": aliases = ["NFL", "National Football League"]
+        case "Basketball": aliases = ["NBA", "National Basketball Association"]
+        case "Baseball": aliases = ["MLB", "Major League Baseball"]
+        case "Ice Hockey": aliases = ["NHL", "National Hockey League"]
+        case "Mixed Martial Arts": aliases = ["UFC", "Ultimate Fighting"]
+        default: aliases = []
+        }
+        guard !aliases.isEmpty else { return nil }
+        return catalog.leagues(for: sport).first { league in
+            let permitted = leagueSelections[sport]?.contains(league.strLeague) ?? true
+            return permitted && aliases.contains {
+                league.strLeague.localizedCaseInsensitiveContains($0)
+            }
+        }
+    }
+
+    private var hubRailItems: [TVSidebarRailItem] {
+        var items: [TVSidebarRailItem] = []
+        for (index, sport) in followedSports.enumerated() {
+            let preferred = hubPreferredLeague(for: sport)
+            let art = preferred.flatMap { league in
+                [league.strBadge, league.strLogo]
+                    .compactMap { $0 }
+                    .first(where: { !$0.isEmpty })
+                    .flatMap(URL.init(string:))
+            }
+            let id = "sport:" + sport
+            items.append(TVSidebarRailItem(
+                id: id, title: Text(hubSportTitle(sport)),
+                icon: hubSportSymbol(sport), badgeURL: art,
+                header: index == 0 ? "★  My Sports" : nil
+            ) {
+                page = 0
+                selectedSport = sport
+                selectedLeague = preferred?.strLeague ?? "All Leagues"
+            })
+        }
+
+        items.append(TVSidebarRailItem(
+            id: "all", title: Text("All Sports"),
+            icon: "square.grid.2x2",
+            header: followedSports.isEmpty ? "★  My Sports" : nil
+        ) {
+            page = 0
+            selectedSport = "All Sports"
+            selectedLeague = "All Leagues"
+        })
+        items.append(TVSidebarRailItem(
+            id: "settings", title: Text("SportsZone Settings"), icon: "gearshape"
+        ) {
+            page = 1
+        })
+        return items
+    }
+
+    private var hubSelectedRailID: String {
+        page == 1 ? "settings" :
+            (selectedSport == "All Sports" ? "all" : "sport:" + selectedSport)
+    }
+
+    private var hubTitle: String {
+        if selectedLeague != "All Leagues" { return selectedLeague }
+        return selectedSport == "All Sports" ? "My Sports" : hubSportTitle(selectedSport)
+    }
+
+    private var hubUpcomingMatches: [SportEvent] {
+        let laterToday = visibleEvents.filter { event in
+            event.startDate.map { $0 > Date() } ?? false
+        }
+        let tomorrow = fixtures.nextDayEvents.filter { event in
+            guard let sport = fixtures.nextDaySports[event.idEvent],
+                  followedSports.contains(sport) else { return false }
+            guard selectedSport == "All Sports" || selectedSport == sport else { return false }
+            guard selectedLeague == "All Leagues" || selectedLeague == event.league else { return false }
+            guard leagueSelections[sport]?.contains(event.league) ?? true else { return false }
+            return event.startDate.map { $0 > Date() } ?? false
+        }
+        return (laterToday + tomorrow).sorted(by: SportEvent.oldestFirst)
+    }
+
+    private var hubDisplayedMatches: [SportEvent] {
+        switch hubWindow {
+        case .now:
+            return visibleEvents.filter { fixtures.isLive($0) }
+        case .upcoming:
+            return hubUpcomingMatches
+        case .yesterday:
+            return visibleEvents.sorted(by: SportEvent.newestFirst)
+        }
+    }
+
+    private var hubFeaturedMatch: SportEvent? {
+        hubDisplayedMatches.first
+    }
+
+    private var hubLeagueBadge: URL? {
+        if let event = hubFeaturedMatch {
+            return event.leagueBadge ?? catalog.badgeURL(
+                for: event.league,
+                sport: fixtures.eventSports[event.idEvent] ?? event.strSport ?? "",
+                idLeague: event.idLeague
+            )
+        }
+        guard selectedSport != "All Sports",
+              let league = hubPreferredLeague(for: selectedSport) else { return nil }
+        return [league.strBadge, league.strLogo]
+            .compactMap { $0 }
+            .first(where: { !$0.isEmpty })
+            .flatMap(URL.init(string:))
+    }
+
+    private var sportsHubPage: some View {
+        HStack(alignment: .top, spacing: TVSidebarRail.paneSpacing) {
+            TVSidebarRail(items: hubRailItems, selectedID: hubSelectedRailID)
+            VStack(alignment: .leading, spacing: 17) {
+                sportsHubHero
+                sportsHubFilterBar
+
+                if fixtures.loading {
+                    ProgressView("Loading sports fixtures…")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                if let error = fixtures.error {
+                    Text(error).foregroundStyle(.orange).font(.system(size: 18))
+                }
+
+                ScrollView(.vertical) {
+                    LazyVStack(spacing: 9) {
+                        if hubDisplayedMatches.isEmpty && !fixtures.loading {
+                            VStack(spacing: 13) {
+                                Image(systemName: "sportscourt")
+                                    .font(.system(size: 42))
+                                Text(hubWindow == .now
+                                     ? "No matches live right now"
+                                     : hubWindow == .upcoming
+                                       ? "No upcoming matches for these leagues"
+                                       : "No results found for yesterday")
+                                    .font(.system(size: 26, weight: .semibold))
+                                Text("Choose another sport or time range, or refresh the schedule.")
+                                    .font(.system(size: 18))
+                            }
+                            .foregroundStyle(.white.opacity(0.68))
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 45)
+                        }
+
+                        ForEach(hubDisplayedMatches) { event in
+                            sportsHubMatchRow(event)
+                        }
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.top, 5)
+                    .padding(.bottom, 78)
+                }
+                .scrollIndicators(.visible)
+                .focusSection()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
+        .padding(.horizontal, 35)
+        .padding(.top, 14)
+        .padding(.bottom, 18)
+    }
+
+    private var sportsHubHero: some View {
+        HStack(alignment: .top, spacing: 23) {
+            VStack(alignment: .leading, spacing: 18) {
+                HStack(spacing: 16) {
+                    hubBadge(hubLeagueBadge, fallback: "shield", size: 58)
+                    Text(hubTitle)
+                        .font(.system(size: 40, weight: .bold))
+                        .lineLimit(1)
+                    Rectangle()
+                        .fill(TVNeonTheme.iceBlue.opacity(0.7))
+                        .frame(width: 2, height: 47)
+                        .padding(.horizontal, 7)
+                    Text(hubWindow == .now ? "Happening Now" :
+                         (hubWindow == .upcoming ? "Coming Up" : "Yesterday"))
+                        .font(.system(size: 27, weight: .bold))
+                        .foregroundStyle(TVNeonTheme.iceBlue)
+                        .lineLimit(1)
+                }
+
+                if let featured = hubFeaturedMatch {
+                    HStack(spacing: 12) {
+                        if fixtures.isLive(featured) {
+                            Label("LIVE", systemImage: "circle.fill")
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 5)
+                                .background(Color.red.opacity(0.9), in: Capsule())
+                        }
+                        Text(activePlayback.miniMedia?.title ?? featured.league)
+                            .font(.system(size: 19, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.83))
+                            .lineLimit(1)
+                    }
+
+                    Text(featured.name)
+                        .font(.system(size: 37, weight: .bold))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+
+                    HStack(spacing: 18) {
+                        Text(featured.timeLabel)
+                            .font(.system(size: 22))
+                        if let home = fixtures.score(for: featured).home,
+                           let away = fixtures.score(for: featured).away {
+                            Text(home + " – " + away)
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundStyle(TVNeonTheme.iceBlue)
+                        }
+                    }
+                    .foregroundStyle(.white.opacity(0.78))
+                } else {
+                    Text(hubWindow == .now
+                         ? "Live games will appear here"
+                         : "Choose a match from the schedule")
+                        .font(.system(size: 30, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.78))
+                    Text("Schedules and scores come from TheSportsDB.")
+                        .font(.system(size: 18))
+                        .foregroundStyle(.white.opacity(0.56))
+                }
+
+                Spacer(minLength: 0)
+                HStack(spacing: 12) {
+                    Text("League")
+                        .font(.system(size: 17))
+                        .foregroundStyle(.white.opacity(0.7))
+                    Menu {
+                        Button("All Leagues") { selectedLeague = "All Leagues" }
+                        ForEach(availableLeagues, id: \.self) { league in
+                            Button(league) { selectedLeague = league }
+                        }
+                    } label: {
+                        Label(selectedLeague, systemImage: "chevron.down")
+                            .lineLimit(1)
+                    }
+                    .buttonStyle(SportsZonePillStyle())
+                    .focused($focusedControl, equals: .leagueMenu)
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: 305, alignment: .topLeading)
+
+            Group {
+                if activePlayback.miniMedia != nil {
+                    TVEmbeddedPlayerSlot(width: 580, height: 326)
+                } else {
+                    VStack(spacing: 15) {
+                        Image(systemName: "play.tv")
+                            .font(.system(size: 52))
+                        Text("Select a matched channel to watch")
+                            .font(.system(size: 20, weight: .semibold))
+                    }
+                    .foregroundStyle(.white.opacity(0.64))
+                    .frame(width: 580, height: 326)
+                    .background(TVNeonTheme.glass, in: RoundedRectangle(cornerRadius: 22))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 22)
+                            .strokeBorder(TVNeonTheme.iceBlue.opacity(0.42), lineWidth: 1)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+    }
+
+    private var sportsHubFilterBar: some View {
+        HStack(spacing: 8) {
+            sportsHubWindowButton(
+                .now,
+                title: "Happening Now (\(visibleEvents.filter { fixtures.isLive($0) }.count))",
+                symbol: "dot.radiowaves.left.and.right"
+            )
+            sportsHubWindowButton(
+                .upcoming, title: "Coming Up (\(hubUpcomingMatches.count))",
+                symbol: "calendar"
+            )
+            sportsHubWindowButton(
+                .yesterday, title: "Yesterday", symbol: "clock.arrow.circlepath"
+            )
+
+            Spacer(minLength: 12)
+            Button {
+                Task { await refresh() }
+            } label: {
+                Label("Refresh", systemImage: "arrow.clockwise")
+                    .font(.system(size: 19, weight: .semibold))
+            }
+            .buttonStyle(.borderless)
+            .focusEffectDisabled()
+            .focused($focusedControl, equals: .refresh)
+        }
+        .focusSection()
+    }
+
+    private func sportsHubWindowButton(_ window: SportsHubWindow,
+                                       title: String, symbol: String) -> some View {
+        let selected = hubWindow == window
+        let focused = focusedControl == .hubWindow(window)
+        return Button {
+            hubWindow = window
+            dayOffset = window == .yesterday ? -1 : 0
+        } label: {
+            HStack(spacing: 12) {
+                Text(Image(systemName: symbol)).font(.system(size: 24))
+                Text(title).font(.system(size: 20, weight: .semibold)).lineLimit(1)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 23)
+            .frame(height: 58)
+            .background {
+                Capsule().fill(selected || focused ? TVNeonTheme.selection : TVNeonTheme.glass)
+            }
+            .overlay {
+                Capsule().strokeBorder(
+                    focused ? TVNeonTheme.iceBlue : .white.opacity(0.12),
+                    lineWidth: focused ? 2 : 1
+                )
+            }
+            .shadow(color: focused ? TVNeonTheme.electricBlue.opacity(0.5) : .clear,
+                    radius: focused ? 10 : 0)
+            .contentShape(Capsule())
+            .focusEffectDisabled()
+        }
+        .buttonStyle(.borderless)
+        .focusEffectDisabled()
+        .focused($focusedControl, equals: .hubWindow(window))
+    }
+
+    private func sportsHubMatchRow(_ event: SportEvent) -> some View {
+        let focused = focusedControl == .fixture(event.idEvent)
+        let isLive = fixtures.isLive(event)
+        return Button {
+            // Only Select opens the saved match/channel picker.
+            selectedEvent = event
+        } label: {
+            HStack(spacing: 18) {
+                hubBadge(event.homeBadge, fallback: "shield", size: 44)
+                hubBadge(event.awayBadge, fallback: "shield", size: 44)
+                Text(event.name)
+                    .font(.system(size: 22, weight: .semibold))
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                if isLive {
+                    Text("● LIVE")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 5)
+                        .background(.red, in: Capsule())
+                }
+
+                Text(event.timeLabel)
+                    .font(.system(size: 19))
+                    .foregroundStyle(.white.opacity(0.8))
+                    .frame(minWidth: 125, alignment: .trailing)
+                if let home = fixtures.score(for: event).home,
+                   let away = fixtures.score(for: event).away {
+                    Text(home + " – " + away)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(TVNeonTheme.iceBlue)
+                        .frame(width: 76)
+                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 21, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.78))
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 75)
+            .background {
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(focused ? TVNeonTheme.selection : TVNeonTheme.glass)
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 18)
+                    .strokeBorder(focused ? TVNeonTheme.iceBlue :
+                                  .white.opacity(0.14), lineWidth: focused ? 2.5 : 1)
+            }
+            .shadow(color: focused ? TVNeonTheme.electricBlue.opacity(0.65) : .clear,
+                    radius: focused ? 12 : 0)
+            .contentShape(RoundedRectangle(cornerRadius: 18))
+            .focusEffectDisabled()
+        }
+        .buttonStyle(.borderless)
+        .focusEffectDisabled()
+        .focused($focusedControl, equals: .fixture(event.idEvent))
+    }
+
+    private func hubBadge(_ url: URL?, fallback: String, size: CGFloat) -> some View {
+        AsyncImage(url: url) { phase in
+            if let image = phase.image {
+                image.resizable().scaledToFit()
+            } else {
+                Image(systemName: fallback)
+                    .resizable()
+                    .scaledToFit()
+                    .foregroundStyle(.white.opacity(0.55))
+            }
+        }
+        .frame(width: size, height: size)
+        .focusEffectDisabled()
+    }
+
     private var header: some View {
         VStack(alignment: .leading, spacing: 25) {
             HStack {
