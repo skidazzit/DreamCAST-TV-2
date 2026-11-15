@@ -241,13 +241,15 @@ struct MainTabView: View {
     @ViewBuilder
     private func persistentTabHost(selection: Binding<AppTab>, tabs: Set<PlaylistTab>) -> some View {
         #if os(tvOS)
-            ZStack(alignment: .bottomTrailing) {
+            // Reserve a real section within every page instead of covering its
+            // content with a floating player. The one playback view stays mounted
+            // here when `activeOnly` swaps the six tab bodies.
+            VStack(spacing: 0) {
                 tabView(selection: selection, tabs: tabs)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 if sharedLivePlayback.miniMedia != nil {
                     TVPersistentMiniPlayer(session: sharedLivePlayback)
-                        .padding(.trailing, 28)
-                        .padding(.bottom, 30)
-                        .zIndex(1)
+                        .frame(maxWidth: .infinity)
                 }
             }
             .environment(sharedLivePlayback)
