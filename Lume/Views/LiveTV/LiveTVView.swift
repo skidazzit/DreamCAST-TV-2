@@ -216,6 +216,9 @@ struct LiveTVView: View {
             .recordActionFlow(observesWhileVisible: false)
         }
         #if os(tvOS)
+        .onExitCommand {
+            NotificationCenter.default.post(name: .dreamCASTReturnToTopMenu, object: nil)
+        }
         .task {
             // The list layout has no guide hero to seed first playback.
             // Restore the last permitted channel only when no stream is live.
