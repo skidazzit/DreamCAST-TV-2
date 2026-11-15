@@ -33,6 +33,7 @@ struct MainTabView: View {
     #if os(tvOS)
     /// This session belongs to the app root, not a tab. No tab switch unmounts it.
     @State private var sharedLivePlayback = SportsZonePlaybackSession()
+    @State private var backFocus = TVBackFocusCoordinator()
     @State private var ambientTheme = TVAmbientThemeSession()
     @State private var livePlayerSlotFrame: CGRect?
     @FocusState private var focusedTVTab: AppTab?
@@ -126,7 +127,9 @@ struct MainTabView: View {
                 handleTVBack()
             }
             .onReceive(NotificationCenter.default.publisher(for: .dreamCASTReturnToTopMenu)) { _ in
-                focusTopTVMenu()
+                // Legacy screen notifications now follow the shared three-step
+                // Back route instead of jumping past the player and sidebar.
+                handleTVBack()
             }
             .alert("Exit DreamCAST TV?", isPresented: $showingExitConfirmation) {
                 Button("No", role: .cancel) {
@@ -299,6 +302,7 @@ struct MainTabView: View {
                     }
                 }
             .environment(sharedLivePlayback)
+            .environment(backFocus)
             .environment(ambientTheme)
             .guidePreviewSuspension(
                 sharedLivePlayback.guidePreview,
@@ -417,29 +421,43 @@ struct MainTabView: View {
 
         private func focusTopTVMenu() {
             lastTopMenuBackPress = nil
-            // Child controls have already consumed Back. Give the focus
-            // engine a view update before requesting the top destination.
+            backFocus.markFocused(.topMenu)
+            // A focus update during a Menu callback can be dropped by tvOS.
             Task { @MainActor in
                 focusedTVTab = router.selectedTab
             }
         }
 
         private func handleTVBack() {
-            // One Back from any root page moves focus to the app menu.
-            guard focusedTVTab != nil else {
-                focusTopTVMenu()
+            // Never leave the current tab or rebuild the stream while moving
+            // Back. Only change which existing focus section owns the remote.
+            if focusedTVTab != nil {
+                // Preserve the confirmed double-Back exit when the top menu
+                // *already* has remote focus.
+                let now = Date()
+                if let previous = lastTopMenuBackPress,
+                   now.timeIntervalSince(previous) <= 0.85 {
+                    lastTopMenuBackPress = nil
+                    showingExitConfirmation = true
+                } else {
+                    lastTopMenuBackPress = now
+                }
                 return
             }
 
-            // Back twice within 0.85s while already on the main menu
-            // prompts for confirmation instead of leaving unexpectedly.
-            let now = Date()
-            if let previous = lastTopMenuBackPress,
-               now.timeIntervalSince(previous) <= 0.85 {
-                lastTopMenuBackPress = nil
-                showingExitConfirmation = true
-            } else {
-                lastTopMenuBackPress = now
+            lastTopMenuBackPress = nil
+            switch backFocus.zone {
+            case .content, .topMenu:
+                if sharedLivePlayback.miniMedia != nil {
+                    backFocus.requestPlayerFocus()
+                } else {
+                    // When no channel is playing there is no mini-player.
+                    backFocus.requestSidebarFocus()
+                }
+            case .miniPlayer:
+                backFocus.requestSidebarFocus()
+            case .sidebar:
+                focusTopTVMenu()
             }
         }
 
@@ -537,6 +555,13 @@ struct MainTabView: View {
             .buttonStyle(.borderless)
             .focusEffectDisabled()
             .focused($focusedTVTab, equals: tab)
+            .onChange(of: focusedTVTab) { _, newValue in
+                if newValue != nil {
+                    backFocus.markFocused(.topMenu)
+                } else if backFocus.zone == .topMenu {
+                    backFocus.markFocused(.content)
+                }
+            }
             .onExitCommand { handleTVBack() }
             .accessibilityLabel(title)
         }
@@ -817,6 +842,33 @@ private extension View {
 }
 
 #if os(tvOS)
+/// Single source of truth for Back navigation across the six tvOS pages.
+/// Each focus zone owns its @FocusState; the root only issues focus requests.
+@MainActor @Observable
+final class TVBackFocusCoordinator {
+    enum Zone: Equatable {
+        case content, miniPlayer, sidebar, topMenu
+    }
+
+    private(set) var zone: Zone = .content
+    private(set) var playerFocusRequest = 0
+    private(set) var sidebarFocusRequest = 0
+
+    func markFocused(_ newZone: Zone) {
+        zone = newZone
+    }
+
+    func requestPlayerFocus() {
+        zone = .miniPlayer
+        playerFocusRequest &+= 1
+    }
+
+    func requestSidebarFocus() {
+        zone = .sidebar
+        sidebarFocusRequest &+= 1
+    }
+}
+
 extension Notification.Name {
     static let dreamCASTReturnToTopMenu =
         Notification.Name("dreamcast.tv.returnToTopMenu")
