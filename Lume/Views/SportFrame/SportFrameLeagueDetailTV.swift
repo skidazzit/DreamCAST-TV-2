@@ -56,13 +56,14 @@ struct SportFrameLeagueDetailTV: View {
 
     /// Uses the same PlayableMedia and full-screen engine as Live TV.
     /// Present when the match sheet finishes closing to avoid a double-start.
-    private func queueChannelPlayback(_ channel: ResolvedChannel) {
+    private func queueChannelPlayback(_ channel: ResolvedChannel, matches: [ResolvedChannel]) {
         guard pendingMedia == nil,
               let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
         if ExternalPlayback.open(media) {
             selectedMatch = nil
             return
         }
+        playback.rememberMatches(matches, selected: channel)
         pendingMedia = media
         selectedMatch = nil
     }
