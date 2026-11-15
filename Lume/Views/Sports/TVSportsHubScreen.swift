@@ -166,7 +166,7 @@
                     cornerRadius: 12
                 )
             }
-            .buttonStyle(TVCardButtonStyle(focusScale: 1.03))
+            .buttonStyle(TVCardButtonStyle(focusScale: 1.0))
             .focused($focus, equals: .segment(value))
             .animation(.easeOut(duration: 0.18), value: isItemFocused)
         }
@@ -185,13 +185,13 @@
                         Text(verbatim: scopeTitle)
                             .font(.system(size: 34, weight: .bold))
                             .lineLimit(1)
-                        Image(systemName: "chevron.down")
+                        Text(Image(systemName: "chevron.down"))
                             .font(.system(size: 18, weight: .bold))
                             .foregroundStyle(.white.opacity(0.55))
                     }
                 }
             }
-            .buttonStyle(TVCardButtonStyle(focusScale: 1.02))
+            .buttonStyle(TVCardButtonStyle(focusScale: 1.0))
             .accessibilityLabel(Text(verbatim: scopeTitle))
         }
 
@@ -200,11 +200,11 @@
                 showManageTeams = true
             } label: {
                 TVSportsCircleChrome {
-                    Image(systemName: "person.2.badge.plus")
+                    Text(Image(systemName: "person.2.badge.plus"))
                         .font(.system(size: 26, weight: .semibold))
                 }
             }
-            .buttonStyle(TVCardButtonStyle(focusScale: 1.06))
+            .buttonStyle(TVCardButtonStyle(focusScale: 1.0))
             .focused($focus, equals: .manage)
             .accessibilityLabel(Text("Manage Teams"))
         }
@@ -261,12 +261,12 @@
                 Button {
                     showManageTeams = true
                 } label: {
-                    Label("Manage Teams", systemImage: "person.2.badge.plus")
+                    TVFixedButtonLabel(title: "Manage Teams", systemName: "person.2.badge.plus")
                         .font(.title3.weight(.semibold))
                         .padding(.horizontal, 44)
                         .padding(.vertical, 20)
                 }
-                .buttonStyle(TVCardButtonStyle(focusScale: 1.05))
+                .buttonStyle(TVCardButtonStyle(focusScale: 1.0))
             }
         }
 
@@ -283,7 +283,7 @@
                         .padding(.horizontal, 44)
                         .padding(.vertical, 20)
                 }
-                .buttonStyle(TVCardButtonStyle(focusScale: 1.05))
+                .buttonStyle(TVCardButtonStyle(focusScale: 1.0))
             }
         }
 
