@@ -14,7 +14,7 @@
     struct TVSidebarRailItem: Identifiable {
         let id: String
         let title: Text
-        /// Trails the title; nil leaves the row without one.
+        /// Appears before the title; nil leaves the row without one.
         var icon: String?
         /// A group title drawn above the row — a Combined member's name over
         /// its first category. Plain text, so focus steps over it.
@@ -283,13 +283,18 @@
 
         @ViewBuilder
         private func railIcon(_ icon: String, accessibilityLabel: Text?) -> some View {
-            let image = Image(systemName: icon)
+            // Just like the main menu, wrap SF Symbols in Text so tvOS does
+            // not enlarge the icon when the borderless row receives focus.
+            let symbol = Text(Image(systemName: icon))
                 .font(.system(size: iconSize, weight: .semibold))
-                .frame(width: iconSize)
+                .frame(width: iconSize + 4, height: iconSize + 6)
+                .accessibilityHidden(accessibilityLabel == nil)
+
             if let accessibilityLabel {
-                image.accessibilityLabel(accessibilityLabel)
+                symbol.accessibilityHidden(false)
+                    .accessibilityLabel(accessibilityLabel)
             } else {
-                image
+                symbol
             }
         }
 
