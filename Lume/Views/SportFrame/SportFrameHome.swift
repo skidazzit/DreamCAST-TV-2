@@ -646,8 +646,10 @@ struct SportFrameHome: View {
             selectedEvent = event
         } label: {
             HStack(spacing: 18) {
-                hubBadge(event.homeBadge, fallback: "shield", size: 44)
-                hubBadge(event.awayBadge, fallback: "shield", size: 44)
+                // Real logo images live outside the focused Button to
+                // prevent tvOS from zooming just one team's badge.
+                Color.clear.frame(width: 44, height: 44)
+                Color.clear.frame(width: 44, height: 44)
                 Text(event.name)
                     .font(.system(size: 22, weight: .semibold))
                     .lineLimit(1)
@@ -673,9 +675,10 @@ struct SportFrameHome: View {
                         .foregroundStyle(TVNeonTheme.iceBlue)
                         .frame(width: 76)
                 }
-                Image(systemName: "chevron.right")
+                Text(Image(systemName: "chevron.right"))
                     .font(.system(size: 21, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.78))
+                    .frame(width: 24, height: 28)
             }
             .padding(.horizontal, 16)
             .frame(height: 75)
@@ -696,6 +699,14 @@ struct SportFrameHome: View {
         .buttonStyle(.borderless)
         .focusEffectDisabled()
         .focused($focusedControl, equals: .fixture(event.idEvent))
+        .overlay(alignment: .leading) {
+            HStack(spacing: 18) {
+                TVFixedFocusIcon(url: event.homeBadge, systemName: "shield", size: 44)
+                TVFixedFocusIcon(url: event.awayBadge, systemName: "shield", size: 44)
+            }
+            .padding(.leading, 16)
+            .allowsHitTesting(false)
+        }
     }
 
     private func hubBadge(_ url: URL?, fallback: String, size: CGFloat) -> some View {
