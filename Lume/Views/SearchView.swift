@@ -95,15 +95,8 @@ struct SearchView: View {
                 }
                 .padding(.horizontal, 35)
                 .background {
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.025, green: 0.047, blue: 0.095),
-                            Color(red: 0.014, green: 0.025, blue: 0.065)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .ignoresSafeArea(edges: .bottom)
+                    TVAmbientBackground(hero: nil)
+                        .ignoresSafeArea(edges: .bottom)
                 }
                 #else
                 resultList
@@ -146,7 +139,7 @@ struct SearchView: View {
             }
         }
         #if os(tvOS)
-        .background(Color(red: 0.018, green: 0.034, blue: 0.073).ignoresSafeArea())
+        .background(TVAmbientBackground(hero: nil).ignoresSafeArea())
         #endif
         #if os(iOS) || os(tvOS)
         .fullScreenCover(item: $playingMedia) { media in
@@ -173,7 +166,7 @@ struct SearchView: View {
         }
         .scrollIndicators(.visible)
         .focusSection()
-        .background(Color(red: 0.018, green: 0.034, blue: 0.073))
+        .background(Color.clear)
         #else
         List {
             searchResultContents
@@ -267,6 +260,9 @@ struct SearchView: View {
                 // keyboard. The inline remote keys below remain available.
                 TextField("Search channels, movies, series...", text: $searchText)
                     .textFieldStyle(.plain)
+                    // tvOS's default focused TextField paints a white pill
+                    // over the custom navy search box.
+                    .focusEffectDisabled()
                     .focused($searchTextFocused)
                     .submitLabel(.search)
                     .onSubmit { searchTextFocused = false }
