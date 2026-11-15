@@ -65,7 +65,9 @@
         }
 
         private func categoryItem(_ section: LiveTVSection, header: String? = nil) -> TVSidebarRailItem {
-            TVSidebarRailItem(id: section.id, title: section.titleText, icon: section.icon, header: header) {
+            TVSidebarRailItem(id: section.id, title: section.titleText,
+                              icon: section.icon ?? "antenna.radiowaves.left.and.right",
+                              header: header) {
                 selectedSection = section
                 onCategoryActivated()
             }
