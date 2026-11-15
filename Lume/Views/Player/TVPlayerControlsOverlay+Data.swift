@@ -33,6 +33,9 @@
             epgNext = nil
             seriesPlaylist = nil
             recentChannels = []
+            sportsZoneChannels = sportsZonePlayback?.matchedChannels.compactMap {
+                PlayerContentLookup.liveStream($0.stream.id, in: modelContext)
+            } ?? []
             recentNowTitles = [:]
 
             switch media.contentRef {
@@ -225,6 +228,13 @@
             onSelectMedia(newMedia)
         }
 
+        /// Tune directly from the channels matched for this SportsZone game.
+        func selectSportsZoneChannel(_ stream: LiveStream) {
+            guard let match = sportsZonePlayback?.matchedChannels.first(where: { $0.id == stream.id }),
+                  let newMedia = SportsPlayback.media(for: match, in: modelContext) else { return }
+            select(media: newMedia)
+        }
+
         func toggle(tab kind: TabKind) {
             withAnimation(.easeInOut(duration: 0.22)) {
                 openTab = (openTab == kind) ? nil : kind
@@ -233,6 +243,9 @@
             case .episodes:
                 onPanelOpenChange(true)
                 focus = .episode(episode?.id ?? seasonEpisodes.first?.id ?? "")
+            case .sportsZone:
+                onPanelOpenChange(true)
+                focus = .channel(liveStream?.id ?? sportsZoneChannels.first?.id ?? "")
             case .recent:
                 onPanelOpenChange(true)
                 focus = .channel(liveStream?.id ?? recentChannels.first?.id ?? "")
