@@ -37,7 +37,7 @@ struct CategorySidebar: View {
         } label: {
             HStack(spacing: 8) {
                 if let icon = section.icon {
-                    Image(systemName: icon)
+                    Text(Image(systemName: icon))
                         .font(.subheadline)
                         .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
                 }
@@ -138,7 +138,7 @@ struct LiveTVSectionGroupSection<Row: View>: View {
             } label: {
                 HStack(spacing: 8) {
                     if let icon = currentSection?.icon {
-                        Image(systemName: icon)
+                        Text(Image(systemName: icon))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
@@ -153,7 +153,7 @@ struct LiveTVSectionGroupSection<Row: View>: View {
                             .lineLimit(1)
                     }
                     Spacer()
-                    Image(systemName: "chevron.up.chevron.down")
+                    Text(Image(systemName: "chevron.up.chevron.down"))
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
                 }
@@ -227,14 +227,14 @@ struct LiveTVSectionGroupSection<Row: View>: View {
             } label: {
                 HStack(spacing: 12) {
                     if let icon = section.icon {
-                        Image(systemName: icon)
+                        Text(Image(systemName: icon))
                             .foregroundStyle(.secondary)
                     }
                     section.titleText
                         .foregroundStyle(.primary)
                     Spacer()
                     if isSelected {
-                        Image(systemName: "checkmark")
+                        Text(Image(systemName: "checkmark"))
                             .fontWeight(.semibold)
                             .foregroundStyle(.tint)
                     }
