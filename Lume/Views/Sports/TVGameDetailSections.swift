@@ -36,7 +36,7 @@
                         subtitle
                     }
                     Spacer(minLength: 16)
-                    Image(systemName: "play.circle.fill").font(.system(size: 40))
+                    Text(Image(systemName: "play.circle.fill")).font(.system(size: 40))
                 }
                 .padding(.horizontal, 32)
                 .padding(.vertical, 22)
