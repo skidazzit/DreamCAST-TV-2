@@ -122,7 +122,7 @@ struct PlayerErrorIndicator: View {
                     Button {
                         showsMatchedChannels = false
                     } label: {
-                        Label("Back", systemImage: "chevron.left")
+                        TVFixedButtonLabel(title: "Back", systemName: "chevron.left")
                             .font(.system(size: 24, weight: .semibold))
                     }
                     .buttonStyle(TVGlassButtonStyle())
@@ -163,7 +163,7 @@ struct PlayerErrorIndicator: View {
         #if os(tvOS)
             HStack(spacing: 28) {
                 Button(action: onRetry) {
-                    Label("Try Again", systemImage: "arrow.clockwise")
+                    TVFixedButtonLabel(title: "Try Again", systemName: "arrow.clockwise")
                         .font(.system(size: 24, weight: .semibold))
                 }
                 .buttonStyle(TVGlassButtonStyle())
@@ -173,7 +173,7 @@ struct PlayerErrorIndicator: View {
                     Button {
                         showsMatchedChannels = true
                     } label: {
-                        Label("Choose Channel", systemImage: "list.bullet.rectangle")
+                        TVFixedButtonLabel(title: "Choose Channel", systemName: "list.bullet.rectangle")
                             .font(.system(size: 24, weight: .semibold))
                     }
                     .buttonStyle(TVGlassButtonStyle())
