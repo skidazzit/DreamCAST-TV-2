@@ -674,6 +674,36 @@ private struct SportFrameMobileMatchSheet: View {
     @State private var epgChannels: [ResolvedChannel] = []
     @State private var loading = true
     @State private var searching = false
+    @State private var channelGroupNames: [String: String] = [:]
+
+    private var visibleMatchIDs: [String] {
+        let broadcasterIDs = Set(matchingBroadcasterChannels.map(\.id))
+        return (matchingBroadcasterChannels + epgChannels.filter { !broadcasterIDs.contains($0.id) })
+            .map(\.id).sorted()
+    }
+
+    private func loadChannelGroupNames() {
+        let ids = visibleMatchIDs
+        guard !ids.isEmpty else {
+            channelGroupNames = [:]
+            return
+        }
+        var streamsQuery = FetchDescriptor<LiveStream>(predicate: #Predicate { ids.contains($0.id) })
+        streamsQuery.propertiesToFetch = [\.id, \.categoryId]
+        let streams = (try? modelContext.fetch(streamsQuery)) ?? []
+        let categoryIDs = Array(Set(streams.compactMap(\.categoryId)))
+        var categoriesQuery = FetchDescriptor<Category>(
+            predicate: #Predicate { categoryIDs.contains($0.id) }
+        )
+        categoriesQuery.propertiesToFetch = [\.id, \.name]
+        let categories = (try? modelContext.fetch(categoriesQuery)) ?? []
+        let names = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0.name) })
+        channelGroupNames = Dictionary(uniqueKeysWithValues: streams.compactMap { stream in
+            guard let categoryID = stream.categoryId,
+                  let name = names[categoryID], !name.isEmpty else { return nil }
+            return (stream.id, name)
+        })
+    }
 
     var body: some View {
         NavigationStack {
@@ -727,6 +757,9 @@ private struct SportFrameMobileMatchSheet: View {
                     Button("Done") { dismiss() }
                 }
             }
+        }
+        .task(id: visibleMatchIDs) {
+            loadChannelGroupNames()
         }
         .task(id: event.idEvent) {
             loading = true
@@ -790,7 +823,15 @@ private struct SportFrameMobileMatchSheet: View {
                     $0.resizable().scaledToFit()
                 } placeholder: { Image(systemName: "tv") }
                 .frame(width: 42, height: 32)
-                Text(channel.stream.name).font(.subheadline).lineLimit(2)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(channel.stream.name)
+                        .font(.subheadline)
+                        .lineLimit(2)
+                    Text("Group: \(channelGroupNames[channel.id] ?? "Unknown Group")")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
                 Spacer()
                 Image(systemName: "play.fill")
             }
