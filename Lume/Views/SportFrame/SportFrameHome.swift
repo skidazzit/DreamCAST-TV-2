@@ -614,6 +614,7 @@ struct SportFrameHome: View {
             TVSidebarRail(
                 items: hubRailItems,
                 selectedID: hubSelectedRailID,
+                preserveGeometricEntry: true,
                 onMoveRight: { id in moveFromSidebar(id, displayed: snapshot.displayed) },
                 onRowCenterChange: { id, y in rememberSidebarCenter(id, y) },
                 requestedFocusID: sidebarTargetID,
