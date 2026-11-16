@@ -304,11 +304,11 @@ struct SettingsView: View {
     /// Display groups from the approved Settings dashboard mockup.
     /// They route into the existing Settings panes, preserving their tools.
     private enum TVDashboardSection: String, CaseIterable {
-        case general, playback, liveGuide, sports, movies, backup, appearance, dataSources, about
+        case general, playback, liveGuide, sports, backup, appearance, dataSources, about
         case advanced // Opens existing account options without adding a rail row.
 
         static let sidebar: [Self] = [
-            .general, .playback, .liveGuide, .sports, .movies,
+            .general, .playback, .liveGuide, .sports,
             .backup, .appearance, .dataSources, .about
         ]
 
@@ -318,7 +318,6 @@ struct SettingsView: View {
             case .playback: "Playback"
             case .liveGuide: "Live TV & Guide"
             case .sports: "SportsZone"
-            case .movies: "Movies & Series"
             case .backup: "Backup & Restore"
             case .appearance: "Appearance"
             case .dataSources: "Data Sources"
@@ -333,7 +332,6 @@ struct SettingsView: View {
             case .playback: "play.rectangle"
             case .liveGuide: "list.bullet.rectangle"
             case .sports: "trophy"
-            case .movies: "film"
             case .backup: "icloud.and.arrow.up"
             case .appearance: "tv"
             case .dataSources: "globe"
@@ -344,11 +342,12 @@ struct SettingsView: View {
 
         var legacyCategory: SettingsCategory? {
             switch self {
-            case .general, .appearance: nil
+            case .general: nil
+            // Appearance owns the former Library controls and Content Management editor.
+            case .appearance: .library
             case .playback: .player
             case .liveGuide: .liveTV
             case .sports: .sports
-            case .movies: .library
             case .backup: .storage
             case .dataSources: .playlists
             case .about: .about
@@ -429,7 +428,7 @@ struct SettingsView: View {
         }
 
         private func dashboardOpenLegacy(_ category: SettingsCategory) {
-            dashboardSection = .advanced
+            dashboardSection = category == .library ? .appearance : .advanced
             selectedCategory = category
             closeDrillIns()
             paneFocusRequest += 1
@@ -446,12 +445,21 @@ struct SettingsView: View {
                 .scrollIndicators(.visible)
                 .focusSection()
             } else if dashboardSection == .appearance {
-                ScrollView(.vertical) {
-                    tvDashboardAppearance
-                        .padding(.bottom, 90)
+                if showingContentManagement {
+                    // Keep the existing PIN gate and editor. The editor must
+                    // replace the scroll pane rather than nest inside one.
+                    tvDetailContainer
+                        .frame(maxWidth: .infinity, maxHeight: .infinity,
+                               alignment: .topLeading)
+                        .onExitCommand(perform: handleDetailMenu)
+                } else {
+                    ScrollView(.vertical) {
+                        tvDashboardAppearance
+                            .padding(.bottom, 100)
+                    }
+                    .scrollIndicators(.visible)
+                    .focusSection()
                 }
-                .scrollIndicators(.visible)
-                .focusSection()
             } else {
                 VStack(alignment: .leading, spacing: 18) {
                     Text(dashboardSection == .advanced
@@ -816,12 +824,22 @@ struct SettingsView: View {
         }
 
         private var tvDashboardAppearance: some View {
-            VStack(alignment: .leading, spacing: 21) {
+            VStack(alignment: .leading, spacing: 26) {
                 Text("Appearance")
                     .font(.system(size: 43, weight: .bold, design: .rounded))
-                Text("Customize guide layout, subtitle style and Home sections.")
+                Text("Choose visible tabs, organize categories and channels, and set search scope.")
                     .font(.system(size: 20))
                     .foregroundStyle(.white.opacity(0.73))
+
+                // Reuse the existing playlist-aware bindings and PIN-gated
+                // Content Management action. Do not create duplicate settings.
+                tvLibraryDetail
+
+                Text("Display & Layout")
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundStyle(TVNeonTheme.iceBlue)
+                    .padding(.top, 10)
+
                 dashboardMoreRow("Live TV Guide Design", icon: "tv") {
                     dashboardOpenLegacy(.liveTV)
                 }
@@ -891,7 +909,8 @@ struct SettingsView: View {
         /// out of any sub-page — and moves focus into its pane.
         private func activate(_ category: SettingsCategory) {
             // Pending deep links still reach their real settings pane.
-            dashboardSection = category == .playlists ? .dataSources : .advanced
+            dashboardSection = category == .playlists ? .dataSources :
+                (category == .library ? .appearance : .advanced)
             selectedCategory = category
             closeDrillIns()
             paneFocusRequest += 1
