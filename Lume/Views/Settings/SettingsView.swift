@@ -567,6 +567,261 @@ struct SettingsView: View {
             .buttonStyle(TVDashboardCardStyle())
         }
 
+        private var tvDashboardGeneral: some View {
+            VStack(alignment: .leading, spacing: 22) {
+                Text("Settings")
+                    .font(.system(size: 45, weight: .bold, design: .rounded))
+                Text("Customize your DreamCAST TV 2 experience")
+                    .font(.system(size: 21))
+                    .foregroundStyle(.white.opacity(0.75))
+
+                Text("General")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundStyle(TVNeonTheme.iceBlue)
+                    .padding(.top, 13)
+
+                VStack(spacing: 0) {
+                    Menu {
+                        Button("Live TV") { startupTabRaw = "liveTV" }
+                        Button("SportsZone") { startupTabRaw = "sports" }
+                        Button("Movies") { startupTabRaw = "movies" }
+                        Button("Series") { startupTabRaw = "series" }
+                        Button("Search") { startupTabRaw = "search" }
+                        Button("Settings") { startupTabRaw = "settings" }
+                    } label: {
+                        dashboardGeneralRow(
+                            title: "Startup Screen", icon: "play.tv",
+                            value: dashboardStartupLabel, showsArrow: true
+                        )
+                    }
+
+                    dashboardGeneralDivider()
+                    dashboardGeneralToggle(
+                        "Auto Resume Last Channel",
+                        icon: "clock.arrow.circlepath",
+                        isOn: $autoResumeLastChannel
+                    )
+                    dashboardGeneralDivider()
+                    dashboardGeneralToggle(
+                        "Confirm Exit", icon: "power", isOn: $confirmExit
+                    )
+                    dashboardGeneralDivider()
+
+                    Menu {
+                        ForEach(SyncFrequency.allCases) { frequency in
+                            Button {
+                                dashboardEPGFrequency = frequency.rawValue
+                            } label: {
+                                Text(frequency.label)
+                            }
+                        }
+                    } label: {
+                        dashboardGeneralRow(
+                            title: "Auto Refresh (EPG)",
+                            icon: "arrow.triangle.2.circlepath",
+                            value: dashboardRefreshLabel, showsArrow: true
+                        )
+                    }
+
+                    dashboardGeneralDivider()
+                    Button {
+                        openDashboard(.playback)
+                        selectedCategory = .player
+                        showingSubtitleStyle = true
+                    } label: {
+                        dashboardGeneralRow(
+                            title: "Default Subtitles", icon: "captions.bubble",
+                            value: "Style", showsArrow: true
+                        )
+                    }
+                    .buttonStyle(.borderless)
+                    .focusEffectDisabled()
+
+                    dashboardGeneralDivider()
+                    Button {
+                        openDashboard(.playback)
+                        selectedCategory = .player
+                        preferredLanguagePane = .list
+                    } label: {
+                        dashboardGeneralRow(
+                            title: "Preferred Audio Language",
+                            icon: "globe", value: "Choose", showsArrow: true
+                        )
+                    }
+                    .buttonStyle(.borderless)
+                    .focusEffectDisabled()
+                }
+                .padding(10)
+                .background(TVNeonTheme.glass,
+                            in: RoundedRectangle(cornerRadius: 20))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 20)
+                        .strokeBorder(.white.opacity(0.19), lineWidth: 1)
+                }
+
+                Text("More Settings")
+                    .font(.system(size: 25, weight: .bold))
+                    .foregroundStyle(TVNeonTheme.iceBlue)
+                    .padding(.top, 12)
+
+                VStack(spacing: 9) {
+                    dashboardMoreRow("Profiles", icon: "person.crop.circle") {
+                        dashboardOpenLegacy(.profiles)
+                    }
+                    dashboardMoreRow("Home Layout", icon: "house") {
+                        dashboardOpenLegacy(.home)
+                    }
+                    dashboardMoreRow("TV Guide Sources", icon: "calendar") {
+                        dashboardOpenLegacy(.epg)
+                    }
+                    if hasConnectedServices {
+                        dashboardMoreRow("Connected Services", icon: "link") {
+                            dashboardOpenLegacy(.connectedServices)
+                        }
+                    }
+                    dashboardMoreRow("Help & Feedback", icon: "questionmark.circle") {
+                        dashboardOpenLegacy(.help)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .topLeading)
+        }
+
+        private var dashboardStartupLabel: String {
+            switch startupTabRaw {
+            case "sports": "SportsZone"
+            case "movies": "Movies"
+            case "series": "Series"
+            case "search": "Search"
+            case "settings": "Settings"
+            default: "Live TV"
+            }
+        }
+
+        private var dashboardRefreshLabel: String {
+            switch SyncFrequency.resolveEPG(dashboardEPGFrequency) {
+            case .sixHours: "Every 6 Hours"
+            case .daily: "Every Day"
+            case .everyThreeDays: "Every 3 Days"
+            case .weekly: "Every Week"
+            }
+        }
+
+        private func dashboardGeneralRow(
+            title: String, icon: String, value: String,
+            showsArrow: Bool = false
+        ) -> some View {
+            HStack(spacing: 15) {
+                Text(Image(systemName: icon))
+                    .font(.system(size: 23))
+                    .frame(width: 33, height: 36)
+                Text(title)
+                    .font(.system(size: 20, weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Spacer(minLength: 10)
+                Text(value)
+                    .font(.system(size: 18))
+                    .foregroundStyle(.white.opacity(0.78))
+                    .lineLimit(1)
+                if showsArrow {
+                    Text(Image(systemName: "chevron.right"))
+                        .font(.system(size: 18))
+                }
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 13)
+            .frame(height: 65)
+            .contentShape(RoundedRectangle(cornerRadius: 14))
+        }
+
+        private func dashboardGeneralToggle(
+            _ title: String, icon: String, isOn: Binding<Bool>
+        ) -> some View {
+            Button {
+                isOn.wrappedValue.toggle()
+            } label: {
+                HStack(spacing: 15) {
+                    Text(Image(systemName: icon))
+                        .font(.system(size: 23))
+                        .frame(width: 33, height: 36)
+                    Text(title)
+                        .font(.system(size: 20, weight: .medium))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.78)
+                    Spacer(minLength: 10)
+                    Capsule()
+                        .fill(isOn.wrappedValue
+                              ? TVNeonTheme.electricBlue : .white.opacity(0.24))
+                        .frame(width: 61, height: 32)
+                        .overlay(alignment: isOn.wrappedValue ? .trailing : .leading) {
+                            Circle()
+                                .fill(.white)
+                                .frame(width: 27, height: 27)
+                                .padding(3)
+                        }
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 13)
+                .frame(height: 65)
+                .contentShape(RoundedRectangle(cornerRadius: 14))
+            }
+            .buttonStyle(TVDashboardCardStyle())
+            .accessibilityLabel(title)
+            .accessibilityValue(isOn.wrappedValue ? "On" : "Off")
+        }
+
+        private func dashboardGeneralDivider() -> some View {
+            Rectangle()
+                .fill(.white.opacity(0.14))
+                .frame(height: 1)
+                .padding(.horizontal, 18)
+        }
+
+        private func dashboardMoreRow(
+            _ title: String, icon: String, action: @escaping () -> Void
+        ) -> some View {
+            Button(action: action) {
+                HStack(spacing: 13) {
+                    Text(Image(systemName: icon))
+                        .font(.system(size: 23))
+                        .frame(width: 30, height: 34)
+                    Text(title)
+                        .font(.system(size: 19, weight: .medium))
+                    Spacer(minLength: 0)
+                    Text(Image(systemName: "chevron.right"))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 17)
+                .frame(height: 57)
+            }
+            .buttonStyle(TVDashboardCardStyle())
+        }
+
+        private var tvDashboardAppearance: some View {
+            VStack(alignment: .leading, spacing: 21) {
+                Text("Appearance")
+                    .font(.system(size: 43, weight: .bold, design: .rounded))
+                Text("Customize guide layout, subtitle style and Home sections.")
+                    .font(.system(size: 20))
+                    .foregroundStyle(.white.opacity(0.73))
+                dashboardMoreRow("Live TV Guide Design", icon: "tv") {
+                    dashboardOpenLegacy(.liveTV)
+                }
+                dashboardMoreRow("Subtitle Appearance", icon: "captions.bubble") {
+                    dashboardOpenLegacy(.player)
+                    showingSubtitleStyle = true
+                }
+                dashboardMoreRow("Home Sections & Top Shelf", icon: "square.grid.2x2") {
+                    dashboardOpenLegacy(.home)
+                }
+                Text("DreamCAST TV uses a dark interface on Apple TV.")
+                    .font(.system(size: 18))
+                    .foregroundStyle(.white.opacity(0.6))
+            }
+            .frame(maxWidth: .infinity, alignment: .topLeading)
+        }
+
         /// Opens Playlists the way activating its rail row does, then drills
         /// into Combined View when the route asks for it.
         private func open(_ route: SettingsRoute) {
