@@ -244,6 +244,14 @@ struct LiveTVView: View {
             }
             #endif
             #if os(iOS)
+            // Only used when this view is shown outside the app root (such as
+            // Xcode previews). In the app, MainTabView owns this cover.
+            .fullScreenCover(item: $fallbackLivePlayback.fullScreenMedia, onDismiss: {
+                fallbackLivePlayback.returnedFromFullScreen()
+            }) { media in
+                FullScreenPlayerView(media: media, adopting: fallbackLivePlayback.handle)
+                    .environment(fallbackLivePlayback)
+            }
             .fullScreenCover(item: $multiViewLaunch) { launch in
                 MultiViewScreen(seed: launch.seed)
             }
