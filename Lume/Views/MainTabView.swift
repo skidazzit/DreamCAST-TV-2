@@ -393,7 +393,7 @@ struct MainTabView: View {
             VStack(spacing: 0) {
                 HStack(spacing: 24) {
                     tvBrand
-                        .frame(width: 348, alignment: .leading)
+                        .frame(width: 250, alignment: .leading)
 
                     HStack(spacing: 5) {
                         if tabs.showsTab(.liveTV) {
@@ -524,23 +524,11 @@ struct MainTabView: View {
         }
 
         private var tvBrand: some View {
-            HStack(spacing: 13) {
-                Image(systemName: "tv")
-                    .font(.system(size: 36, weight: .bold))
-                    .foregroundStyle(TVNeonTheme.electricBlue)
-                    .shadow(color: TVNeonTheme.electricBlue.opacity(0.55), radius: 9)
-                HStack(spacing: 1) {
-                    Text("DreamCAST")
-                        .foregroundStyle(Color.white)
-                    Text(" TV 2")
-                        .foregroundStyle(TVNeonTheme.iceBlue)
-                }
-                .font(.system(size: 31, weight: .bold, design: .rounded))
-                .italic()
-                .lineLimit(1)
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("DreamCAST TV 2")
+            Image("DreamCASTHeaderLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 210, height: 108, alignment: .leading)
+                .accessibilityLabel("DreamCAST TV")
         }
 
         private func tvTabButton(
