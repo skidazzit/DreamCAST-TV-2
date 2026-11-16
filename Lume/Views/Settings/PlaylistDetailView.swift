@@ -2,7 +2,8 @@ import SwiftData
 import SwiftUI
 
 struct PlaylistDetailView: View {
-    @Environment(\.modelContext) private var modelContext
+    // Used by PlaylistDetailView+TV.swift for saving refreshed provider account details.
+    @Environment(\.modelContext) var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(CloudSyncCoordinator.self) private var cloudSync: CloudSyncCoordinator?
     @Bindable var playlist: Playlist
