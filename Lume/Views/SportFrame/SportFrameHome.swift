@@ -512,7 +512,7 @@ struct SportFrameHome: View {
         switch hubWindow {
         case .now: displayed = live
         case .upcoming: displayed = upcoming
-        case .yesterday: displayed = Array(visible.reversed())
+        case .yesterday: displayed = sortedHubEvents(visible, newestFirst: true)
         }
         return SportsHubSnapshot(
             displayed: displayed,
