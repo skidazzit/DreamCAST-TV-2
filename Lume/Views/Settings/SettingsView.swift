@@ -82,6 +82,14 @@ struct SettingsView: View {
         /// when a rail row is activated (Live TV's model): moving focus through
         /// the rail just highlights.
         @State private var selectedCategory: SettingsCategory = .profiles
+        @State private var dashboardSection: TVDashboardSection = .general
+        @State private var dashboardStatus: String?
+        @AppStorage("dreamcast.tv.startupTab") private var startupTabRaw = "liveTV"
+        @AppStorage("dreamcast.tv.autoResumeLastChannel") private var autoResumeLastChannel = true
+        @AppStorage("dreamcast.tv.confirmExit") private var confirmExit = true
+        @AppStorage(SyncFrequency.epgStorageKey) private var dashboardEPGFrequency = SyncFrequency.epgDefaultValue.rawValue
+        @Environment(SportsZonePlaybackSession.self) private var dashboardPlayback: SportsZonePlaybackSession?
+        @Environment(AutoSyncQueue.self) private var dashboardSyncQueue: AutoSyncQueue?
         /// Bumped to hand focus to the rail's selected category — Menu from a
         /// pane's top level, or the tab-bar entry catcher.
         @State private var railFocusRequest = 0
@@ -283,37 +291,101 @@ struct SettingsView: View {
     #endif
 }
 
-// MARK: - tvOS (Apple TV Settings-style two-pane layout)
+// MARK: - tvOS DreamCAST Settings Dashboard
 
 #if os(tvOS)
+
+    /// Display groups from the approved Settings dashboard mockup.
+    /// They route into the existing Settings panes, preserving their tools.
+    private enum TVDashboardSection: String, CaseIterable {
+        case general, playback, liveGuide, sports, movies, backup, appearance, dataSources, about
+        case advanced // Opens existing account options without adding a rail row.
+
+        static let sidebar: [Self] = [
+            .general, .playback, .liveGuide, .sports, .movies,
+            .backup, .appearance, .dataSources, .about
+        ]
+
+        var title: String {
+            switch self {
+            case .general: "General"
+            case .playback: "Playback"
+            case .liveGuide: "Live TV & Guide"
+            case .sports: "SportsZone"
+            case .movies: "Movies & Series"
+            case .backup: "Backup & Restore"
+            case .appearance: "Appearance"
+            case .dataSources: "Data Sources"
+            case .about: "About"
+            case .advanced: "More Settings"
+            }
+        }
+
+        var icon: String {
+            switch self {
+            case .general: "gearshape"
+            case .playback: "play.rectangle"
+            case .liveGuide: "list.bullet.rectangle"
+            case .sports: "trophy"
+            case .movies: "film"
+            case .backup: "icloud.and.arrow.up"
+            case .appearance: "tv"
+            case .dataSources: "globe"
+            case .about: "info.circle"
+            case .advanced: "slider.horizontal.3"
+            }
+        }
+
+        var legacyCategory: SettingsCategory? {
+            switch self {
+            case .general, .appearance: nil
+            case .playback: .player
+            case .liveGuide: .liveTV
+            case .sports: .sports
+            case .movies: .library
+            case .backup: .storage
+            case .dataSources: .playlists
+            case .about: .about
+            case .advanced: .profiles
+            }
+        }
+    }
 
     extension SettingsView {
         private var tvBody: some View {
             NavigationStack {
                 HStack(alignment: .top, spacing: TVSidebarRail.paneSpacing) {
                     TVSidebarRail(
-                        items: railItems,
-                        selectedID: selectedCategory.id,
+                        items: dashboardRailItems,
+                        selectedID: dashboardSection.rawValue,
                         focusRequest: railFocusRequest,
                         focusHandOffRequest: paneFocusRequest,
                         masksFocus: paneHandoff != nil,
                         onFocusChange: railFocusDidChange
                     )
-                    tvDetailContainer
-                        .focused($detailFocused)
-                        .onExitCommand {
-                            // Keep Back consistent with Live TV, SportsZone,
-                            // Movies, Series and Search. Navigate focus first;
-                            // never jump directly to the main app menu.
-                            NotificationCenter.default.post(
-                                name: .dreamCASTReturnToTopMenu,
-                                object: nil
-                            )
+
+                    GeometryReader { geometry in
+                        let rightWidth = min(620, max(440, geometry.size.width * 0.46))
+                        HStack(alignment: .top, spacing: 28) {
+                            tvDashboardDetail
+                                .frame(maxWidth: .infinity, maxHeight: .infinity,
+                                       alignment: .topLeading)
+                                .focused($detailFocused)
+                            tvDashboardRightColumn(width: rightWidth)
+                                .frame(width: rightWidth)
                         }
+                        .frame(width: geometry.size.width,
+                               height: geometry.size.height, alignment: .topLeading)
+                    }
                 }
+                .padding(.horizontal, 35)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .onExitCommand {
-                    NotificationCenter.default.post(name: .dreamCASTReturnToTopMenu, object: nil)
+                    NotificationCenter.default.post(
+                        name: .dreamCASTReturnToTopMenu, object: nil
+                    )
                 }
                 .overlay(alignment: .top) { tvTabBarEntryCatcher }
                 .paywall(isPresented: $showPaywall, highlight: paywallHighlight)
@@ -325,6 +397,174 @@ struct SettingsView: View {
                     open(route)
                 }
             }
+        }
+
+        private var dashboardRailItems: [TVSidebarRailItem] {
+            TVDashboardSection.sidebar.map { section in
+                TVSidebarRailItem(
+                    id: section.rawValue, title: Text(section.title),
+                    icon: section.icon
+                ) {
+                    openDashboard(section)
+                }
+            }
+        }
+
+        private func openDashboard(_ section: TVDashboardSection) {
+            dashboardSection = section
+            if let category = section.legacyCategory {
+                selectedCategory = category
+            }
+            closeDrillIns()
+            paneFocusRequest += 1
+            Task { @MainActor in detailFocused = true }
+        }
+
+        private func dashboardOpenLegacy(_ category: SettingsCategory) {
+            dashboardSection = .advanced
+            selectedCategory = category
+            closeDrillIns()
+            paneFocusRequest += 1
+            Task { @MainActor in detailFocused = true }
+        }
+
+        @ViewBuilder
+        private var tvDashboardDetail: some View {
+            if dashboardSection == .general {
+                ScrollView(.vertical) {
+                    tvDashboardGeneral
+                        .padding(.bottom, 90)
+                }
+                .scrollIndicators(.visible)
+                .focusSection()
+            } else if dashboardSection == .appearance {
+                ScrollView(.vertical) {
+                    tvDashboardAppearance
+                        .padding(.bottom, 90)
+                }
+                .scrollIndicators(.visible)
+                .focusSection()
+            } else {
+                VStack(alignment: .leading, spacing: 18) {
+                    Text(dashboardSection == .advanced
+                         ? "More Settings" : dashboardSection.title)
+                        .font(.system(size: 43, weight: .bold, design: .rounded))
+                    tvDetailContainer
+                        .frame(maxWidth: .infinity, maxHeight: .infinity,
+                               alignment: .topLeading)
+                }
+            }
+        }
+
+        private func tvDashboardRightColumn(width: CGFloat) -> some View {
+            ScrollView(.vertical) {
+                VStack(alignment: .leading, spacing: 25) {
+                    if dashboardPlayback?.miniMedia != nil {
+                        // App root owns the only decoder. This is its actual
+                        // measured slot, not a second or floating player.
+                        TVEmbeddedPlayerSlot(
+                            width: width,
+                            height: width * 9 / 16 + TVPersistentMiniPlayer.controlsHeight
+                        )
+                    } else {
+                        VStack(spacing: 12) {
+                            Image(systemName: "play.tv")
+                                .font(.system(size: 54))
+                                .foregroundStyle(TVNeonTheme.iceBlue)
+                            Text("Your live channel will appear here")
+                                .font(.system(size: 20))
+                                .foregroundStyle(.white.opacity(0.72))
+                        }
+                        .frame(width: width,
+                               height: width * 9 / 16 + TVPersistentMiniPlayer.controlsHeight)
+                        .background(TVNeonTheme.glass,
+                                    in: RoundedRectangle(cornerRadius: 22))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 22)
+                                .strokeBorder(TVNeonTheme.iceBlue.opacity(0.4), lineWidth: 1)
+                        }
+                    }
+
+                    Text("Quick Actions")
+                        .font(.system(size: 27, weight: .bold))
+                        .foregroundStyle(TVNeonTheme.iceBlue)
+
+                    LazyVGrid(columns: [
+                        GridItem(.flexible(), spacing: 13),
+                        GridItem(.flexible(), spacing: 13)
+                    ], spacing: 13) {
+                        tvDashboardQuickAction("Backup Settings",
+                                               detail: "Save settings to a file",
+                                               symbol: "externaldrive") {
+                            openDashboard(.backup)
+                        }
+                        tvDashboardQuickAction("Restore Settings",
+                                               detail: "Load settings from a file",
+                                               symbol: "square.and.arrow.up") {
+                            openDashboard(.backup)
+                        }
+                        tvDashboardQuickAction("Refresh All Data",
+                                               detail: "EPG · Sports · Playlists",
+                                               symbol: "arrow.clockwise") {
+                            dashboardSyncQueue?.enqueueManualMembers(
+                                scope: catalogScope, playlists: playlists,
+                                frequency: SyncFrequency.resolve(syncFrequencyRaw),
+                                context: modelContext
+                            )
+                            EPGSyncService.shared.syncNow()
+                            SportsSyncService.shared.syncNow()
+                            dashboardStatus = "Refreshing guide, sports and playlists."
+                        }
+                        tvDashboardQuickAction("Clear Cache",
+                                               detail: "Manage cached storage",
+                                               symbol: "paintbrush") {
+                            openDashboard(.backup)
+                            dashboardStatus = "Open Storage & Cache below Backup & Restore to choose what to clear."
+                        }
+                    }
+                    if let dashboardStatus {
+                        Text(dashboardStatus)
+                            .font(.system(size: 18))
+                            .foregroundStyle(.white.opacity(0.76))
+                            .lineLimit(3)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .padding(.bottom, 90)
+            }
+            .scrollIndicators(.visible)
+            .focusSection()
+        }
+
+        private func tvDashboardQuickAction(
+            _ title: String,
+            detail: String,
+            symbol: String,
+            action: @escaping () -> Void
+        ) -> some View {
+            Button(action: action) {
+                HStack(alignment: .center, spacing: 15) {
+                    Text(Image(systemName: symbol))
+                        .font(.system(size: 31, weight: .medium))
+                        .foregroundStyle(TVNeonTheme.iceBlue)
+                        .frame(width: 44, height: 48)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(title)
+                            .font(.system(size: 20, weight: .semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.78)
+                        Text(detail)
+                            .font(.system(size: 15))
+                            .foregroundStyle(.white.opacity(0.72))
+                            .lineLimit(2)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, 17)
+                .frame(height: 102)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(TVDashboardCardStyle())
         }
 
         /// Opens Playlists the way activating its rail row does, then drills
