@@ -357,7 +357,9 @@ struct SettingsView: View {
                 HStack(alignment: .top, spacing: TVSidebarRail.paneSpacing) {
                     TVSidebarRail(
                         items: dashboardRailItems,
-                        selectedID: dashboardSection.rawValue,
+                        selectedID: dashboardSection == .advanced
+                            ? TVDashboardSection.general.rawValue
+                            : dashboardSection.rawValue,
                         focusRequest: railFocusRequest,
                         focusHandOffRequest: paneFocusRequest,
                         masksFocus: paneHandoff != nil,
@@ -873,6 +875,8 @@ struct SettingsView: View {
         /// Opens `category` at its top level — also the open one, which backs
         /// out of any sub-page — and moves focus into its pane.
         private func activate(_ category: SettingsCategory) {
+            // Pending deep links still reach their real settings pane.
+            dashboardSection = category == .playlists ? .dataSources : .advanced
             selectedCategory = category
             closeDrillIns()
             paneFocusRequest += 1
