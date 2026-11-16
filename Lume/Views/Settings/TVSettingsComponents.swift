@@ -280,6 +280,22 @@
         }
     }
 
+    extension View {
+        /// Focus decoration for tvOS Menu labels, which don't take a ButtonStyle.
+        func dashboardFocusHighlight(_ focused: Bool) -> some View {
+            background {
+                if focused {
+                    RoundedRectangle(cornerRadius: 14).fill(TVNeonTheme.selection)
+                }
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 14)
+                    .strokeBorder(focused ? TVNeonTheme.iceBlue : .clear,
+                                  lineWidth: focused ? 2 : 0)
+            }
+        }
+    }
+
     /// Cyan outline and navy glass. No tvOS icon zoom or white focus plate.
     struct TVDashboardCardStyle: ButtonStyle {
         func makeBody(configuration: Configuration) -> some View {
