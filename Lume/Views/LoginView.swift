@@ -78,6 +78,12 @@ struct LoginView: View {
     /// The slim diagnostics screen — the only way to send a report before a
     /// playlist exists, since Settings isn't reachable until then.
     @State var showDiagnostics = false
+    #if os(iOS)
+        /// First-run local settings restore. This does not import playlists,
+        /// credentials, or the SwiftData media library.
+        @State private var showSettingsRestoreImporter = false
+        @State private var settingsRestoreNotice: String?
+    #endif
 
     private var isFormValid: Bool {
         switch sourceType {
@@ -144,6 +150,23 @@ struct LoginView: View {
                         MediaServerLoginSection(name: $name, serverURL: $mediaServerURL, username: $username, password: $password)
                     }
 
+                    #if os(iOS)
+                    if !isModal {
+                        Section {
+                            Button {
+                                showSettingsRestoreImporter = true
+                            } label: {
+                                Label("Restore Settings from File", systemImage: "square.and.arrow.down")
+                            }
+                            .disabled(isLoading)
+                        } header: {
+                            Text("Already have a DreamCAST TV backup?")
+                        } footer: {
+                            Text("Import saved app settings from a DreamCAST TV JSON backup. Playlists and account passwords are not included; add your IPTV playlist below.")
+                        }
+                    }
+                    #endif
+
                     if let errorMessage {
                         Section {
                             Label(errorMessage, systemImage: "exclamationmark.circle.fill")
@@ -207,6 +230,36 @@ struct LoginView: View {
                 ) { result in
                     handleFileImport(result)
                 }
+                #if os(iOS)
+                .fileImporter(
+                    isPresented: $showSettingsRestoreImporter,
+                    allowedContentTypes: [.json]
+                ) { result in
+                    do {
+                        let url = try result.get()
+                        let scoped = url.startAccessingSecurityScopedResource()
+                        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+                        let data = try Data(contentsOf: url)
+                        let count = try DreamCASTLocalSettingsBackup.restoreSettings(from: data)
+                        settingsRestoreNotice = "Restored \(count) app settings. Add your playlist to continue. Restart DreamCAST TV after setup to apply all restored settings."
+                    } catch {
+                        if (error as NSError).code != NSUserCancelledError {
+                            settingsRestoreNotice = "Could not restore settings: \(error.localizedDescription)"
+                        }
+                    }
+                }
+                .alert(
+                    "Restore Settings",
+                    isPresented: Binding(
+                        get: { settingsRestoreNotice != nil },
+                        set: { if !$0 { settingsRestoreNotice = nil } }
+                    )
+                ) {
+                    Button("OK") { settingsRestoreNotice = nil }
+                } message: {
+                    Text(settingsRestoreNotice ?? "")
+                }
+                #endif
             }
         }
 
