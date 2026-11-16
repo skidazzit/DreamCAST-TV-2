@@ -161,14 +161,16 @@ struct MainTabView: View {
             }
         #if os(iOS)
             .environment(sharedLivePlayback)
-            // The video host is mounted once, above the tab dock. Switching
-            // Live TV, SportsZone, Movies, Shows or Search cannot unmount it.
-            .safeAreaInset(edge: .bottom, spacing: 0) {
+            // A single in-flow header stays above every tab's content.
+            // Unlike a floating overlay, safeAreaInset reserves layout space,
+            // so lists and navigation pages never scroll underneath video.
+            // The root owns this video surface: tab changes do not remount it.
+            .safeAreaInset(edge: .top, spacing: 0) {
                 if sharedLivePlayback.miniMedia != nil {
                     SportsZoneMiniPlayer(session: sharedLivePlayback)
                         .frame(maxWidth: .infinity)
                         .background(.regularMaterial)
-                        .overlay(alignment: .top) {
+                        .overlay(alignment: .bottom) {
                             Divider()
                         }
                 }
