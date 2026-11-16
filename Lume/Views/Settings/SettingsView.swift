@@ -778,8 +778,8 @@ struct SettingsView: View {
                 .contentShape(RoundedRectangle(cornerRadius: 14))
             }
             .buttonStyle(TVDashboardCardStyle())
-            .accessibilityLabel(title)
-            .accessibilityValue(isOn.wrappedValue ? "On" : "Off")
+            .accessibilityLabel(Text(title))
+            .accessibilityValue(isOn.wrappedValue ? Text("On") : Text("Off"))
         }
 
         private func dashboardGeneralDivider() -> some View {
