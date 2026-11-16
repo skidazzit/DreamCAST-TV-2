@@ -1764,13 +1764,5 @@ struct SportFrameMatchSheet: View {
                              away: competitor(event.strAwayTeam, badge: event.awayBadge, score: event.intAwayScore),
                              broadcasters: broadcasters.map(\.name), name: event.name)
     }
-}portsFixture(id: "sportsdb:\(event.idEvent)", leagueId: leagueID,
-                             leagueName: event.league, leagueAbbreviation: event.league,
-                             startDate: event.startDate ?? Date(),
-                             status: SportsFixtureStatus(state: state, detail: event.strStatus ?? ""),
-                             home: competitor(event.strHomeTeam, badge: event.homeBadge, score: event.intHomeScore),
-                             away: competitor(event.strAwayTeam, badge: event.awayBadge, score: event.intAwayScore),
-                             broadcasters: broadcasters.map(\.name), name: event.name)
-    }
 }
 #endif
