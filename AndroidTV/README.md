@@ -1,31 +1,45 @@
 # DreamCAST TV 2 — Android TV
 
-A native Android TV / Google TV project inside the DreamCAST-TV-2 repository.
+Native Android TV / Google TV app in the DreamCAST-TV-2 repository.
+Branch: `feature/dreamcast-android-tv`.
 
-## Status
-Phase 1 starter only: launchable TV activity, D-pad focusable top navigation,
-and placeholder Live TV, SportsZone, Movies, Series and Settings screens.
+## Implemented in source
+- DreamCAST TV branding and TV launcher activity.
+- Top-level remote-focusable navigation.
+- Import M3U / M3U8 playlists by HTTP(S) URL or local file picker.
+- Parse `#EXTINF` attributes including channel name, `tvg-id`, `tvg-logo`, and `group-title`.
+- Browse channel groups and channel names with remote D-pad.
+- Media3 / ExoPlayer playback, one player shared between preview and full-screen layouts.
+- Last-selected playback channel ID saved in app preferences.
+- Restore saved remote URL or last imported local playlist after app restart.
+- M3U parser unit tests.
 
-The source review used the feature/dreamcast-tvOS branch, whose Xcode project
-uses SwiftUI and Apple player libraries (including KSPlayer, VLCKit and LumeEngine).
-The Android port must reimplement the UI and platform services; this is not
-an automatic Swift-to-Kotlin conversion.
+## Still missing
+- Full EPG program grid and XMLTV parsing.
+- Xtream Codes login, movie and series catalogs.
+- SportsZone, TheSportsDB match data and broadcaster matching.
+- Advanced channel sorting, search, favorites, settings, backup/restore.
+- Playback error/retry UI, decoder fallback, artwork and branding assets.
+- Focus testing and performance fixes for large playlists.
 
-## Open
-Open the **AndroidTV** folder in Android Studio (not the repository root).
-Use JDK 17 and Android SDK 36. Sync Gradle and run the app on an Android TV
-emulator or device. The Gradle wrapper JAR/scripts are not yet committed;
-use an installed Gradle 8.13 to build, or generate the wrapper with
-`gradle wrapper --gradle-version 8.13`.
+## Build and install
+1. Open `AndroidTV` in Android Studio.
+2. Select JDK 17 and install Android SDK Platform 36.
+3. Gradle configuration uses Android Gradle Plugin 8.13.2 and Gradle 8.13.
+4. The Gradle wrapper JAR and scripts are **not** included yet. Use installed Gradle 8.13 and generate them with `gradle wrapper --gradle-version 8.13`.
+5. Sync, select an Android TV emulator or connected TV, and Run `app`.
+6. Open Settings, import an M3U URL or local M3U file, then browse Live TV.
 
-## Next
-1. Add playlist source screens and M3U / Xtream parsing.
-2. Add persistent data, EPG timeline, favorites, and last-played channel.
-3. Add Media3 playback and a shared player instance across mini/full-screen.
-4. Port SportsZone APIs, live fixtures and broadcaster matching.
-5. Port media library, settings and local backup/restore.
-6. Replace temporary launcher art with approved DreamCAST TV assets.
-7. Verify Gradle sync, build and D-pad traversal on hardware and emulator.
+Remote actions: first OK selects a channel; next OK starts the preview; another OK on the playing channel opens full-screen. Back returns to guide without stopping the player. The "Play selected" and "Full screen" buttons also provide direct actions.
 
-No playlists, credentials, or third-party API keys are included.
-Check AGPL-3.0 obligations for code reused from the upstream Lume project.
+## Validation status
+The source changes were committed and re-fetched from GitHub. Build, unit tests,
+playlist imports on real providers and device playback have **not** been run
+in this environment. Do not treat this as a tested APK or production release.
+
+## Source and licensing
+The supplied Lume Android APKs were reviewed as compiled behavior references.
+Their compiled code was **not** copied into this source project.
+The original Apple SwiftUI source is also a reference, not buildable Android code.
+No playlists, stream links or API keys are bundled. Only use media you have
+rights to access. Review applicable project and third-party licenses before release.
