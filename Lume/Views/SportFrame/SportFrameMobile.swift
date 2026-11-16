@@ -187,6 +187,7 @@ struct SportFrameMobile: View {
             sportsPlayback.returnedFromFullScreen()
         }) { media in
             FullScreenPlayerView(media: media, adopting: sportsPlayback.handle)
+                .environment(sportsPlayback)
         }
         .task { await catalog.refresh() }
         .task(id: "\(dayOffset)|\(followedValue)|\(SportsDBAccess.apiKey)|\(page)|\(scenePhase == .active)") {
