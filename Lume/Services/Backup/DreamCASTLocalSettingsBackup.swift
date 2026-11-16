@@ -1,5 +1,8 @@
 #if os(iOS)
 import Foundation
+import CryptoKit
+import CommonCrypto
+import SwiftData
 import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
@@ -25,62 +28,183 @@ struct DreamCASTSettingsFile: FileDocument {
 }
 
 enum DreamCASTLocalSettingsBackup {
+    enum BackupError: LocalizedError {
+        case passwordRequired
+        case weakPassword
+        case invalidPassword
+        case invalidPlaylist
+        var errorDescription: String? {
+            switch self {
+            case .passwordRequired: "Enter the password used to protect this backup."
+            case .weakPassword: "Use at least 8 characters to protect your playlist credentials."
+            case .invalidPassword: "Wrong backup password, or the backup file is damaged."
+            case .invalidPlaylist: "The backup contains an invalid playlist record."
+            }
+        }
+    }
+
     private struct Archive: Codable {
         let formatVersion: Int
         let createdAt: Date
         let preferences: [String: Data]
+        // Version 2 includes encrypted playlist setup; version 1 files still restore.
+        var playlistSalt: Data?
+        var encryptedPlaylists: Data?
     }
 
-    // Never export account credentials or operating-system defaults. Prefer
-    // excluding an unknown setting over exposing a token in a shared file.
+    private struct PlaylistRecord: Codable {
+        var name: String
+        var serverURL: String
+        var username: String
+        var password: String
+        var sourceTypeRaw: String
+        var epgURL: String?
+        var streamFormatRaw: String
+        var macAddress: String?
+        var syncEnabled: Bool
+        var hiddenTabsRaw: String
+        var combinedTypesRaw: String
+        var combinedPriority: Int?
+
+        init(_ p: Playlist) {
+            name = p.name
+            serverURL = p.serverURL
+            username = p.username
+            password = p.password
+            sourceTypeRaw = p.sourceTypeRaw
+            epgURL = p.epgURL
+            streamFormatRaw = p.streamFormatRaw
+            macAddress = p.macAddress
+            syncEnabled = p.syncEnabled
+            hiddenTabsRaw = p.hiddenTabsRaw
+            combinedTypesRaw = p.combinedTypesRaw
+            combinedPriority = p.combinedPriority
+        }
+
+        func makePlaylist() throws -> Playlist {
+            guard !name.isEmpty, !serverURL.isEmpty,
+                  PlaylistSourceType(rawValue: sourceTypeRaw) != nil else {
+                throw BackupError.invalidPlaylist
+            }
+            let p = Playlist(name: name, serverURL: serverURL,
+                             username: username, password: password)
+            p.sourceTypeRaw = sourceTypeRaw
+            p.epgURL = epgURL
+            p.streamFormatRaw = PlaylistStreamFormat(rawValue: streamFormatRaw)?.rawValue
+                ?? PlaylistStreamFormat.automatic.rawValue
+            p.macAddress = macAddress
+            p.syncEnabled = syncEnabled
+            p.hiddenTabsRaw = hiddenTabsRaw
+            p.combinedTypesRaw = combinedTypesRaw
+            p.combinedPriority = combinedPriority
+            // Never import old access/session tokens or downloaded catalog data.
+            return p
+        }
+    }
+
+    private static func key(password: String, salt: Data) throws -> SymmetricKey {
+        guard !password.isEmpty else { throw BackupError.passwordRequired }
+        var derived = [UInt8](repeating: 0, count: 32)
+        let status = salt.withUnsafeBytes { bytes in
+            password.withCString { pwd in
+                CCKeyDerivationPBKDF(
+                    CCPBKDFAlgorithm(kCCPBKDF2), pwd, password.utf8.count,
+                    bytes.bindMemory(to: UInt8.self).baseAddress!, salt.count,
+                    CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA256), 210_000,
+                    &derived, derived.count
+                )
+            }
+        }
+        guard status == kCCSuccess else { throw BackupError.invalidPassword }
+        return SymmetricKey(data: Data(derived))
+    }
+
+    static func hasEncryptedPlaylists(_ data: Data) throws -> Bool {
+        let archive = try JSONDecoder().decode(Archive.self, from: data)
+        return archive.formatVersion == 2 && archive.encryptedPlaylists != nil
+    }
+
+    // Exclude secrets from the unencrypted settings section.
     private static func allowed(_ key: String) -> Bool {
         let k = key.lowercased()
         if k.hasPrefix("apple") || k.hasPrefix("ns") || k.hasPrefix("com.apple")
             || k.hasPrefix("uikit") || k.hasPrefix("ui")
             || k.hasPrefix("lumecloud") || k.hasPrefix("icloud")
-            || k.hasPrefix("premium.") || k.hasPrefix("sync.backend") {
-            return false
-        }
+            || k.hasPrefix("premium.") || k.hasPrefix("sync.backend") { return false }
         let sensitive = ["password", "passwd", "secret", "token", "credential",
                          "auth", "apikey", "api_key", "accesskey", "privatekey",
                          "session", "cookie", "refreshkey", "recovery"]
         return !sensitive.contains(where: { k.contains($0) })
     }
 
-    static func exportSettings() throws -> DreamCASTSettingsFile {
+    static func exportSettings(playlists: [Playlist] = [], password: String? = nil) throws -> DreamCASTSettingsFile {
         var values: [String: Data] = [:]
-        for (key, value) in UserDefaults.standard.dictionaryRepresentation() where allowed(key) {
-            // Wrap every value in a dictionary: Foundation's property-list API
-            // handles this consistently for String, Bool, Number, Data, and arrays.
+        for (name, value) in UserDefaults.standard.dictionaryRepresentation() where allowed(name) {
             if let data = try? PropertyListSerialization.data(
                 fromPropertyList: ["value": value], format: .binary, options: 0
-            ) {
-                values[key] = data
-            }
+            ) { values[name] = data }
         }
-        let archive = Archive(formatVersion: 1, createdAt: .now, preferences: values)
+        var archive = Archive(formatVersion: 1, createdAt: .now,
+                              preferences: values, playlistSalt: nil, encryptedPlaylists: nil)
+        if !playlists.isEmpty {
+            guard let password, password.count >= 8 else { throw BackupError.weakPassword }
+            let records = try JSONEncoder().encode(playlists.map(PlaylistRecord.init))
+            let salt = Data((0..<16).map { _ in UInt8.random(in: 0...255) })
+            let sealed = try AES.GCM.seal(records, using: key(password: password, salt: salt))
+            archive = Archive(formatVersion: 2, createdAt: .now,
+                              preferences: values, playlistSalt: salt,
+                              encryptedPlaylists: sealed.combined)
+        }
         return DreamCASTSettingsFile(contents: try JSONEncoder().encode(archive))
     }
 
     @discardableResult
-    static func restoreSettings(from data: Data) throws -> Int {
+    static func restoreSettings(from data: Data, password: String? = nil,
+                                context: ModelContext? = nil) throws -> Int {
         guard data.count <= 8_000_000 else { throw CocoaError(.fileReadTooLarge) }
         let archive = try JSONDecoder().decode(Archive.self, from: data)
-        guard archive.formatVersion == 1 else { throw CocoaError(.fileReadCorruptFile) }
+        guard archive.formatVersion == 1 || archive.formatVersion == 2 else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
 
-        // Parse every entry before changing any saved setting.
         var staged: [String: Any] = [:]
-        for (key, encoded) in archive.preferences where allowed(key) {
+        for (name, encoded) in archive.preferences where allowed(name) {
             guard let entry = try PropertyListSerialization.propertyList(
                 from: encoded, format: nil
             ) as? [String: Any], let value = entry["value"] else {
                 throw CocoaError(.fileReadCorruptFile)
             }
-            staged[key] = value
+            staged[name] = value
         }
 
-        for (key, value) in staged { UserDefaults.standard.set(value, forKey: key) }
-        // Never allow a backup from an older installation to re-enable cloud.
+        var imported: [Playlist] = []
+        if archive.formatVersion == 2 {
+            guard let salt = archive.playlistSalt,
+                  let ciphertext = archive.encryptedPlaylists,
+                  let password else { throw BackupError.passwordRequired }
+            do {
+                let box = try AES.GCM.SealedBox(combined: ciphertext)
+                let clear = try AES.GCM.open(box, using: key(password: password, salt: salt))
+                let records = try JSONDecoder().decode([PlaylistRecord].self, from: clear)
+                imported = try records.map { try $0.makePlaylist() }
+            } catch {
+                throw BackupError.invalidPassword
+            }
+            guard let context else { throw BackupError.invalidPlaylist }
+            // Keep existing playlists, and avoid adding duplicate source logins.
+            let existing = try context.fetch(FetchDescriptor<Playlist>())
+            for playlist in imported {
+                if existing.contains(where: {
+                    $0.sourceTypeRaw == playlist.sourceTypeRaw &&
+                    $0.serverURL == playlist.serverURL &&
+                    $0.username == playlist.username
+                }) { continue }
+                context.insert(playlist)
+            }
+            try context.save()
+        }
+
+        for (name, value) in staged { UserDefaults.standard.set(value, forKey: name) }
         UserDefaults.standard.set("off", forKey: "sync.backend")
         return staged.count
     }
