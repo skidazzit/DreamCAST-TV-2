@@ -84,7 +84,8 @@ struct SettingsView: View {
         @State private var selectedCategory: SettingsCategory = .profiles
         @State private var dashboardSection: TVDashboardSection = .general
         @State private var dashboardStatus: String?
-        @FocusState private var focusedGeneralMenu: TVDashboardGeneralMenu?
+        @State private var showingStartupChoices = false
+        @State private var showingEPGRefreshChoices = false
         @AppStorage("dreamcast.tv.startupTab") private var startupTabRaw = "liveTV"
         @AppStorage("dreamcast.tv.autoResumeLastChannel") private var autoResumeLastChannel = true
         @AppStorage("dreamcast.tv.confirmExit") private var confirmExit = true
@@ -296,10 +297,6 @@ struct SettingsView: View {
 // MARK: - tvOS DreamCAST Settings Dashboard
 
 #if os(tvOS)
-
-    private enum TVDashboardGeneralMenu: Hashable {
-        case startup, refresh
-    }
 
     /// Display groups from the approved Settings dashboard mockup.
     /// They route into the existing Settings panes, preserving their tools.
@@ -602,22 +599,31 @@ struct SettingsView: View {
                     .padding(.top, 13)
 
                 VStack(spacing: 0) {
-                    Menu {
+                    // Use the same ButtonStyle as the other General rows.
+                    // tvOS Menu applies its own large gray focus plate even
+                    // when the label disables the system focus effect.
+                    Button {
+                        showingStartupChoices = true
+                    } label: {
+                        dashboardGeneralRow(
+                            title: "Startup Screen", icon: "play.tv",
+                            value: dashboardStartupLabel, showsArrow: true
+                        )
+                    }
+                    .buttonStyle(TVDashboardCardStyle())
+                    .confirmationDialog(
+                        "Startup Screen",
+                        isPresented: $showingStartupChoices,
+                        titleVisibility: .visible
+                    ) {
                         Button("Live TV") { startupTabRaw = "liveTV" }
                         Button("SportsZone") { startupTabRaw = "sports" }
                         Button("Movies") { startupTabRaw = "movies" }
                         Button("Series") { startupTabRaw = "series" }
                         Button("Search") { startupTabRaw = "search" }
                         Button("Settings") { startupTabRaw = "settings" }
-                    } label: {
-                        dashboardGeneralRow(
-                            title: "Startup Screen", icon: "play.tv",
-                            value: dashboardStartupLabel, showsArrow: true
-                        )
-                        .dashboardFocusHighlight(focusedGeneralMenu == .startup)
+                        Button("Cancel", role: .cancel) {}
                     }
-                    .focused($focusedGeneralMenu, equals: .startup)
-                    .focusEffectDisabled()
 
                     dashboardGeneralDivider()
                     dashboardGeneralToggle(
@@ -631,24 +637,28 @@ struct SettingsView: View {
                     )
                     dashboardGeneralDivider()
 
-                    Menu {
-                        ForEach(SyncFrequency.allCases) { frequency in
-                            Button {
-                                dashboardEPGFrequency = frequency.rawValue
-                            } label: {
-                                Text(frequency.label)
-                            }
-                        }
+                    Button {
+                        showingEPGRefreshChoices = true
                     } label: {
                         dashboardGeneralRow(
                             title: "Auto Refresh (EPG)",
                             icon: "arrow.triangle.2.circlepath",
                             value: dashboardRefreshLabel, showsArrow: true
                         )
-                        .dashboardFocusHighlight(focusedGeneralMenu == .refresh)
                     }
-                    .focused($focusedGeneralMenu, equals: .refresh)
-                    .focusEffectDisabled()
+                    .buttonStyle(TVDashboardCardStyle())
+                    .confirmationDialog(
+                        "Auto Refresh (EPG)",
+                        isPresented: $showingEPGRefreshChoices,
+                        titleVisibility: .visible
+                    ) {
+                        ForEach(SyncFrequency.allCases) { frequency in
+                            Button(frequency.label) {
+                                dashboardEPGFrequency = frequency.rawValue
+                            }
+                        }
+                        Button("Cancel", role: .cancel) {}
+                    }
 
                     dashboardGeneralDivider()
                     Button {
