@@ -39,6 +39,9 @@ struct MainTabView: View {
     @FocusState private var focusedTVTab: AppTab?
     @State private var lastTopMenuBackPress: Date?
     @State private var showingExitConfirmation = false
+    @State private var startupTabApplied = false
+    @AppStorage("dreamcast.tv.startupTab") private var startupTabRaw = "liveTV"
+    @AppStorage("dreamcast.tv.confirmExit") private var confirmExit = true
     @AppStorage(LiveTVLayoutMode.storageKey) private var tvLiveLayoutRaw = LiveTVLayoutMode.defaultMode.rawValue
     private var usesLiveList: Bool { LiveTVLayoutMode(storedValue: tvLiveLayoutRaw) == .list }
     #endif
@@ -122,6 +125,24 @@ struct MainTabView: View {
         let tabs = visibleTabs(in: scope)
         return persistentTabHost(selection: $router.selectedTab, tabs: tabs)
         #if os(tvOS)
+            .task {
+                // Apply the saved startup tab once. Never override user tab
+                // changes later in the same app session.
+                guard !startupTabApplied else { return }
+                startupTabApplied = true
+                let requested: AppTab
+                switch startupTabRaw {
+                case "sports": requested = .sports
+                case "movies": requested = .movies
+                case "series": requested = .series
+                case "search": requested = .search
+                case "settings": requested = .settings
+                default: requested = .liveTV
+                }
+                if isVisibleTVTab(requested, tabs: tabs) {
+                    router.selectedTab = requested
+                }
+            }
             .disabled(blockingOverlayOwnsScreen || router.isQuickSwitchPresented)
             .onExitCommand {
                 handleTVBack()
@@ -452,7 +473,12 @@ struct MainTabView: View {
                 if let previous = lastTopMenuBackPress,
                    now.timeIntervalSince(previous) <= 0.85 {
                     lastTopMenuBackPress = nil
-                    showingExitConfirmation = true
+                    if confirmExit {
+                        showingExitConfirmation = true
+                    } else {
+                        sharedLivePlayback.close()
+                        exit(0)
+                    }
                 } else {
                     lastTopMenuBackPress = now
                 }
@@ -615,6 +641,7 @@ struct MainTabView: View {
                     // above it; that duplicates the player and clips fixtures.
                     if let media = sharedLivePlayback.miniMedia,
                        tab != .sports,
+                       tab != .settings,
                        (tab != .liveTV || usesLiveList) {
                         TVEmbeddedPageHeader(tab: tab, media: media)
                     }
