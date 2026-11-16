@@ -76,7 +76,9 @@ extension FullScreenPlayerView {
         activeMedia = newMedia
         // The root mini-player must follow an in-player channel switch.
         // It stays on the last watched channel when full screen closes.
+        #if os(iOS) || os(tvOS)
         sportsZonePlayback?.didSwitchFullScreen(to: newMedia)
+        #endif
         // Slide the outgoing channel into the recall slot so `right` can jump back.
         LiveChannelHistory.record(newMedia)
     }
