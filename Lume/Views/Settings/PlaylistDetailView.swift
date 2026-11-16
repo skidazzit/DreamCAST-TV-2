@@ -51,6 +51,11 @@ struct PlaylistDetailView: View {
     /// `showSync` so the two sheets carry different `full` flags.
     @State var showFullSync = false
     @State var showPaywall = false
+    #if os(tvOS)
+    @State var refreshingAccount = false
+    @State var accountRefreshMessage: String?
+    @State var lastAccountCheck: Date?
+    #endif
 
     /// Locked by the free plan (see `[Playlist].isLocked`): a sync would fetch
     /// a catalog nothing can show, so Sync Now opens the paywall instead.
@@ -481,17 +486,31 @@ extension PlaylistDetailView {
 // MARK: - Helpers
 
 extension PlaylistDetailView {
-    func formattedExpiry(_ raw: String) -> String {
-        if let timestamp = TimeInterval(raw) {
-            let date = Date(timeIntervalSince1970: timestamp)
-            return date.formatted(date: .abbreviated, time: .omitted)
+    /// Xtream's exp_date is a Unix timestamp in seconds. Some panels return
+    /// milliseconds, or 0 to mean an unlimited/unknown expiry.
+    func providerExpiryDate(_ raw: String) -> Date? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let value = TimeInterval(trimmed), value.isFinite, value > 0 else {
+            return nil
         }
-        return raw
+        let seconds = value > 100_000_000_000 ? value / 1_000 : value
+        return Date(timeIntervalSince1970: seconds)
+    }
+
+    func formattedExpiry(_ raw: String) -> String {
+        guard let date = providerExpiryDate(raw) else {
+            return raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                raw.trimmingCharacters(in: .whitespacesAndNewlines) == "0"
+                ? "Not reported by provider" : raw
+        }
+        // Include time and local time zone: a midnight expiry otherwise looks
+        // one day early/late depending on the viewer's Apple TV time zone.
+        return date.formatted(.dateTime.month(.abbreviated).day().year()
+            .hour().minute().timeZone())
     }
 
     func isExpired(_ raw: String) -> Bool {
-        guard let timestamp = TimeInterval(raw) else { return false }
-        let date = Date(timeIntervalSince1970: timestamp)
+        guard let date = providerExpiryDate(raw) else { return false }
         return date < Date()
     }
 }
