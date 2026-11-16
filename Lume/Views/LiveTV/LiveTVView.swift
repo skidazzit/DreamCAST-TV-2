@@ -77,6 +77,7 @@ struct LiveTVView: View {
         @Environment(DeepLinkRouter.self) private var router
         @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
         @Environment(TVAmbientThemeSession.self) private var ambientTheme: TVAmbientThemeSession?
+        @AppStorage("dreamcast.tv.autoResumeLastChannel") private var autoResumeLastChannel = true
         @State private var guidePreview = GuidePreviewController()
         @State private var guideHero = GuideHeroModel()
     #else
@@ -224,6 +225,7 @@ struct LiveTVView: View {
             // The list layout has no guide hero to seed first playback.
             // Restore the last permitted channel only when no stream is live.
             guard layoutMode == .list,
+                  autoResumeLastChannel,
                   let sharedPlayback, sharedPlayback.miniMedia == nil,
                   !sharedPlayback.userStopped,
                   let lastID = LiveChannelHistory.currentChannelId(),
@@ -317,7 +319,7 @@ struct LiveTVView: View {
                         PlayableMedia.from(stream: stream, ownedByOneOf: playlists)
                     },
                     onTune: { tuneSharedPreview($0, onlyIfEmpty: false) },
-                    onAutoTune: { tuneSharedPreview($0, onlyIfEmpty: true) },
+                    onAutoTune: { if autoResumeLastChannel { tuneSharedPreview($0, onlyIfEmpty: true) } },
                     playlistIDs: catalogScope.members(for: .liveTV),
                     controller: guidePreview,
                     hero: guideHero
@@ -399,7 +401,8 @@ struct LiveTVView: View {
         #if os(tvOS)
             // Restore the last live channel and its real category on entering
             // Live TV. Never jump into a hidden or locked section.
-            if layoutMode == .guide,
+            if autoResumeLastChannel,
+               layoutMode == .guide,
                let lastID = LiveChannelHistory.currentChannelId(),
                let lastStream = try? modelContext.fetch(
                    FetchDescriptor<LiveStream>(predicate: #Predicate { $0.id == lastID && $0.isHidden == false })
