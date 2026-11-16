@@ -35,6 +35,14 @@ final class SportsZonePlaybackSession {
         }
     }
 
+    /// Keep the root mini-player on the channel picked while full-screen.
+    /// That player may switch channels without replacing its cover identity.
+    func didSwitchFullScreen(to media: PlayableMedia) {
+        guard fullScreenMedia != nil else { return }
+        miniMedia = media
+        failedMediaID = nil
+    }
+
     /// Switching pages never touches the media or decoder.
     /// Only an explicit tune, Stop or full-screen action changes ownership.
     func openFullScreen() {
