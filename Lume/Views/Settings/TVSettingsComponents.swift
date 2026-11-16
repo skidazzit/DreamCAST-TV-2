@@ -280,6 +280,41 @@
         }
     }
 
+    /// Cyan outline and navy glass. No tvOS icon zoom or white focus plate.
+    struct TVDashboardCardStyle: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            FocusedCard(configuration: configuration)
+        }
+
+        private struct FocusedCard: View {
+            let configuration: ButtonStyleConfiguration
+            @Environment(\.isFocused) private var isFocused
+
+            var body: some View {
+                configuration.label
+                    .foregroundStyle(.white)
+                    .background {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(isFocused
+                                  ? AnyShapeStyle(TVNeonTheme.selection)
+                                  : AnyShapeStyle(TVNeonTheme.glass))
+                    }
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 16)
+                            .strokeBorder(
+                                isFocused ? TVNeonTheme.iceBlue : .white.opacity(0.16),
+                                lineWidth: isFocused ? 2.5 : 1
+                            )
+                    }
+                    .shadow(
+                        color: isFocused ? TVNeonTheme.electricBlue.opacity(0.43) : .clear,
+                        radius: isFocused ? 12 : 0
+                    )
+                    .focusEffectDisabled()
+            }
+        }
+    }
+
     // MARK: - Button styles
 
     /// A minimal full-width content row: a faint resting fill that turns to a
@@ -299,12 +334,11 @@
             @Environment(\.isEnabled) private var isEnabled
 
             var body: some View {
-                let foreground: Color = isDestructive
-                    ? (isFocused ? .white : .red)
-                    : (isFocused ? .black : .white)
+                let foreground: Color = isDestructive && !isFocused ? .red : .white
                 let fill: AnyShapeStyle = isFocused
-                    ? (isDestructive ? AnyShapeStyle(Color.red) : AnyShapeStyle(Color.white.opacity(0.95)))
-                    : AnyShapeStyle(Color.white.opacity(0.05))
+                    ? (isDestructive ? AnyShapeStyle(Color.red)
+                                     : AnyShapeStyle(TVNeonTheme.selection))
+                    : AnyShapeStyle(TVNeonTheme.glass)
                 return configuration.label
                     .font(.system(size: TVSettingsMetrics.rowFontSize))
                     .foregroundStyle(foreground)
@@ -316,6 +350,12 @@
                         RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius, style: .continuous)
                             .fill(fill)
                     )
+                    .overlay {
+                        RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius)
+                            .strokeBorder(isFocused ? TVNeonTheme.iceBlue : .clear,
+                                          lineWidth: isFocused ? 2 : 0)
+                    }
+                    .focusEffectDisabled()
                     .animation(.easeOut(duration: 0.15), value: isFocused)
             }
         }
@@ -341,14 +381,20 @@
                 let restFill = prominent ? Color.white.opacity(0.16) : Color.white.opacity(0.06)
                 return configuration.label
                     .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(isFocused ? .black : .white)
+                    .foregroundStyle(.white)
                     .opacity(isEnabled ? 1 : 0.4)
                     .padding(.horizontal, 40)
                     .padding(.vertical, 16)
                     .background(
                         RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius, style: .continuous)
-                            .fill(isFocused ? AnyShapeStyle(Color.white.opacity(0.95)) : AnyShapeStyle(restFill))
+                            .fill(isFocused ? AnyShapeStyle(TVNeonTheme.selection) : AnyShapeStyle(restFill))
                     )
+                    .overlay {
+                        RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius)
+                            .strokeBorder(isFocused ? TVNeonTheme.iceBlue : .clear,
+                                          lineWidth: isFocused ? 2 : 0)
+                    }
+                    .focusEffectDisabled()
                     .animation(.easeOut(duration: 0.15), value: isFocused)
             }
         }
