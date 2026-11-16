@@ -8,6 +8,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 #if os(tvOS)
 
