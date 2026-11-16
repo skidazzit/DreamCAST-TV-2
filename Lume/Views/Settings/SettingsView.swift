@@ -84,6 +84,7 @@ struct SettingsView: View {
         @State private var selectedCategory: SettingsCategory = .profiles
         @State private var dashboardSection: TVDashboardSection = .general
         @State private var dashboardStatus: String?
+        @FocusState private var focusedGeneralMenu: TVDashboardGeneralMenu?
         @AppStorage("dreamcast.tv.startupTab") private var startupTabRaw = "liveTV"
         @AppStorage("dreamcast.tv.autoResumeLastChannel") private var autoResumeLastChannel = true
         @AppStorage("dreamcast.tv.confirmExit") private var confirmExit = true
@@ -294,6 +295,10 @@ struct SettingsView: View {
 // MARK: - tvOS DreamCAST Settings Dashboard
 
 #if os(tvOS)
+
+    private enum TVDashboardGeneralMenu: Hashable {
+        case startup, refresh
+    }
 
     /// Display groups from the approved Settings dashboard mockup.
     /// They route into the existing Settings panes, preserving their tools.
@@ -595,7 +600,10 @@ struct SettingsView: View {
                             title: "Startup Screen", icon: "play.tv",
                             value: dashboardStartupLabel, showsArrow: true
                         )
+                        .dashboardFocusHighlight(focusedGeneralMenu == .startup)
                     }
+                    .focused($focusedGeneralMenu, equals: .startup)
+                    .focusEffectDisabled()
 
                     dashboardGeneralDivider()
                     dashboardGeneralToggle(
@@ -623,7 +631,10 @@ struct SettingsView: View {
                             icon: "arrow.triangle.2.circlepath",
                             value: dashboardRefreshLabel, showsArrow: true
                         )
+                        .dashboardFocusHighlight(focusedGeneralMenu == .refresh)
                     }
+                    .focused($focusedGeneralMenu, equals: .refresh)
+                    .focusEffectDisabled()
 
                     dashboardGeneralDivider()
                     Button {
@@ -636,8 +647,7 @@ struct SettingsView: View {
                             value: "Style", showsArrow: true
                         )
                     }
-                    .buttonStyle(.borderless)
-                    .focusEffectDisabled()
+                    .buttonStyle(TVDashboardCardStyle())
 
                     dashboardGeneralDivider()
                     Button {
@@ -650,8 +660,7 @@ struct SettingsView: View {
                             icon: "globe", value: "Choose", showsArrow: true
                         )
                     }
-                    .buttonStyle(.borderless)
-                    .focusEffectDisabled()
+                    .buttonStyle(TVDashboardCardStyle())
                 }
                 .padding(10)
                 .background(TVNeonTheme.glass,
