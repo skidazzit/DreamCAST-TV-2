@@ -819,6 +819,26 @@ struct SportFrameHome: View {
             } label: {
                 TVFixedButtonLabel(title: "Refresh", systemName: "arrow.clockwise")
                     .font(.system(size: 19, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 19)
+                    .frame(height: 58)
+                    .background {
+                        Capsule().fill(
+                            focusedControl == .refresh ? TVNeonTheme.selection : TVNeonTheme.glass
+                        )
+                    }
+                    .overlay {
+                        Capsule().strokeBorder(
+                            focusedControl == .refresh ? TVNeonTheme.iceBlue : .white.opacity(0.12),
+                            lineWidth: focusedControl == .refresh ? 2 : 1
+                        )
+                    }
+                    .shadow(
+                        color: focusedControl == .refresh
+                            ? TVNeonTheme.electricBlue.opacity(0.5) : .clear,
+                        radius: focusedControl == .refresh ? 10 : 0
+                    )
+                    .contentShape(Capsule())
             }
             .buttonStyle(.borderless)
             .focusEffectDisabled()
