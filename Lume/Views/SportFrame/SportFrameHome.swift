@@ -199,8 +199,7 @@ struct SportFrameHome: View {
     @FocusState private var focusedControl: FocusControl?
     @State private var sidebarRowCenters: [String: CGFloat] = [:]
     @State private var hubContentCenters: [HubFocusTarget: CGFloat] = [:]
-    @State private var sidebarTargetID: String?
-    @State private var sidebarTargetSerial = 0
+
     @State private var focusedMatchID: String?
     @State private var focusedMatchSerial = 0
 
@@ -244,15 +243,6 @@ struct SportFrameHome: View {
             focusedMatchID = id
             focusedMatchSerial += 1
         }
-    }
-
-    private func moveToSidebar(from target: HubFocusTarget) {
-        let ids = hubRailItems.map(\.id)
-        guard let id = nearestTarget(
-            from: hubContentCenters[target], candidates: ids, centers: sidebarRowCenters
-        ) else { return }
-        sidebarTargetID = id
-        sidebarTargetSerial += 1
     }
 
     private enum FocusControl: Hashable {
@@ -616,9 +606,7 @@ struct SportFrameHome: View {
                 selectedID: hubSelectedRailID,
                 preserveGeometricEntry: true,
                 onMoveRight: { id in moveFromSidebar(id, displayed: snapshot.displayed) },
-                onRowCenterChange: { id, y in rememberSidebarCenter(id, y) },
-                requestedFocusID: sidebarTargetID,
-                requestedFocusSerial: sidebarTargetSerial
+                onRowCenterChange: { id, y in rememberSidebarCenter(id, y) }
             )
             VStack(alignment: .leading, spacing: 17) {
                 sportsHubHero(featured: snapshot.featured)
@@ -661,7 +649,6 @@ struct SportFrameHome: View {
                                 score: fixtures.score(for: event),
                                 isLive: fixtures.isLive(event),
                                 onSelect: { selectedEvent = event },
-                                onMoveLeft: { id in moveToSidebar(from: .match(id)) },
                                 onCenterChange: { id, y in
                                     rememberContentCenter(.match(id), y)
                                 },
@@ -766,9 +753,6 @@ struct SportFrameHome: View {
                     }
                     .buttonStyle(SportsZonePillStyle())
                     .focused($focusedControl, equals: .leagueMenu)
-                    .onMoveCommand { direction in
-                        if direction == .left { moveToSidebar(from: .league) }
-                    }
                     .onGeometryChange(for: CGFloat.self) {
                         $0.frame(in: .global).midY
                     } action: { y in rememberContentCenter(.league, y) }
@@ -844,9 +828,6 @@ struct SportFrameHome: View {
             .buttonStyle(.borderless)
             .focusEffectDisabled()
             .focused($focusedControl, equals: .refresh)
-            .onMoveCommand { direction in
-                if direction == .left { moveToSidebar(from: .refresh) }
-            }
             .onGeometryChange(for: CGFloat.self) {
                 $0.frame(in: .global).midY
             } action: { y in rememberContentCenter(.refresh, y) }
@@ -886,9 +867,6 @@ struct SportFrameHome: View {
         .buttonStyle(.borderless)
         .focusEffectDisabled()
         .focused($focusedControl, equals: .hubWindow(window))
-        .onMoveCommand { direction in
-            if direction == .left { moveToSidebar(from: .window(window)) }
-        }
         .onGeometryChange(for: CGFloat.self) {
             $0.frame(in: .global).midY
         } action: { y in rememberContentCenter(.window(window), y) }
