@@ -83,6 +83,9 @@ struct LoginView: View {
         /// credentials, or the SwiftData media library.
         @State private var showSettingsRestoreImporter = false
         @State private var settingsRestoreNotice: String?
+        @State private var encryptedRestoreData: Data?
+        @State private var showBackupPasswordPrompt = false
+        @State private var backupPassword = ""
     #endif
 
     private var isFormValid: Bool {
@@ -138,7 +141,7 @@ struct LoginView: View {
                         } header: {
                             Text("Already have a DreamCAST TV backup?")
                         } footer: {
-                            Text("Import saved app settings from a DreamCAST TV JSON backup. Playlists and account passwords are not included; add your IPTV playlist below.")
+                            Text("Restore saved settings and IPTV playlist setup from a DreamCAST TV backup. Encrypted backups require your backup password.")
                         }
                     }
                     #endif
@@ -241,13 +244,44 @@ struct LoginView: View {
                         let scoped = url.startAccessingSecurityScopedResource()
                         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
                         let data = try Data(contentsOf: url)
-                        let count = try DreamCASTLocalSettingsBackup.restoreSettings(from: data)
-                        settingsRestoreNotice = "Restored \(count) app settings. Add your playlist to continue. Restart DreamCAST TV after setup to apply all restored settings."
+                        if try DreamCASTLocalSettingsBackup.hasEncryptedPlaylists(data) {
+                            encryptedRestoreData = data
+                            backupPassword = ""
+                            showBackupPasswordPrompt = true
+                        } else {
+                            let count = try DreamCASTLocalSettingsBackup.restoreSettings(
+                                from: data, context: modelContext
+                            )
+                            settingsRestoreNotice = "Restored \(count) settings. Add a playlist to continue, then restart DreamCAST TV."
+                        }
                     } catch {
                         if (error as NSError).code != NSUserCancelledError {
                             settingsRestoreNotice = "Could not restore settings: \(error.localizedDescription)"
                         }
                     }
+                }
+                .alert("Unlock IPTV Backup", isPresented: $showBackupPasswordPrompt) {
+                    SecureField("Backup password", text: $backupPassword)
+                    Button("Cancel", role: .cancel) {
+                        encryptedRestoreData = nil
+                        backupPassword = ""
+                    }
+                    Button("Restore") {
+                        do {
+                            if let data = encryptedRestoreData {
+                                let count = try DreamCASTLocalSettingsBackup.restoreSettings(
+                                    from: data, password: backupPassword, context: modelContext
+                                )
+                                settingsRestoreNotice = "Restored \(count) settings and your IPTV playlist setups. Restart DreamCAST TV to sync the imported playlists."
+                            }
+                        } catch {
+                            settingsRestoreNotice = "Could not restore backup: \(error.localizedDescription)"
+                        }
+                        encryptedRestoreData = nil
+                        backupPassword = ""
+                    }
+                } message: {
+                    Text("Enter the password used when creating this playlist backup.")
                 }
                 .alert(
                     "Restore Settings",
