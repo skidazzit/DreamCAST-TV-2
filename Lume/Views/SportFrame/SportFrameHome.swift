@@ -323,8 +323,20 @@ struct SportFrameHome: View {
     }
 
     private var hubRailItems: [TVSidebarRailItem] {
-        var items: [TVSidebarRailItem] = []
-        for (index, sport) in followedSports.enumerated() {
+        // All Sports stays at the top, followed by the user's saved sports.
+        var items: [TVSidebarRailItem] = [
+            TVSidebarRailItem(
+                id: "all", title: Text("All Sports"),
+                icon: "square.grid.2x2",
+                header: "★  My Sports"
+            ) {
+                page = 0
+                selectedSport = "All Sports"
+                selectedLeague = "All Leagues"
+            }
+        ]
+
+        for sport in followedSports {
             let preferred = hubPreferredLeague(for: sport)
             let art = preferred.flatMap { league in
                 [league.strBadge, league.strLogo]
@@ -335,8 +347,7 @@ struct SportFrameHome: View {
             let id = "sport:" + sport
             items.append(TVSidebarRailItem(
                 id: id, title: Text(hubSportTitle(sport)),
-                icon: hubSportSymbol(sport), badgeURL: art,
-                header: index == 0 ? "★  My Sports" : nil
+                icon: hubSportSymbol(sport), badgeURL: art
             ) {
                 page = 0
                 selectedSport = sport
@@ -344,15 +355,6 @@ struct SportFrameHome: View {
             })
         }
 
-        items.append(TVSidebarRailItem(
-            id: "all", title: Text("All Sports"),
-            icon: "square.grid.2x2",
-            header: followedSports.isEmpty ? "★  My Sports" : nil
-        ) {
-            page = 0
-            selectedSport = "All Sports"
-            selectedLeague = "All Leagues"
-        })
         items.append(TVSidebarRailItem(
             id: "settings", title: Text("SportsZone Settings"), icon: "gearshape"
         ) {
