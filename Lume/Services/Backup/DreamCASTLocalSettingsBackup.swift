@@ -52,6 +52,11 @@ enum DreamCASTLocalSettingsBackup {
         var encryptedPlaylists: Data?
     }
 
+    private struct ProtectedPayload: Codable {
+        let preferences: [String: Data]
+        let playlists: [PlaylistRecord]
+    }
+
     private struct PlaylistRecord: Codable {
         var name: String
         var serverURL: String
@@ -146,13 +151,17 @@ enum DreamCASTLocalSettingsBackup {
         }
         var archive = Archive(formatVersion: 1, createdAt: .now,
                               preferences: values, playlistSalt: nil, encryptedPlaylists: nil)
-        if !playlists.isEmpty {
-            guard let password, password.count >= 8 else { throw BackupError.weakPassword }
-            let records = try JSONEncoder().encode(playlists.map(PlaylistRecord.init))
+        if let password {
+            guard password.count >= 8 else { throw BackupError.weakPassword }
+            // Both saved preferences and IPTV connection data must stay
+            // encrypted. Never leave private values in outer JSON fields.
+            let records = try JSONEncoder().encode(
+                ProtectedPayload(preferences: values, playlists: playlists.map(PlaylistRecord.init))
+            )
             let salt = Data((0..<16).map { _ in UInt8.random(in: 0...255) })
             let sealed = try AES.GCM.seal(records, using: key(password: password, salt: salt))
             archive = Archive(formatVersion: 2, createdAt: .now,
-                              preferences: values, playlistSalt: salt,
+                              preferences: [:], playlistSalt: salt,
                               encryptedPlaylists: sealed.combined)
         }
         return DreamCASTSettingsFile(contents: try JSONEncoder().encode(archive))
@@ -167,16 +176,7 @@ enum DreamCASTLocalSettingsBackup {
             throw CocoaError(.fileReadCorruptFile)
         }
 
-        var staged: [String: Any] = [:]
-        for (name, encoded) in archive.preferences where allowed(name) {
-            guard let entry = try PropertyListSerialization.propertyList(
-                from: encoded, format: nil
-            ) as? [String: Any], let value = entry["value"] else {
-                throw CocoaError(.fileReadCorruptFile)
-            }
-            staged[name] = value
-        }
-
+        var savedPreferences = archive.preferences
         var imported: [Playlist] = []
         if archive.formatVersion == 2 {
             guard let salt = archive.playlistSalt,
@@ -185,8 +185,9 @@ enum DreamCASTLocalSettingsBackup {
             do {
                 let box = try AES.GCM.SealedBox(combined: ciphertext)
                 let clear = try AES.GCM.open(box, using: key(password: password, salt: salt))
-                let records = try JSONDecoder().decode([PlaylistRecord].self, from: clear)
-                imported = try records.map { try $0.makePlaylist() }
+                let payload = try JSONDecoder().decode(ProtectedPayload.self, from: clear)
+                savedPreferences = payload.preferences
+                imported = try payload.playlists.map { try $0.makePlaylist() }
             } catch {
                 throw BackupError.invalidPassword
             }
@@ -204,6 +205,16 @@ enum DreamCASTLocalSettingsBackup {
             try context.save()
         }
 
+        // Validate all settings before modifying the device.
+        var staged: [String: Any] = [:]
+        for (name, encoded) in savedPreferences where allowed(name) {
+            guard let entry = try PropertyListSerialization.propertyList(
+                from: encoded, format: nil
+            ) as? [String: Any], let value = entry["value"] else {
+                throw CocoaError(.fileReadCorruptFile)
+            }
+            staged[name] = value
+        }
         for (name, value) in staged { UserDefaults.standard.set(value, forKey: name) }
         UserDefaults.standard.set("off", forKey: "sync.backend")
         return staged.count
