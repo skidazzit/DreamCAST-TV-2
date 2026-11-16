@@ -115,6 +115,9 @@
                     }
                 }
             }
+            // Handle Menu/Back within the browser, before the full-screen
+            // player's default dismissal can return to Live TV Guide.
+            .onExitCommand { onClose() }
             .onChange(of: focus) { _, target in
                 switch target {
                 case let .section(id) where id != selectedSectionID:
@@ -169,6 +172,11 @@
                     .padding(.horizontal, 20)
                     .padding(.bottom, 24)
                 }
+                // Keep focused rows and the final list items inside the
+                // glass column instead of spilling below its rounded edge.
+                .frame(maxHeight: .infinity)
+                .scrollClipDisabled(false)
+                .clipped()
             }
             .frame(width: width)
             .frame(maxHeight: .infinity)
@@ -242,11 +250,14 @@
                 VStack(alignment: .leading, spacing: 3) {
                     Text(channel.name)
                         .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     if let nowTitle = channel.epgChannelId.flatMap({ nowTitles[$0] }) {
                         Text(nowTitle)
                             .font(.system(size: 20))
                             .opacity(0.6)
                             .lineLimit(1)
+                            .truncationMode(.tail)
                     }
                 }
 
