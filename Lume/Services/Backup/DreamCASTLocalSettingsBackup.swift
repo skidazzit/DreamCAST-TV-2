@@ -191,21 +191,9 @@ enum DreamCASTLocalSettingsBackup {
             } catch {
                 throw BackupError.invalidPassword
             }
-            guard let context else { throw BackupError.invalidPlaylist }
-            // Keep existing playlists, and avoid adding duplicate source logins.
-            let existing = try context.fetch(FetchDescriptor<Playlist>())
-            for playlist in imported {
-                if existing.contains(where: {
-                    $0.sourceTypeRaw == playlist.sourceTypeRaw &&
-                    $0.serverURL == playlist.serverURL &&
-                    $0.username == playlist.username
-                }) { continue }
-                context.insert(playlist)
-            }
-            try context.save()
         }
 
-        // Validate all settings before modifying the device.
+        // Validate every preference before making any changes on this device.
         var staged: [String: Any] = [:]
         for (name, encoded) in savedPreferences where allowed(name) {
             guard let entry = try PropertyListSerialization.propertyList(
@@ -214,6 +202,20 @@ enum DreamCASTLocalSettingsBackup {
                 throw CocoaError(.fileReadCorruptFile)
             }
             staged[name] = value
+        }
+        if archive.formatVersion == 2 {
+            guard let context else { throw BackupError.invalidPlaylist }
+            let existing = try context.fetch(FetchDescriptor<Playlist>())
+            // Skip sources already installed and repeated records in one file.
+            var seen = Set(existing.map {
+                "\($0.sourceTypeRaw)|\($0.serverURL)|\($0.username)"
+            })
+            for playlist in imported {
+                let identifier = "\(playlist.sourceTypeRaw)|\(playlist.serverURL)|\(playlist.username)"
+                guard seen.insert(identifier).inserted else { continue }
+                context.insert(playlist)
+            }
+            try context.save()
         }
         for (name, value) in staged { UserDefaults.standard.set(value, forKey: name) }
         UserDefaults.standard.set("off", forKey: "sync.backend")
