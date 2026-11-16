@@ -64,6 +64,9 @@ private struct SportsHubMatchRow: View {
     let score: SportFrameScore
     let isLive: Bool
     let onSelect: () -> Void
+    var onMoveLeft: (String) -> Void = { _ in }
+    var onCenterChange: (String, CGFloat) -> Void = { _, _ in }
+    var focusRequest = 0
     @FocusState private var rowFocused: Bool
 
     var body: some View {
@@ -135,6 +138,17 @@ private struct SportsHubMatchRow: View {
         .buttonStyle(.borderless)
         .focusEffectDisabled()
         .focused($rowFocused)
+        .onMoveCommand { direction in
+            if direction == .left { onMoveLeft(event.idEvent) }
+        }
+        .onGeometryChange(for: CGFloat.self) {
+            $0.frame(in: .global).midY
+        } action: { y in
+            onCenterChange(event.idEvent, y)
+        }
+        .onChange(of: focusRequest) { _, value in
+            if value > 0 { rowFocused = true }
+        }
         .overlay(alignment: .leading) {
             HStack(spacing: 18) {
                 TVFixedFocusIcon(url: event.homeBadge, systemName: "shield", size: 44)
@@ -183,6 +197,63 @@ struct SportFrameHome: View {
     /// A new ID cancels the previous test when changing or checking the key.
     @State private var apiCheckID = 0
     @FocusState private var focusedControl: FocusControl?
+    @State private var sidebarRowCenters: [String: CGFloat] = [:]
+    @State private var hubContentCenters: [HubFocusTarget: CGFloat] = [:]
+    @State private var sidebarTargetID: String?
+    @State private var sidebarTargetSerial = 0
+    @State private var focusedMatchID: String?
+    @State private var focusedMatchSerial = 0
+
+    private enum HubFocusTarget: Hashable {
+        case league
+        case window(SportsHubWindow)
+        case refresh
+        case match(String)
+    }
+
+    private func rememberSidebarCenter(_ id: String, _ y: CGFloat) {
+        if sidebarRowCenters[id] != y { sidebarRowCenters[id] = y }
+    }
+
+    private func rememberContentCenter(_ target: HubFocusTarget, _ y: CGFloat) {
+        if hubContentCenters[target] != y { hubContentCenters[target] = y }
+    }
+
+    private func nearestTarget<T: Hashable>(
+        from y: CGFloat?, candidates: [T], centers: [T: CGFloat]
+    ) -> T? {
+        guard let first = candidates.first else { return nil }
+        guard let y else { return first }
+        return candidates.filter { centers[$0] != nil }.min {
+            abs(centers[$0]! - y) < abs(centers[$1]! - y)
+        } ?? first
+    }
+
+    private func moveFromSidebar(_ id: String, displayed: [SportEvent]) {
+        let candidates: [HubFocusTarget] =
+            [.league, .window(.now), .window(.upcoming), .window(.yesterday), .refresh]
+            + displayed.map { .match($0.idEvent) }
+        guard let target = nearestTarget(
+            from: sidebarRowCenters[id], candidates: candidates, centers: hubContentCenters
+        ) else { return }
+        switch target {
+        case .league: focusedControl = .leagueMenu
+        case .window(let window): focusedControl = .hubWindow(window)
+        case .refresh: focusedControl = .refresh
+        case .match(let id):
+            focusedMatchID = id
+            focusedMatchSerial += 1
+        }
+    }
+
+    private func moveToSidebar(from target: HubFocusTarget) {
+        let ids = hubRailItems.map(\.id)
+        guard let id = nearestTarget(
+            from: hubContentCenters[target], candidates: ids, centers: sidebarRowCenters
+        ) else { return }
+        sidebarTargetID = id
+        sidebarTargetSerial += 1
+    }
 
     private enum FocusControl: Hashable {
         case tab(Int)
@@ -540,7 +611,14 @@ struct SportFrameHome: View {
     private var sportsHubPage: some View {
         let snapshot = makeSportsHubSnapshot()
         return HStack(alignment: .top, spacing: TVSidebarRail.paneSpacing) {
-            TVSidebarRail(items: hubRailItems, selectedID: hubSelectedRailID)
+            TVSidebarRail(
+                items: hubRailItems,
+                selectedID: hubSelectedRailID,
+                onMoveRight: { id in moveFromSidebar(id, displayed: snapshot.displayed) },
+                onRowCenterChange: { id, y in rememberSidebarCenter(id, y) },
+                requestedFocusID: sidebarTargetID,
+                requestedFocusSerial: sidebarTargetSerial
+            )
             VStack(alignment: .leading, spacing: 17) {
                 sportsHubHero(featured: snapshot.featured)
                 sportsHubFilterBar(
@@ -580,12 +658,14 @@ struct SportFrameHome: View {
                             SportsHubMatchRow(
                                 event: event,
                                 score: fixtures.score(for: event),
-                                isLive: fixtures.isLive(event)
-                            ) {
-                                // Selection only: playback starts in the
-                                // existing matched-channel picker.
-                                selectedEvent = event
-                            }
+                                isLive: fixtures.isLive(event),
+                                onSelect: { selectedEvent = event },
+                                onMoveLeft: { id in moveToSidebar(from: .match(id)) },
+                                onCenterChange: { id, y in
+                                    rememberContentCenter(.match(id), y)
+                                },
+                                focusRequest: focusedMatchID == event.idEvent ? focusedMatchSerial : 0
+                            )
                         }
                     }
                     .padding(.horizontal, 6)
@@ -685,6 +765,12 @@ struct SportFrameHome: View {
                     }
                     .buttonStyle(SportsZonePillStyle())
                     .focused($focusedControl, equals: .leagueMenu)
+                    .onMoveCommand { direction in
+                        if direction == .left { moveToSidebar(from: .league) }
+                    }
+                    .onGeometryChange(for: CGFloat.self) {
+                        $0.frame(in: .global).midY
+                    } action: { y in rememberContentCenter(.league, y) }
                 }
             }
             .frame(maxWidth: .infinity, minHeight: 305, alignment: .topLeading)
@@ -737,6 +823,12 @@ struct SportFrameHome: View {
             .buttonStyle(.borderless)
             .focusEffectDisabled()
             .focused($focusedControl, equals: .refresh)
+            .onMoveCommand { direction in
+                if direction == .left { moveToSidebar(from: .refresh) }
+            }
+            .onGeometryChange(for: CGFloat.self) {
+                $0.frame(in: .global).midY
+            } action: { y in rememberContentCenter(.refresh, y) }
         }
         .focusSection()
     }
@@ -773,6 +865,12 @@ struct SportFrameHome: View {
         .buttonStyle(.borderless)
         .focusEffectDisabled()
         .focused($focusedControl, equals: .hubWindow(window))
+        .onMoveCommand { direction in
+            if direction == .left { moveToSidebar(from: .window(window)) }
+        }
+        .onGeometryChange(for: CGFloat.self) {
+            $0.frame(in: .global).midY
+        } action: { y in rememberContentCenter(.window(window), y) }
     }
 
     private func hubBadge(_ url: URL?, fallback: String, size: CGFloat) -> some View {
