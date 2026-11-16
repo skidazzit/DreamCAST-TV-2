@@ -30,6 +30,11 @@ struct MainTabView: View {
     /// Selected tab and the Movies/Series navigation stacks, shared so an
     /// `onOpenURL` deep link can switch tabs and push a detail screen.
     @State private var router = DeepLinkRouter()
+    #if os(iOS)
+    /// One owner for live streams across every iPhone tab and navigation page.
+    /// Never create a player inside an unmounting tab.
+    @State private var sharedLivePlayback = SportsZonePlaybackSession()
+    #endif
 
     /// The stream a `lume://resume` or `lume://play/...` (widget, Top Shelf)
     /// deep link asked to open. Presented directly here — the link can arrive
@@ -155,6 +160,24 @@ struct MainTabView: View {
                 #endif
             }
         #if os(iOS)
+            .environment(sharedLivePlayback)
+            // The video host is mounted once, above the tab dock. Switching
+            // Live TV, SportsZone, Movies, Shows or Search cannot unmount it.
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if sharedLivePlayback.miniMedia != nil {
+                    SportsZoneMiniPlayer(session: sharedLivePlayback)
+                        .frame(maxWidth: .infinity)
+                        .background(.regularMaterial)
+                        .overlay(alignment: .top) {
+                            Divider()
+                        }
+                }
+            }
+            .fullScreenCover(item: $sharedLivePlayback.fullScreenMedia, onDismiss: {
+                sharedLivePlayback.returnedFromFullScreen()
+            }) { media in
+                FullScreenPlayerView(media: media, adopting: sharedLivePlayback.handle)
+            }
             .tabBarMinimizeOnScrollDownIfAvailable()
             .castMiniController { linkedMedia = $0 }
         #endif
