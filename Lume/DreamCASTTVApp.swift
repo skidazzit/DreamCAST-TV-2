@@ -27,6 +27,9 @@ struct LumeApp: App {
     @State private var backendChoiceWatcher: SyncedBackendChoiceWatcher
     @State private var profileManager: ProfileManager
     @State private var playlistSwitch = PlaylistSwitchModel()
+    #if os(tvOS)
+        @State private var showDreamCASTSplash = true
+    #endif
     @State private var parentalControls: ParentalControls
     #if os(iOS)
         @UIApplicationDelegateAdaptor(LumeAppDelegate.self) private var appDelegate
@@ -337,6 +340,25 @@ struct LumeApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                #if os(tvOS)
+                .overlay {
+                    if showDreamCASTSplash {
+                        DreamCASTTVLaunchSplash()
+                            .transition(.opacity)
+                            .zIndex(100)
+                    }
+                }
+                // Run alongside the existing launch tasks. The splash never
+                // waits for network sync, the guide, or playlist import.
+                .task {
+                    guard showDreamCASTSplash else { return }
+                    try? await Task.sleep(for: .seconds(1.6))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(.easeOut(duration: 0.35)) {
+                        showDreamCASTSplash = false
+                    }
+                }
+                #endif
                 .environment(TraktService.shared)
                 .environment(PremiumManager.shared)
                 .environment(cloudSync)
@@ -564,3 +586,49 @@ struct LumeApp: App {
         #endif
     }
 }
+
+#if os(tvOS)
+/// Lightweight branded cover while the first tvOS scene becomes visible.
+/// No separate decoder, data fetch, or blocking startup work.
+private struct DreamCASTTVLaunchSplash: View {
+    @State private var pulsing = false
+
+    var body: some View {
+        ZStack {
+            Color(red: 0.015, green: 0.035, blue: 0.075)
+                .ignoresSafeArea()
+            RadialGradient(
+                colors: [
+                    Color(red: 0.01, green: 0.22, blue: 0.30).opacity(0.55),
+                    .clear
+                ],
+                center: .center,
+                startRadius: 40,
+                endRadius: 620
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 32) {
+                Image("DreamCASTHeaderLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 440, height: 230)
+                    .scaleEffect(pulsing ? 1.025 : 0.985)
+                    .shadow(color: .cyan.opacity(0.18), radius: 34)
+
+                ProgressView()
+                    .tint(.cyan)
+                    .scaleEffect(1.2)
+                    .accessibilityLabel("Loading DreamCAST TV")
+            }
+            .accessibilityElement(children: .combine)
+        }
+        .allowsHitTesting(true)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) {
+                pulsing = true
+            }
+        }
+    }
+}
+#endif
