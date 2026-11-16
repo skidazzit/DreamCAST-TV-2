@@ -1391,6 +1391,24 @@ struct SportFrameMatchSheet: View {
         return foundChannels.filter { !used.contains($0.id) }
     }
 
+    /// The IPTV guide results are available even before a broadcaster is
+    /// chosen. Move focus only; a Select click still starts playback.
+    private func focusFirstRightChannel() {
+        guard let first = (broadcasterMatches + epgMatches).first else { return }
+        focusedBroadcaster = nil
+        focusedChannel = first.id
+    }
+
+    private func focusLeftBroadcaster() {
+        guard let first = broadcasters.first else {
+            // A fixture with no broadcaster list must not strand focus.
+            focusFirstRightChannel()
+            return
+        }
+        focusedChannel = nil
+        focusedBroadcaster = first.name
+    }
+
     var body: some View {
         ZStack {
             Color(red: 0.025, green: 0.055, blue: 0.11).ignoresSafeArea()
@@ -1450,6 +1468,15 @@ struct SportFrameMatchSheet: View {
                                     .buttonStyle(.borderless)
                                     .focusEffectDisabled()
                                     .focused($focusedBroadcaster, equals: broadcaster.name)
+                                    .onMoveCommand { direction in
+                                        // The left pane may have no chosen broadcaster.
+                                        // Either horizontal direction can enter the
+                                        // ready-to-play IPTV matches on the right.
+                                        if direction == .right ||
+                                            (direction == .left && selectedBroadcaster == nil) {
+                                            focusFirstRightChannel()
+                                        }
+                                    }
                                     .overlay(alignment: .leading) {
                                         TVFixedFocusIcon(url: broadcaster.logoURL,
                                                          systemName: "tv", size: 36)
@@ -1462,6 +1489,7 @@ struct SportFrameMatchSheet: View {
                         }
                     }
                     .frame(width: 440)
+                    .focusSection()
 
                     VStack(alignment: .leading, spacing: 15) {
                         ScrollView {
@@ -1489,6 +1517,7 @@ struct SportFrameMatchSheet: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .focusSection()
                 }
                 .frame(maxHeight: .infinity, alignment: .top)
             }
@@ -1547,6 +1576,13 @@ struct SportFrameMatchSheet: View {
         .buttonStyle(.borderless)
         .focusEffectDisabled()
         .focused($focusedChannel, equals: channel.id)
+        .onMoveCommand { direction in
+            if direction == .left {
+                // Moving back toward Broadcasters must not require choosing
+                // one first. If none exist, keep the right list accessible.
+                focusLeftBroadcaster()
+            }
+        }
         .overlay(alignment: .leading) {
             TVFixedFocusIcon(url: channel.stream.streamIcon.flatMap(URL.init(string:)),
                              systemName: "play.tv", size: 40)
