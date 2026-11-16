@@ -505,8 +505,9 @@ extension PlaylistDetailView {
         }
         // Include time and local time zone: a midnight expiry otherwise looks
         // one day early/late depending on the viewer's Apple TV time zone.
-        return date.formatted(.dateTime.month(.abbreviated).day().year()
-            .hour().minute().timeZone())
+        let local = date.formatted(date: .abbreviated, time: .shortened)
+        let zone = TimeZone.current.abbreviation(for: date) ?? TimeZone.current.identifier
+        return "\(local) \(zone)"
     }
 
     func isExpired(_ raw: String) -> Bool {
