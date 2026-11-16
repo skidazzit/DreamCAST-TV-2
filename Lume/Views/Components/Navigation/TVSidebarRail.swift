@@ -323,15 +323,19 @@
         }
 
         private func focusRow(_ id: String, proxy: ScrollViewProxy) {
-            // Avoid moving the entire rail when the target is already on
-            // screen. The old unconditional scrollTo caused focus jumps.
-            if focused == id {
-                crossPaneFocusID = nil
-                return
+            // A previous sidebar focus value can remain set while UIKit's
+            // actual focus is on the content pane. Writing the same value
+            // again is a no-op, letting the focus engine jump to another row.
+            // Clear it first and request the chosen row in the next turn.
+            // Avoid scrollTo: horizontal entries should not move the rail.
+            focused = nil
+            Task { @MainActor in
+                await Task.yield()
+                guard crossPaneFocusID == id,
+                      requestedFocusID == id,
+                      itemIDs.contains(id) else { return }
+                focused = id
             }
-            focused = id
-            // The nearest row is already visible during a normal
-            // horizontal move, so avoid an unnecessary scrollTo.
         }
 
         private var rows: some View {
