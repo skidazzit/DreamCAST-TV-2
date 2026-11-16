@@ -97,6 +97,12 @@
         var masksFocus = false
         /// Told when focus settles into (`true`) or out of (`false`) the rail.
         var onFocusChange: (Bool) -> Void = { _ in }
+        /// Optional two-column navigation support. Other rail callers keep
+        /// their existing focus behavior.
+        var onMoveRight: (String) -> Void = { _ in }
+        var onRowCenterChange: (String, CGFloat) -> Void = { _, _ in }
+        var requestedFocusID: String? = nil
+        var requestedFocusSerial = 0
 
         /// Coordinates Back focus with the app-root mini-player and menu.
         /// Optional so standalone rail previews still work.
@@ -123,6 +129,7 @@
         /// The panel in window coordinates, to tell focus that left the rail
         /// from focus parked on its scroll view's fast-scroll index.
         @State private var panelFrame: CGRect = .zero
+        @State private var crossPaneFocusID: String?
 
         private let panelPadding: CGFloat = 16
         private let rowInset: CGFloat = 18
@@ -184,6 +191,11 @@
                 // leaving the engine to pick a row.
                 if let focused, !ids.contains(focused) { focusSelection(proxy) }
             }
+            .onChange(of: requestedFocusSerial) { _, _ in
+                guard let requestedFocusID, itemIDs.contains(requestedFocusID) else { return }
+                crossPaneFocusID = requestedFocusID
+                focusRow(requestedFocusID, proxy: proxy)
+            }
             .onChange(of: focusRequest) { _, _ in
                 focusSelection(proxy)
             }
@@ -243,7 +255,9 @@
             if !railOwnsFocus {
                 onFocusChange(true)
             }
-            if !railOwnsFocus, !masksFocus, let selectedID, newValue != selectedID {
+            if !railOwnsFocus, !masksFocus,
+               let selectedID, newValue != selectedID,
+               newValue != crossPaneFocusID {
                 // Entry landed on the wrong row (masked, so it never rendered
                 // styled) — snap to the selection. It may sit scrolled out of
                 // the lazy list, where a focus write finds nothing: bring it
@@ -264,6 +278,7 @@
                 }
             } else {
                 railOwnsFocus = true
+                if newValue == crossPaneFocusID { crossPaneFocusID = nil }
             }
         }
 
@@ -290,6 +305,15 @@
                 proxy.scrollTo(selectedID)
             }
             Task { @MainActor in focused = selectedID }
+        }
+
+        private func focusRow(_ id: String, proxy: ScrollViewProxy) {
+            withTransaction(Transaction(animation: nil)) {
+                proxy.scrollTo(id)
+            }
+            Task { @MainActor in
+                focused = id
+            }
         }
 
         private var rows: some View {
@@ -351,6 +375,14 @@
             .buttonStyle(.borderless)
             .focusEffectDisabled()
             .focused($focused, equals: item.id)
+            .onMoveCommand { direction in
+                if direction == .right { onMoveRight(item.id) }
+            }
+            .onGeometryChange(for: CGFloat.self) {
+                $0.frame(in: .global).midY
+            } action: { y in
+                onRowCenterChange(item.id, y)
+            }
             .overlay(alignment: .leading) {
                 if item.badgeURL != nil || item.icon != nil {
                     TVFixedFocusIcon(
