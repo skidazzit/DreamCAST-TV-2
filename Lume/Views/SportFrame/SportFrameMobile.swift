@@ -71,6 +71,7 @@ struct SportFrameMobile: View {
     @State private var selectedSport = "All Sports"
     @State private var selectedLeague = "All Leagues"
     @State private var expandedSport: String?
+    @State private var expandedLeagues: Set<String> = []
     @State private var sportsFollowExpanded = false
     @State private var selectedEvent: SportEvent?
     /// Hold the tapped channel until the match sheet has fully dismissed.
@@ -304,15 +305,34 @@ struct SportFrameMobile: View {
                         }
                     }
 
-                    ForEach(Array((groups[league] ?? []).prefix(5))) { event in
+                    ForEach(
+                        expandedLeagues.contains(league)
+                            ? (groups[league] ?? [])
+                            : Array((groups[league] ?? []).prefix(5))
+                    ) { event in
                         Button { selectedEvent = event } label: {
                             mobileFixture(event)
                         }
                         .buttonStyle(.plain)
                     }
                     if (groups[league]?.count ?? 0) > 5 {
-                        Text("Showing first 5 matches")
-                            .font(.caption).foregroundStyle(.secondary)
+                        Button {
+                            if expandedLeagues.contains(league) {
+                                expandedLeagues.remove(league)
+                            } else {
+                                expandedLeagues.insert(league)
+                            }
+                        } label: {
+                            Label(
+                                expandedLeagues.contains(league) ? "Show fewer matches" : "Show all \(groups[league]?.count ?? 0) matches",
+                                systemImage: expandedLeagues.contains(league) ? "chevron.up" : "chevron.down"
+                            )
+                            .font(.subheadline.weight(.medium))
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.vertical, 10)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.cyan)
                     }
                 }
             }
