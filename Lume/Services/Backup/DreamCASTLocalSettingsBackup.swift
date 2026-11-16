@@ -7,8 +7,8 @@ import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
 
-/// Portable local preferences export. This deliberately does NOT copy live
-/// SQLite/SwiftData stores, Keychain entries, or account secrets.
+/// Portable encrypted backup of preferences, playlist setup and user watch state.
+/// This copies selected SwiftData values, never raw databases or session tokens.
 struct DreamCASTSettingsFile: FileDocument {
     static var readableContentTypes: [UTType] { [.json] }
     var contents: Data
@@ -218,7 +218,8 @@ enum DreamCASTLocalSettingsBackup {
         if k.hasPrefix("apple") || k.hasPrefix("ns") || k.hasPrefix("com.apple")
             || k.hasPrefix("uikit") || k.hasPrefix("ui")
             || k.hasPrefix("lumecloud") || k.hasPrefix("icloud")
-            || k.hasPrefix("premium.") || k.hasPrefix("sync.backend") { return false }
+            || k.hasPrefix("premium.") || k.hasPrefix("sync.backend")
+            || k.hasPrefix("dreamcast.backup.") { return false }
         let sensitive = ["password", "passwd", "secret", "token", "credential",
                          "auth", "apikey", "api_key", "accesskey", "privatekey",
                          "session", "cookie", "refreshkey", "recovery"]
@@ -426,7 +427,7 @@ enum DreamCASTLocalSettingsBackup {
     }
 }
 
-/// Backup includes encrypted IPTV setup details, but not channel catalogs or history.
+/// Backup includes encrypted IPTV setup, favorites and watch progress; not catalogs.
 struct DreamCASTBackupSettingsSection: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var playlists: [Playlist]
@@ -453,7 +454,7 @@ struct DreamCASTBackupSettingsSection: View {
         } header: {
             Text("Local Backup & Restore")
         } footer: {
-            Text("Backs up settings and playlist connection details, including credentials, in a password-protected JSON file. Keep the backup password safe. Channel catalogs, watched history, and provider session tokens are not copied. Existing playlists are kept during restore.")
+            Text("Backs up settings and playlist connection details, including credentials, in a password-protected JSON file. Keep the backup password safe. Channel catalogs and provider session tokens are not copied. Favorites and watch history are restored after imported playlists sync. Existing playlists are kept.")
         }
         .alert("Protect IPTV Backup", isPresented: $exportPrompt) {
             SecureField("Backup password (8+ characters)", text: $backupPassword)
