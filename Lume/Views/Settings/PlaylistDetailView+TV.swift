@@ -134,10 +134,12 @@ import SwiftUI
 
                     VStack(spacing: 2) {
                         TVSettingsValueRow("Status", value: status)
-                        if let expDate = playlist.expDate {
-                            TVSettingsValueRow("Expires") {
+                        TVSettingsValueRow("Expires") {
+                            if let expDate = playlist.expDate {
                                 Text(formattedExpiry(expDate))
                                     .foregroundStyle(isExpired(expDate) ? .red : .secondary)
+                            } else {
+                                Text("Not reported by provider")
                             }
                         }
                         if let maxConn = playlist.maxConnections {
@@ -147,7 +149,73 @@ import SwiftUI
                             TVSettingsValueRow("Active Connections", value: activeConn)
                         }
                     }
+
+                    Text("Status and expiry come from your Xtream provider's account response (player_api.php). They may be out of date until refreshed.")
+                        .font(.system(size: 18))
+                        .foregroundStyle(.white.opacity(0.65))
+                        .padding(.horizontal, TVSettingsMetrics.rowHPadding)
+
+                    if let checked = lastAccountCheck {
+                        Text("Last checked: \(checked.formatted(date: .abbreviated, time: .shortened))")
+                            .font(.system(size: 17))
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, TVSettingsMetrics.rowHPadding)
+                    } else if let lastSync = playlist.lastSyncDate {
+                        Text("Last playlist sync: \(lastSync.formatted(date: .abbreviated, time: .shortened))")
+                            .font(.system(size: 17))
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, TVSettingsMetrics.rowHPadding)
+                    }
+
+                    Button {
+                        refreshXtreamAccount()
+                    } label: {
+                        HStack(spacing: 13) {
+                            Text(Image(systemName: "arrow.clockwise"))
+                                .font(.system(size: 22))
+                                .frame(width: 27, height: 30)
+                            Text("Refresh Account Details")
+                            Spacer()
+                            if refreshingAccount {
+                                ProgressView()
+                            }
+                        }
+                    }
+                    .buttonStyle(TVSettingsRowButtonStyle())
+                    .disabled(refreshingAccount)
+                    if let accountRefreshMessage {
+                        Text(accountRefreshMessage)
+                            .font(.system(size: 18))
+                            .foregroundStyle(.white.opacity(0.78))
+                            .padding(.horizontal, TVSettingsMetrics.rowHPadding)
+                    }
                 }
+            }
+        }
+
+        /// Only refresh the small provider account record. Never run a full
+        /// catalog sync just to check status or the expiry timestamp.
+        private func refreshXtreamAccount() {
+            guard playlist.sourceType == .xtream, !refreshingAccount else { return }
+            refreshingAccount = true
+            accountRefreshMessage = nil
+            Task { @MainActor in
+                do {
+                    let response = try await XtreamClient().getInfo(playlist: playlist)
+                    playlist.userStatus = response.userInfo.status
+                    playlist.expDate = response.userInfo.expDate
+                    playlist.maxConnections = response.userInfo.maxConnections
+                    playlist.activeConnections = response.userInfo.activeCons
+                    playlist.allowedOutputFormats = response.userInfo.allowedOutputFormats
+                    playlist.serverTimezone = response.serverInfo.timezone
+                    playlist.lastUpdated = Date()
+                    try modelContext.save()
+                    lastAccountCheck = Date()
+                    accountRefreshMessage = "Account details updated from the provider."
+                } catch {
+                    accountRefreshMessage = "Could not refresh account details: \(error.localizedDescription)"
+                }
+                refreshingAccount = false
             }
         }
 
