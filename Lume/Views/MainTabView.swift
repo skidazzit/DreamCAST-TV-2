@@ -549,8 +549,9 @@ struct MainTabView: View {
                         // first Image in their label on focus. Rendering the
                         // SF Symbol inside Text keeps its size fixed.
                         Text(Image(systemName: symbol))
-                            .font(.system(size: 24, weight: .semibold))
-                            .frame(width: 27, height: 29)
+                            .font(.system(size: 22, weight: .semibold))
+                            .frame(width: 32, height: 34, alignment: .center)
+                            .fixedSize()
                             .accessibilityHidden(true)
                     }
                     if tab != .search && tab != .settings {
