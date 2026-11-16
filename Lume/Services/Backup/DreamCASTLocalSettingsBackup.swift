@@ -86,22 +86,10 @@ enum DreamCASTLocalSettingsBackup {
     }
 }
 
-/// Uses UIKit's native Files picker rather than the SwiftUI fileExporter
-/// overloads, which vary across SDK releases.
-private struct DreamCASTExportPicker: UIViewControllerRepresentable {
-    let fileURL: URL
-
-    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-        UIDocumentPickerViewController(forExporting: [fileURL], asCopy: true)
-    }
-
-    func updateUIViewController(_ controller: UIDocumentPickerViewController, context: Context) {}
-}
-
 /// Settings-only backup. Media catalogs, playlists and watched records remain
 /// in the local SwiftData database, unchanged by this import.
 struct DreamCASTBackupSettingsSection: View {
-    @State private var exportURL: URL?
+    @State private var exportDocument: DreamCASTSettingsFile?
     @State private var exporting = false
     @State private var importing = false
     @State private var notice: String?
@@ -110,12 +98,11 @@ struct DreamCASTBackupSettingsSection: View {
         Section {
             Button {
                 do {
-                    let backup = try DreamCASTLocalSettingsBackup.exportSettings()
-                    let url = FileManager.default.temporaryDirectory
-                        .appendingPathComponent("DreamCAST-TV-settings-\(UUID().uuidString)")
-                        .appendingPathExtension("json")
-                    try backup.contents.write(to: url, options: .atomic)
-                    exportURL = url
+                    // FileExporter owns the destination and keeps the
+                    // prepared document alive until Files finishes saving.
+                    // A nested UIKit document-picker sheet could flash black
+                    // and dismiss as Settings was already being presented.
+                    exportDocument = try DreamCASTLocalSettingsBackup.exportSettings()
                     exporting = true
                 } catch {
                     notice = "Could not prepare backup: \(error.localizedDescription)"
@@ -134,10 +121,22 @@ struct DreamCASTBackupSettingsSection: View {
         } footer: {
             Text("Saves your app preferences to a JSON file in Files. Passwords, account keys, playlists, and watched history are not included. Importing a file changes saved settings, not your media library. Relaunch the app after restoring.")
         }
-        .sheet(isPresented: $exporting) {
-            if let exportURL {
-                DreamCASTExportPicker(fileURL: exportURL)
+        .fileExporter(
+            isPresented: $exporting,
+            document: exportDocument,
+            contentType: .json,
+            defaultFilename: "DreamCAST-TV-settings"
+        ) { result in
+            switch result {
+            case .success:
+                notice = "Settings backup saved to Files."
+            case .failure(let error):
+                // Cancelling Files should not be treated as backup failure.
+                if (error as NSError).code != NSUserCancelledError {
+                    notice = "Could not save backup: \(error.localizedDescription)"
+                }
             }
+            exportDocument = nil
         }
         .fileImporter(isPresented: $importing, allowedContentTypes: [.json]) { result in
             do {
