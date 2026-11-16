@@ -56,6 +56,96 @@ private enum SportsZoneAPIConnectionStatus: Equatable {
     }
 }
 
+/// Each match owns focus without invalidating the entire All Sports screen.
+/// Focus on one row should not re-sort every league's fixtures or rebuild
+/// the hero and tabs. The logo overlays also stay fixed-size on tvOS.
+private struct SportsHubMatchRow: View {
+    let event: SportEvent
+    let score: SportFrameScore
+    let isLive: Bool
+    let onSelect: () -> Void
+    @FocusState private var rowFocused: Bool
+
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: 18) {
+                // Separate badge artwork from the focused Button label.
+                Color.clear.frame(width: 44, height: 44)
+                Color.clear.frame(width: 44, height: 44)
+
+                Text(event.name)
+                    .font(.system(size: 22, weight: .semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                if isLive {
+                    Text("● LIVE")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 5)
+                        .background(.red, in: Capsule())
+                }
+
+                Text(event.timeLabel)
+                    .font(.system(size: 19))
+                    .foregroundStyle(.white.opacity(0.8))
+                    .lineLimit(1)
+                    .frame(width: 125, alignment: .trailing)
+
+                Group {
+                    if let home = score.home, let away = score.away {
+                        Text(home + " – " + away)
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundStyle(TVNeonTheme.iceBlue)
+                            .monospacedDigit()
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.82)
+                    } else {
+                        Text("—")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.white.opacity(0.55))
+                    }
+                }
+                .frame(width: 125, alignment: .trailing)
+                .layoutPriority(1)
+
+                Text(Image(systemName: "chevron.right"))
+                    .font(.system(size: 21, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.78))
+                    .frame(width: 24, height: 28)
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 75)
+            .background {
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(rowFocused ? TVNeonTheme.selection : TVNeonTheme.glass)
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 18)
+                    .strokeBorder(rowFocused ? TVNeonTheme.iceBlue
+                                  : .white.opacity(0.14), lineWidth: rowFocused ? 2.5 : 1)
+            }
+            .shadow(color: rowFocused ? TVNeonTheme.electricBlue.opacity(0.65) : .clear,
+                    radius: rowFocused ? 12 : 0)
+            .contentShape(RoundedRectangle(cornerRadius: 18))
+            .focusEffectDisabled()
+        }
+        .buttonStyle(.borderless)
+        .focusEffectDisabled()
+        .focused($rowFocused)
+        .overlay(alignment: .leading) {
+            HStack(spacing: 18) {
+                TVFixedFocusIcon(url: event.homeBadge, systemName: "shield", size: 44)
+                TVFixedFocusIcon(url: event.awayBadge, systemName: "shield", size: 44)
+            }
+            .padding(.leading, 16)
+            .allowsHitTesting(false)
+        }
+    }
+}
+
 /// DreamCAST's SportsFrame presentation, using Lume's own playback and EPG index.
 struct SportFrameHome: View {
     @Environment(\.modelContext) private var modelContext
@@ -683,77 +773,6 @@ struct SportFrameHome: View {
         .buttonStyle(.borderless)
         .focusEffectDisabled()
         .focused($focusedControl, equals: .hubWindow(window))
-    }
-
-    private func sportsHubMatchRow(_ event: SportEvent) -> some View {
-        let focused = focusedControl == .fixture(event.idEvent)
-        let isLive = fixtures.isLive(event)
-        return Button {
-            // Only Select opens the saved match/channel picker.
-            selectedEvent = event
-        } label: {
-            HStack(spacing: 18) {
-                // Real logo images live outside the focused Button to
-                // prevent tvOS from zooming just one team's badge.
-                Color.clear.frame(width: 44, height: 44)
-                Color.clear.frame(width: 44, height: 44)
-                Text(event.name)
-                    .font(.system(size: 22, weight: .semibold))
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                if isLive {
-                    Text("● LIVE")
-                        .font(.system(size: 17, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 5)
-                        .background(.red, in: Capsule())
-                }
-
-                Text(event.timeLabel)
-                    .font(.system(size: 19))
-                    .foregroundStyle(.white.opacity(0.8))
-                    .frame(minWidth: 125, alignment: .trailing)
-                if let home = fixtures.score(for: event).home,
-                   let away = fixtures.score(for: event).away {
-                    Text(home + " – " + away)
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(TVNeonTheme.iceBlue)
-                        .frame(width: 76)
-                }
-                Text(Image(systemName: "chevron.right"))
-                    .font(.system(size: 21, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.78))
-                    .frame(width: 24, height: 28)
-            }
-            .padding(.horizontal, 16)
-            .frame(height: 75)
-            .background {
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(focused ? TVNeonTheme.selection : TVNeonTheme.glass)
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: 18)
-                    .strokeBorder(focused ? TVNeonTheme.iceBlue :
-                                  .white.opacity(0.14), lineWidth: focused ? 2.5 : 1)
-            }
-            .shadow(color: focused ? TVNeonTheme.electricBlue.opacity(0.65) : .clear,
-                    radius: focused ? 12 : 0)
-            .contentShape(RoundedRectangle(cornerRadius: 18))
-            .focusEffectDisabled()
-        }
-        .buttonStyle(.borderless)
-        .focusEffectDisabled()
-        .focused($focusedControl, equals: .fixture(event.idEvent))
-        .overlay(alignment: .leading) {
-            HStack(spacing: 18) {
-                TVFixedFocusIcon(url: event.homeBadge, systemName: "shield", size: 44)
-                TVFixedFocusIcon(url: event.awayBadge, systemName: "shield", size: 44)
-            }
-            .padding(.leading, 16)
-            .allowsHitTesting(false)
-        }
     }
 
     private func hubBadge(_ url: URL?, fallback: String, size: CGFloat) -> some View {
