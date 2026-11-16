@@ -77,7 +77,13 @@ struct SportFrameMobile: View {
     /// Hold the tapped channel until the match sheet has fully dismissed.
     /// This replaces a fixed delay before full-screen playback.
     @State private var pendingPlaybackMedia: PlayableMedia?
+    /// Standalone preview fallback; the actual app injects the root player.
     @State private var sportsPlayback = SportsZonePlaybackSession()
+    @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
+
+    private var activePlayback: SportsZonePlaybackSession {
+        sharedPlayback ?? sportsPlayback
+    }
     @State private var premiumKey = ""
     @State private var keyStatus: String?
     @State private var apiConnectionStatus: SportsDBConnectionStatus = .unchecked
@@ -129,7 +135,9 @@ struct SportFrameMobile: View {
         VStack(spacing: 0) {
             // Like Live TV, keep the mini-player above the scrolling pages.
             // One player host survives navigation into and out of a league.
-            SportsZoneMiniPlayer(session: sportsPlayback)
+            if sharedPlayback == nil {
+                SportsZoneMiniPlayer(session: sportsPlayback)
+            }
 
             NavigationStack {
                 ScrollView {
@@ -160,7 +168,7 @@ struct SportFrameMobile: View {
                     // try to play separate streams at the same time.
                     guard let media = pendingPlaybackMedia else { return }
                     pendingPlaybackMedia = nil
-                    sportsPlayback.tune(
+                    activePlayback.tune(
                         media,
                         previewMode: GuidePreviewMode(storedValue:
                             UserDefaults.standard.string(forKey: PlayerSettings.tvGuidePreviewModeKey))
