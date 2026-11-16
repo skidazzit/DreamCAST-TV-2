@@ -1618,7 +1618,7 @@ struct SportFrameMatchSheet: View {
                         }
                     }
                     .frame(width: 440)
-                    .onPreferenceChange(MatchBroadcasterRowCenters.self) { _, value in
+                    .onPreferenceChange(MatchBroadcasterRowCenters.self) { value in
                         broadcasterRowCenters = value
                     }
                     .focusSection()
@@ -1649,7 +1649,7 @@ struct SportFrameMatchSheet: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .onPreferenceChange(MatchChannelRowCenters.self) { _, value in
+                    .onPreferenceChange(MatchChannelRowCenters.self) { value in
                         channelRowCenters = value
                     }
                     .focusSection()
