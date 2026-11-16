@@ -64,7 +64,6 @@ private struct SportsHubMatchRow: View {
     let score: SportFrameScore
     let isLive: Bool
     let onSelect: () -> Void
-    var onMoveLeft: (String) -> Void = { _ in }
     var onCenterChange: (String, CGFloat) -> Void = { _, _ in }
     var focusRequest = 0
     @FocusState private var rowFocused: Bool
@@ -138,9 +137,6 @@ private struct SportsHubMatchRow: View {
         .buttonStyle(.borderless)
         .focusEffectDisabled()
         .focused($rowFocused)
-        .onMoveCommand { direction in
-            if direction == .left { onMoveLeft(event.idEvent) }
-        }
         .onGeometryChange(for: CGFloat.self) {
             $0.frame(in: .global).midY
         } action: { y in
