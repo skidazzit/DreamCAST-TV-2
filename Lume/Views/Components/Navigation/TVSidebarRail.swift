@@ -327,15 +327,8 @@
                 return
             }
             focused = id
-            // Lazy rows may be absent after a long list scroll. Only scroll
-            // if focus did not settle; keep ordinary cross-pane moves still.
-            Task { @MainActor in
-                guard focused != id else { return }
-                withTransaction(Transaction(animation: nil)) {
-                    proxy.scrollTo(id)
-                }
-                focused = id
-            }
+            // The nearest row is already visible during a normal
+            // horizontal move, so avoid an unnecessary scrollTo.
         }
 
         private var rows: some View {
