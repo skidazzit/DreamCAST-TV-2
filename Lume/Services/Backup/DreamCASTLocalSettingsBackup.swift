@@ -55,6 +55,89 @@ enum DreamCASTLocalSettingsBackup {
     private struct ProtectedPayload: Codable {
         let preferences: [String: Data]
         let playlists: [PlaylistRecord]
+        // Optional for existing version-2 backups.
+        var viewingState: ViewingState?
+    }
+
+    /// Minimal changes only; never copy provider catalogs into the archive.
+    /// Content IDs are replayed after the destination's playlist has synced.
+    struct ViewingState: Codable {
+        var live: [LiveState]
+        var movies: [MovieState]
+        var series: [SeriesState]
+        var episodes: [EpisodeState]
+    }
+
+    struct LiveState: Codable {
+        let id: String
+        let isFavorite: Bool
+        let favoriteOrder: Int?
+        let lastWatchedDate: Date?
+    }
+
+    struct MovieState: Codable {
+        let id: String
+        let isFavorite: Bool
+        let favoriteOrder: Int?
+        let watchProgress: Double
+        let isWatched: Bool
+        let lastWatchedDate: Date?
+        let addedToWatchlistDate: Date?
+    }
+
+    struct SeriesState: Codable {
+        let id: String
+        let isFavorite: Bool
+        let favoriteOrder: Int?
+        let lastWatchedDate: Date?
+        let addedToWatchlistDate: Date?
+    }
+
+    struct EpisodeState: Codable {
+        let id: String
+        let watchProgress: Double
+        let isWatched: Bool
+        let lastWatchedDate: Date?
+    }
+
+    /// Gather only rows that contain user changes. The catalog can contain
+    /// hundreds of thousands of titles, so never export every catalog row.
+    static func captureViewingState(in context: ModelContext) throws -> ViewingState {
+        let live = try context.fetch(FetchDescriptor<LiveStream>(
+            predicate: #Predicate { $0.isFavorite || $0.lastWatchedDate != nil }
+        )).map {
+            LiveState(id: $0.id, isFavorite: $0.isFavorite,
+                      favoriteOrder: $0.favoriteOrder, lastWatchedDate: $0.lastWatchedDate)
+        }
+        let movies = try context.fetch(FetchDescriptor<Movie>(
+            predicate: #Predicate {
+                $0.isFavorite || $0.lastWatchedDate != nil || $0.isWatched
+                    || $0.watchProgress > 0 || $0.addedToWatchlistDate != nil
+            }
+        )).map {
+            MovieState(id: $0.id, isFavorite: $0.isFavorite,
+                       favoriteOrder: $0.favoriteOrder, watchProgress: $0.watchProgress,
+                       isWatched: $0.isWatched, lastWatchedDate: $0.lastWatchedDate,
+                       addedToWatchlistDate: $0.addedToWatchlistDate)
+        }
+        let series = try context.fetch(FetchDescriptor<Series>(
+            predicate: #Predicate {
+                $0.isFavorite || $0.lastWatchedDate != nil || $0.addedToWatchlistDate != nil
+            }
+        )).map {
+            SeriesState(id: $0.id, isFavorite: $0.isFavorite,
+                        favoriteOrder: $0.favoriteOrder, lastWatchedDate: $0.lastWatchedDate,
+                        addedToWatchlistDate: $0.addedToWatchlistDate)
+        }
+        let episodes = try context.fetch(FetchDescriptor<Episode>(
+            predicate: #Predicate {
+                $0.isWatched || $0.watchProgress > 0 || $0.lastWatchedDate != nil
+            }
+        )).map {
+            EpisodeState(id: $0.id, watchProgress: $0.watchProgress,
+                         isWatched: $0.isWatched, lastWatchedDate: $0.lastWatchedDate)
+        }
+        return ViewingState(live: live, movies: movies, series: series, episodes: episodes)
     }
 
     private struct PlaylistRecord: Codable {
@@ -142,7 +225,8 @@ enum DreamCASTLocalSettingsBackup {
         return !sensitive.contains(where: { k.contains($0) })
     }
 
-    static func exportSettings(playlists: [Playlist] = [], password: String? = nil) throws -> DreamCASTSettingsFile {
+    static func exportSettings(playlists: [Playlist] = [], password: String? = nil,
+                               context: ModelContext? = nil) throws -> DreamCASTSettingsFile {
         var values: [String: Data] = [:]
         for (name, value) in UserDefaults.standard.dictionaryRepresentation() where allowed(name) {
             if let data = try? PropertyListSerialization.data(
@@ -156,7 +240,11 @@ enum DreamCASTLocalSettingsBackup {
             // Both saved preferences and IPTV connection data must stay
             // encrypted. Never leave private values in outer JSON fields.
             let records = try JSONEncoder().encode(
-                ProtectedPayload(preferences: values, playlists: playlists.map(PlaylistRecord.init))
+                ProtectedPayload(
+                    preferences: values,
+                    playlists: playlists.map(PlaylistRecord.init),
+                    viewingState: try context.map { try captureViewingState(in: $0) }
+                )
             )
             let salt = Data((0..<16).map { _ in UInt8.random(in: 0...255) })
             let sealed = try AES.GCM.seal(records, using: key(password: password, salt: salt))
@@ -165,6 +253,115 @@ enum DreamCASTLocalSettingsBackup {
                               encryptedPlaylists: sealed.combined)
         }
         return DreamCASTSettingsFile(contents: try JSONEncoder().encode(archive))
+    }
+
+    // Save pending records so a first-run restore works before the IPTV
+    // provider has downloaded channel, movie and episode catalogs.
+    private static let pendingViewingStateKey = "dreamcast.backup.pendingViewingState"
+
+    private static func mergePending(_ imported: ViewingState) throws {
+        var result = imported
+        if let previous = UserDefaults.standard.data(forKey: pendingViewingStateKey),
+           let old = try? JSONDecoder().decode(ViewingState.self, from: previous) {
+            result.live = Array(Dictionary(
+                (old.live + imported.live).map { ($0.id, $0) },
+                uniquingKeysWith: { _, incoming in incoming }
+            ).values)
+            result.movies = Array(Dictionary(
+                (old.movies + imported.movies).map { ($0.id, $0) },
+                uniquingKeysWith: { _, incoming in incoming }
+            ).values)
+            result.series = Array(Dictionary(
+                (old.series + imported.series).map { ($0.id, $0) },
+                uniquingKeysWith: { _, incoming in incoming }
+            ).values)
+            result.episodes = Array(Dictionary(
+                (old.episodes + imported.episodes).map { ($0.id, $0) },
+                uniquingKeysWith: { _, incoming in incoming }
+            ).values)
+        }
+        UserDefaults.standard.set(try JSONEncoder().encode(result),
+                                  forKey: pendingViewingStateKey)
+    }
+
+    /// Reapply records as each provider sync creates matching SwiftData rows.
+    /// Leave unmatched IDs pending for a later catalog sync.
+    @discardableResult
+    static func applyPendingViewingState(in context: ModelContext) throws -> Int {
+        guard let data = UserDefaults.standard.data(forKey: pendingViewingStateKey),
+              var state = try? JSONDecoder().decode(ViewingState.self, from: data) else {
+            return 0
+        }
+        var count = 0
+        let liveIDs = state.live.map(\.id)
+        let movieIDs = state.movies.map(\.id)
+        let seriesIDs = state.series.map(\.id)
+        let episodeIDs = state.episodes.map(\.id)
+
+        let liveMap = Dictionary(uniqueKeysWithValues:
+            try context.fetch(FetchDescriptor<LiveStream>(
+                predicate: #Predicate { liveIDs.contains($0.id) }
+            )).map { ($0.id, $0) })
+        state.live.removeAll { record in
+            guard let item = liveMap[record.id] else { return false }
+            item.isFavorite = record.isFavorite
+            item.favoriteOrder = record.favoriteOrder
+            item.lastWatchedDate = record.lastWatchedDate
+            count += 1
+            return true
+        }
+
+        let movieMap = Dictionary(uniqueKeysWithValues:
+            try context.fetch(FetchDescriptor<Movie>(
+                predicate: #Predicate { movieIDs.contains($0.id) }
+            )).map { ($0.id, $0) })
+        state.movies.removeAll { record in
+            guard let item = movieMap[record.id] else { return false }
+            item.isFavorite = record.isFavorite
+            item.favoriteOrder = record.favoriteOrder
+            item.watchProgress = record.watchProgress
+            item.isWatched = record.isWatched
+            item.lastWatchedDate = record.lastWatchedDate
+            item.addedToWatchlistDate = record.addedToWatchlistDate
+            count += 1
+            return true
+        }
+
+        let seriesMap = Dictionary(uniqueKeysWithValues:
+            try context.fetch(FetchDescriptor<Series>(
+                predicate: #Predicate { seriesIDs.contains($0.id) }
+            )).map { ($0.id, $0) })
+        state.series.removeAll { record in
+            guard let item = seriesMap[record.id] else { return false }
+            item.isFavorite = record.isFavorite
+            item.favoriteOrder = record.favoriteOrder
+            item.lastWatchedDate = record.lastWatchedDate
+            item.addedToWatchlistDate = record.addedToWatchlistDate
+            count += 1
+            return true
+        }
+
+        let episodeMap = Dictionary(uniqueKeysWithValues:
+            try context.fetch(FetchDescriptor<Episode>(
+                predicate: #Predicate { episodeIDs.contains($0.id) }
+            )).map { ($0.id, $0) })
+        state.episodes.removeAll { record in
+            guard let item = episodeMap[record.id] else { return false }
+            item.watchProgress = record.watchProgress
+            item.isWatched = record.isWatched
+            item.lastWatchedDate = record.lastWatchedDate
+            count += 1
+            return true
+        }
+        if count > 0 { try context.save() }
+        if state.live.isEmpty && state.movies.isEmpty &&
+            state.series.isEmpty && state.episodes.isEmpty {
+            UserDefaults.standard.removeObject(forKey: pendingViewingStateKey)
+        } else {
+            UserDefaults.standard.set(try JSONEncoder().encode(state),
+                                      forKey: pendingViewingStateKey)
+        }
+        return count
     }
 
     @discardableResult
@@ -178,6 +375,7 @@ enum DreamCASTLocalSettingsBackup {
 
         var savedPreferences = archive.preferences
         var imported: [Playlist] = []
+        var restoredViewingState: ViewingState?
         if archive.formatVersion == 2 {
             guard let salt = archive.playlistSalt,
                   let ciphertext = archive.encryptedPlaylists,
@@ -188,6 +386,7 @@ enum DreamCASTLocalSettingsBackup {
                 let payload = try JSONDecoder().decode(ProtectedPayload.self, from: clear)
                 savedPreferences = payload.preferences
                 imported = try payload.playlists.map { try $0.makePlaylist() }
+                restoredViewingState = payload.viewingState
             } catch {
                 throw BackupError.invalidPassword
             }
@@ -219,6 +418,10 @@ enum DreamCASTLocalSettingsBackup {
         }
         for (name, value) in staged { UserDefaults.standard.set(value, forKey: name) }
         UserDefaults.standard.set("off", forKey: "sync.backend")
+        if let restoredViewingState {
+            try mergePending(restoredViewingState)
+            if let context { _ = try applyPendingViewingState(in: context) }
+        }
         return staged.count
     }
 }
@@ -258,7 +461,7 @@ struct DreamCASTBackupSettingsSection: View {
             Button("Create Backup") {
                 do {
                     exportDocument = try DreamCASTLocalSettingsBackup.exportSettings(
-                        playlists: playlists, password: backupPassword
+                        playlists: playlists, password: backupPassword, context: modelContext
                     )
                     exporting = true
                 } catch {
