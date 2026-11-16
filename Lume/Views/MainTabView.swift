@@ -179,7 +179,7 @@ struct MainTabView: View {
                 FullScreenPlayerView(media: media, adopting: sharedLivePlayback.handle)
             }
             .tabBarMinimizeOnScrollDownIfAvailable()
-            .castMiniController { linkedMedia = $0 }
+            .castMiniController { openLinkedMedia($0) }
         #endif
             .onOpenURL { url in
                 handleDeepLink(url)
@@ -484,7 +484,7 @@ struct MainTabView: View {
             #if os(macOS)
                 MacPlayerWindowRouter.shared.play(media, using: openWindow)
             #else
-                linkedMedia = media
+                openLinkedMedia(media)
             #endif
         case .downloads:
             // The download Live Activity was tapped.
@@ -509,7 +509,7 @@ struct MainTabView: View {
             #if os(macOS)
                 MacPlayerWindowRouter.shared.play(media, using: openWindow)
             #else
-                linkedMedia = media
+                openLinkedMedia(media)
             #endif
         case let .openSeries(series):
             openSeriesDetail(series)
@@ -518,6 +518,23 @@ struct MainTabView: View {
         case nil:
             break
         }
+    }
+
+    /// Live deep links use the exact same session as the guide and SportsZone.
+    /// Only VOD opens a separate cover from the app root.
+    private func openLinkedMedia(_ media: PlayableMedia) {
+        #if os(iOS)
+            if media.isLive {
+                if sharedLivePlayback.miniMedia?.id != media.id {
+                    sharedLivePlayback.tune(media, previewMode: .small)
+                }
+                sharedLivePlayback.openFullScreen()
+            } else {
+                linkedMedia = media
+            }
+        #else
+            linkedMedia = media
+        #endif
     }
 
     /// Pushes a movie detail screen on the Movies tab — a no-op when the
