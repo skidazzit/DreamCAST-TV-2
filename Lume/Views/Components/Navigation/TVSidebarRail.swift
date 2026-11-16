@@ -84,6 +84,9 @@
         let items: [TVSidebarRailItem]
         /// The row that reads as selected, and the one entry snaps to.
         let selectedID: String?
+        /// When true, a horizontal entry stays on the nearest row selected
+        /// by tvOS instead of resetting to the active category.
+        var preserveGeometricEntry = false
         /// Bumped to move focus onto the selected row from outside the rail —
         /// Menu from the content pane, or an entry catcher.
         var focusRequest = 0
@@ -267,7 +270,7 @@
                 focusRow(requested, proxy: proxy)
                 return
             }
-            if !railOwnsFocus, !masksFocus,
+            if !railOwnsFocus, !masksFocus, !preserveGeometricEntry,
                let selectedID, newValue != selectedID,
                newValue != crossPaneFocusID {
                 // Entry landed on the wrong row (masked, so it never rendered
@@ -344,7 +347,7 @@
             let isSelected = selectedID == item.id
             // The selected row is exempt: when entry lands there directly, it
             // should read as focused from the first frame.
-            let suppressed = masksFocus || (!railOwnsFocus && !isSelected)
+            let suppressed = masksFocus || (!preserveGeometricEntry && !railOwnsFocus && !isSelected)
             let isItemFocused = (focused == item.id && !suppressed)
                 || (handOffPending && isSelected && focused != nil)
             let rowShape = RoundedRectangle(cornerRadius: 18, style: .continuous)
