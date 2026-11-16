@@ -149,6 +149,7 @@ struct SettingsView: View {
         @State private var syncRoute: TVLumeCloudRoute?
         /// Bumped by a pane to scroll the detail back to its top.
         @State private var tvDetailScrollToTopRequest = 0
+        @State private var tvDetailScrollToCacheRequest = 0
         /// The engine whose options are drilled into from Engines, replacing it
         /// in place (same reasoning as `selectedPlaylist`). Not `private`: read by
         /// the SettingsView+TVPlayer extension (separate file).
@@ -526,7 +527,12 @@ struct SettingsView: View {
                                                detail: "Manage cached storage",
                                                symbol: "paintbrush") {
                             openDashboard(.backup)
-                            dashboardStatus = "Open Storage & Cache below Backup & Restore to choose what to clear."
+                            dashboardStatus = "Choose image, metadata or other caches to clear."
+                            Task { @MainActor in
+                                // Wait until the storage pane is in the tree.
+                                await Task.yield()
+                                tvDetailScrollToCacheRequest += 1
+                            }
                         }
                     }
                     if let dashboardStatus {
@@ -1056,6 +1062,9 @@ struct SettingsView: View {
                     .onChange(of: tvDetailScrollToTopRequest) {
                         withAnimation { proxy.scrollTo(Self.tvDetailTopID, anchor: .top) }
                     }
+                    .onChange(of: tvDetailScrollToCacheRequest) {
+                        withAnimation { proxy.scrollTo("settings.storage.cache", anchor: .top) }
+                    }
             }
         }
 
@@ -1117,6 +1126,7 @@ struct SettingsView: View {
                     case .storage:
                         TVLocalBackupSettingsPane()
                         StorageManagementView()
+                            .id("settings.storage.cache")
                     case .help:
                         tvHelpDetail
                     case .about:
