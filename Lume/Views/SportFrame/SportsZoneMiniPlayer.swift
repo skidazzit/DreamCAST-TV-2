@@ -181,13 +181,13 @@ struct SportsZoneMiniPlayer: View {
                 } label: {
                     Image(systemName: "arrow.up.left.and.arrow.down.right")
                 }
-                .accessibilityLabel("Open SportsZone full screen")
+                .accessibilityLabel("Open live channel full screen")
                 Button {
                     session.close()
                 } label: {
                     Image(systemName: "stop.fill")
                 }
-                .accessibilityLabel("Stop SportsZone playback")
+                .accessibilityLabel("Stop live playback")
             }
             surface(media)
                 .frame(height: mode == .large || mode == .infoOnly ? 210 : 124)
@@ -236,7 +236,7 @@ struct SportsZoneMiniPlayer: View {
         }
         .frame(maxWidth: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: 22))
-        .accessibilityLabel("SportsZone channel: \(media.title)")
+        .accessibilityLabel("Live channel: \(media.title)")
     }
 }
 #endif
