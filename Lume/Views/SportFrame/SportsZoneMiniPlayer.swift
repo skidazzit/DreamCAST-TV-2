@@ -205,8 +205,10 @@ struct SportsZoneMiniPlayer: View {
                 }
                 .accessibilityLabel("Stop live playback")
             }
+            // Keep enough of the active page visible on smaller phones.
+            // The root reserves this exact space instead of covering rows.
             surface(media)
-                .frame(height: mode == .large || mode == .infoOnly ? 210 : 124)
+                .frame(height: mode == .large ? 184 : (mode == .infoOnly ? 86 : 124))
         }
         .padding(.horizontal, 16)
         .padding(.top, 10)
