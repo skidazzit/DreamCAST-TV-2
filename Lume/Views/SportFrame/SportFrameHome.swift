@@ -146,14 +146,34 @@ struct SportFrameHome: View {
         leagueValue = value
     }
 
+    /// Parse each kickoff once per sort, instead of constructing a date
+    /// formatter during every O(n log n) comparison in All Sports.
+    private func sortedHubEvents(_ events: [SportEvent], newestFirst: Bool = false) -> [SportEvent] {
+        let fallback = newestFirst ? Date.distantPast : Date.distantFuture
+        let keyed = events.map { (event: $0, kickoff: $0.startDate ?? fallback) }
+        return keyed.sorted { lhs, rhs in
+            if lhs.kickoff != rhs.kickoff {
+                return newestFirst ? lhs.kickoff > rhs.kickoff : lhs.kickoff < rhs.kickoff
+            }
+            return lhs.event.idEvent < rhs.event.idEvent
+        }.map(\.event)
+    }
+
     private var visibleEvents: [SportEvent] {
-        fixtures.events.filter { event in
-            guard let sport = fixtures.eventSports[event.idEvent], followedSports.contains(sport) else { return false }
-            guard selectedSport == "All Sports" || selectedSport == sport else { return false }
-            guard selectedLeague == "All Leagues" || selectedLeague == event.league else { return false }
-            return leagueSelections[sport].map { $0.contains(event.league) } ?? true
+        // These values must be decoded/collected once, not for each event.
+        // This matters when All Sports contains matches across many leagues.
+        let selectedSports = Set(followedSports)
+        let chosenLeagues = leagueSelections.mapValues { Set($0) }
+        let allSports = selectedSport == "All Sports"
+        let allLeagues = selectedLeague == "All Leagues"
+        let matching = fixtures.events.filter { event in
+            guard let sport = fixtures.eventSports[event.idEvent],
+                  selectedSports.contains(sport) else { return false }
+            guard allSports || selectedSport == sport else { return false }
+            guard allLeagues || selectedLeague == event.league else { return false }
+            return chosenLeagues[sport]?.contains(event.league) ?? true
         }
-        .sorted(by: SportEvent.oldestFirst)
+        return sortedHubEvents(matching)
     }
 
     private var visibleLeagues: [(String, [SportEvent])] {
