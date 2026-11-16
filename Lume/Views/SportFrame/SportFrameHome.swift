@@ -393,38 +393,46 @@ struct SportFrameHome: View {
         return selectedSport == "All Sports" ? "My Sports" : hubSportTitle(selectedSport)
     }
 
-    private var hubUpcomingMatches: [SportEvent] {
-        let laterToday = visibleEvents.filter { event in
-            event.startDate.map { $0 > Date() } ?? false
-        }
+    /// Derived once per page evaluation. Separate properties previously
+    /// filtered/sorted everything again for the list, hero and tab counts.
+    private struct SportsHubSnapshot {
+        let displayed: [SportEvent]
+        let liveCount: Int
+        let upcomingCount: Int
+        var featured: SportEvent? { displayed.first }
+    }
+
+    private func makeSportsHubSnapshot() -> SportsHubSnapshot {
+        let visible = visibleEvents
+        let now = Date()
+        let live = visible.filter { fixtures.isLive($0) }
+        let laterToday = visible.filter { ($0.startDate ?? .distantPast) > now }
+        let allowedSports = Set(followedSports)
+        let choices = leagueSelections.mapValues { Set($0) }
         let tomorrow = fixtures.nextDayEvents.filter { event in
             guard let sport = fixtures.nextDaySports[event.idEvent],
-                  followedSports.contains(sport) else { return false }
+                  allowedSports.contains(sport) else { return false }
             guard selectedSport == "All Sports" || selectedSport == sport else { return false }
             guard selectedLeague == "All Leagues" || selectedLeague == event.league else { return false }
-            guard leagueSelections[sport]?.contains(event.league) ?? true else { return false }
-            return event.startDate.map { $0 > Date() } ?? false
+            guard choices[sport]?.contains(event.league) ?? true else { return false }
+            return (event.startDate ?? .distantPast) > now
         }
-        return (laterToday + tomorrow).sorted(by: SportEvent.oldestFirst)
-    }
-
-    private var hubDisplayedMatches: [SportEvent] {
+        let upcoming = sortedHubEvents(laterToday + tomorrow)
+        let displayed: [SportEvent]
         switch hubWindow {
-        case .now:
-            return visibleEvents.filter { fixtures.isLive($0) }
-        case .upcoming:
-            return hubUpcomingMatches
-        case .yesterday:
-            return visibleEvents.sorted(by: SportEvent.newestFirst)
+        case .now: displayed = live
+        case .upcoming: displayed = upcoming
+        case .yesterday: displayed = Array(visible.reversed())
         }
+        return SportsHubSnapshot(
+            displayed: displayed,
+            liveCount: live.count,
+            upcomingCount: upcoming.count
+        )
     }
 
-    private var hubFeaturedMatch: SportEvent? {
-        hubDisplayedMatches.first
-    }
-
-    private var hubLeagueBadge: URL? {
-        if let event = hubFeaturedMatch {
+    private func hubLeagueBadge(for featured: SportEvent?) -> URL? {
+        if let event = featured {
             return event.leagueBadge ?? catalog.badgeURL(
                 for: event.league,
                 sport: fixtures.eventSports[event.idEvent] ?? event.strSport ?? "",
@@ -440,11 +448,15 @@ struct SportFrameHome: View {
     }
 
     private var sportsHubPage: some View {
-        HStack(alignment: .top, spacing: TVSidebarRail.paneSpacing) {
+        let snapshot = makeSportsHubSnapshot()
+        return HStack(alignment: .top, spacing: TVSidebarRail.paneSpacing) {
             TVSidebarRail(items: hubRailItems, selectedID: hubSelectedRailID)
             VStack(alignment: .leading, spacing: 17) {
-                sportsHubHero
-                sportsHubFilterBar
+                sportsHubHero(featured: snapshot.featured)
+                sportsHubFilterBar(
+                    liveCount: snapshot.liveCount,
+                    upcomingCount: snapshot.upcomingCount
+                )
 
                 if fixtures.loading {
                     ProgressView("Loading sports fixtures…")
@@ -456,7 +468,7 @@ struct SportFrameHome: View {
 
                 ScrollView(.vertical) {
                     LazyVStack(spacing: 9) {
-                        if hubDisplayedMatches.isEmpty && !fixtures.loading {
+                        if snapshot.displayed.isEmpty && !fixtures.loading {
                             VStack(spacing: 13) {
                                 Image(systemName: "sportscourt")
                                     .font(.system(size: 42))
@@ -474,8 +486,16 @@ struct SportFrameHome: View {
                             .padding(.top, 45)
                         }
 
-                        ForEach(hubDisplayedMatches) { event in
-                            sportsHubMatchRow(event)
+                        ForEach(snapshot.displayed) { event in
+                            SportsHubMatchRow(
+                                event: event,
+                                score: fixtures.score(for: event),
+                                isLive: fixtures.isLive(event)
+                            ) {
+                                // Selection only: playback starts in the
+                                // existing matched-channel picker.
+                                selectedEvent = event
+                            }
                         }
                     }
                     .padding(.horizontal, 6)
@@ -493,11 +513,11 @@ struct SportFrameHome: View {
         .padding(.bottom, 18)
     }
 
-    private var sportsHubHero: some View {
+    private func sportsHubHero(featured: SportEvent?) -> some View {
         HStack(alignment: .top, spacing: 23) {
             VStack(alignment: .leading, spacing: 18) {
                 HStack(spacing: 16) {
-                    hubBadge(hubLeagueBadge, fallback: "shield", size: 58)
+                    hubBadge(hubLeagueBadge(for: featured), fallback: "shield", size: 58)
                     Text(hubTitle)
                         .font(.system(size: 40, weight: .bold))
                         .lineLimit(1)
@@ -512,7 +532,7 @@ struct SportFrameHome: View {
                         .lineLimit(1)
                 }
 
-                if let featured = hubFeaturedMatch {
+                if let featured {
                     HStack(spacing: 12) {
                         if fixtures.isLive(featured) {
                             Label("LIVE", systemImage: "circle.fill")
@@ -602,15 +622,15 @@ struct SportFrameHome: View {
         .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 
-    private var sportsHubFilterBar: some View {
+    private func sportsHubFilterBar(liveCount: Int, upcomingCount: Int) -> some View {
         HStack(spacing: 8) {
             sportsHubWindowButton(
                 .now,
-                title: "Happening Now (\(visibleEvents.filter { fixtures.isLive($0) }.count))",
+                title: "Happening Now (\(liveCount))",
                 symbol: "dot.radiowaves.left.and.right"
             )
             sportsHubWindowButton(
-                .upcoming, title: "Coming Up (\(hubUpcomingMatches.count))",
+                .upcoming, title: "Coming Up (\(upcomingCount))",
                 symbol: "calendar"
             )
             sportsHubWindowButton(
