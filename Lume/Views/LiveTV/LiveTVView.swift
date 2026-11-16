@@ -76,11 +76,16 @@ struct LiveTVView: View {
     #if os(iOS)
         /// Owned by Live TV, not the EPG scroller, so category changes don't
         /// silently reset the channel that is already playing.
-        @State private var guideMiniMedia: PlayableMedia?
-        @State private var guideMiniFailed = false
-        @State private var guideMiniHandle = PreviewPlayerHandle()
+        /// In the app, playback is owned above the TabView. This fallback is
+        /// only used when LiveTVView is launched outside MainTabView.
+        @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
+        @State private var fallbackLivePlayback = SportsZonePlaybackSession()
         @AppStorage(PlayerSettings.tvGuidePreviewModeKey)
         private var guideMiniModeRaw = PlayerSettings.tvGuidePreviewModeDefault.rawValue
+
+        private var activePlayback: SportsZonePlaybackSession {
+            sharedPlayback ?? fallbackLivePlayback
+        }
     #endif
     #if os(tvOS)
         @Environment(DeepLinkRouter.self) private var router
@@ -114,7 +119,7 @@ struct LiveTVView: View {
     /// initial row selection; it never opens a second playback session.
     private var guideSelectedStreamID: String? {
         #if os(iOS)
-            guard let media = guideMiniMedia else { return nil }
+            guard let media = activePlayback.miniMedia else { return nil }
             if case let .live(streamID) = media.contentRef { return streamID }
         #endif
         return nil
@@ -227,26 +232,26 @@ struct LiveTVView: View {
                     // UIKit has removed the full-screen video host. The guide
                     // can now reclaim its live player without a new request.
                     guidePreview.fullScreenDidClose()
-                #elseif os(iOS)
-                    // Reparent the decoder only once the full-screen UIKit view
-                    // has gone. This is the same two-step handoff as Apple TV.
-                    if guideMiniHandle.owner == .fullScreen,
-                       let id = guideMiniHandle.media?.id {
-                        _ = guideMiniHandle.returnToPreview(mediaID: id)
-                    }
-                    if !guideMiniHandle.finishReturnToPreview() {
-                        guideMiniHandle.release()
-                    }
                 #endif
             }) { media in
                 #if os(tvOS)
                     FullScreenPlayerView(media: media, adopting: guidePreview.handle)
                 #else
-                    FullScreenPlayerView(media: media, adopting: guideMiniHandle)
+                    // Catch-up and other non-live media still use this local
+                    // cover. Live channels open via the shared root host.
+                    FullScreenPlayerView(media: media)
                 #endif
             }
             #endif
             #if os(iOS)
+            // Only used when this view is shown outside the app root (such as
+            // Xcode previews). In the app, MainTabView owns this cover.
+            .fullScreenCover(item: $fallbackLivePlayback.fullScreenMedia, onDismiss: {
+                fallbackLivePlayback.returnedFromFullScreen()
+            }) { media in
+                FullScreenPlayerView(media: media, adopting: fallbackLivePlayback.handle)
+                    .environment(fallbackLivePlayback)
+            }
             .fullScreenCover(item: $multiViewLaunch) { launch in
                 MultiViewScreen(seed: launch.seed)
             }
@@ -298,10 +303,10 @@ struct LiveTVView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
 
-                if layoutMode == .guide {
-                    guideMiniPlayer
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 10)
+                if layoutMode == .guide, sharedPlayback == nil {
+                    // Standalone previews retain a mini-player. In the app,
+                    // the single player is mounted above the bottom tab bar.
+                    SportsZoneMiniPlayer(session: fallbackLivePlayback)
                 }
 
                 if let displayed {
@@ -313,91 +318,6 @@ struct LiveTVView: View {
                         description: Text("Choose a category from the list")
                     )
                 }
-            }
-        }
-    #endif
-
-    #if os(iOS)
-        /// The same Mini-player Size setting used by tvOS. This is a
-        /// separate iOS video surface; a full-screen transition releases it.
-        @ViewBuilder
-        private var guideMiniPlayer: some View {
-            let mode = GuidePreviewMode(storedValue: guideMiniModeRaw)
-            if mode.showsHero, let media = guideMiniMedia {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 10) {
-                        Text("NOW PLAYING")
-                            .font(.caption2.weight(.bold))
-                            .foregroundStyle(.secondary)
-                        Text(media.title)
-                            .font(.subheadline.weight(.semibold))
-                            .lineLimit(1)
-                        Spacer(minLength: 4)
-                        Button {
-                            if guideMiniHandle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) {
-                                guideMiniHandle.handOffToFullScreen()
-                            } else {
-                                guideMiniHandle.stopPreview()
-                            }
-                            present(media)
-                        } label: {
-                            Label("Full Screen", systemImage: "arrow.up.left.and.arrow.down.right")
-                                .labelStyle(.iconOnly)
-                        }
-                        .accessibilityLabel("Open current channel full screen")
-                    }
-
-                    if mode.playsVideo {
-                        ZStack {
-                            Color.black
-                            if !guideMiniFailed &&
-                               (playingMedia == nil || guideMiniHandle.owner != .released) {
-                                // Keep the tile mounted while full screen owns
-                                // its decoder. Removing it loses its isPlaying
-                                // latch and shows a second startup spinner.
-                                // A fallback release is the only case where a
-                                // new tile must be built on return.
-                                MultiViewTilePlayer(
-                                    media: media,
-                                    isMuted: false,
-                                    role: .guidePreview(handle: guideMiniHandle),
-                                    onFailure: {
-                                        // An old player must not mark a newly selected channel failed.
-                                        guard guideMiniMedia?.id == media.id else { return }
-                                        guideMiniFailed = true
-                                    }
-                                )
-                                .id(media.id)
-                            } else if guideMiniFailed {
-                                Label("Preview unavailable", systemImage: "exclamationmark.triangle")
-                                    .font(.caption)
-                                    .foregroundStyle(.white)
-                            }
-                        }
-                        .frame(height: mode == .large ? 210 : 124)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    } else {
-                        HStack(spacing: 12) {
-                            if let image = media.posterURL {
-                                AsyncImage(url: image) { image in
-                                    image.resizable().scaledToFit()
-                                } placeholder: {
-                                    Image(systemName: "tv")
-                                }
-                                .frame(width: 52, height: 52)
-                            } else {
-                                Image(systemName: "tv").font(.title)
-                            }
-                            Text(media.title)
-                                .font(.headline)
-                                .lineLimit(2)
-                            Spacer()
-                        }
-                        .padding(12)
-                        .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
-                    }
-                }
-                .onChange(of: media.id) { _, _ in guideMiniFailed = false }
             }
         }
     #endif
@@ -537,35 +457,44 @@ struct LiveTVView: View {
                 return
             }
         #elseif os(iOS)
-            if layoutMode == .guide,
-               let lastID = LiveChannelHistory.currentChannelId(),
-               let lastStream = try? modelContext.fetch(
-                   FetchDescriptor<LiveStream>(
-                       predicate: #Predicate { $0.id == lastID && $0.isHidden == false }
-                   )
-               ).first,
-               !restriction.hides(categoryID: lastStream.categoryId),
-               let lastMedia = PlayableMedia.from(
-                   stream: lastStream, ownedByOneOf: playlists,
-                   surfScope: LiveSurfScope(catalogScope)
-               ),
-               let categoryID = lastStream.categoryId,
-               let match = sections.first(where: { section in
-                   if case let .category(category) = section {
-                       return category.id == categoryID
-                   }
-                   return false
-               }) {
-                // Only restore a channel in the current, visible playlist
-                // scope; an old profile or different playlist must not autoplay.
-                selectedSection = match
-                if guideMiniMedia?.id != lastMedia.id {
-                    guideMiniHandle.stopPreview()
-                    guideMiniMedia = lastMedia
-                    guideMiniFailed = false
+            if layoutMode == .guide {
+                // Prefer the actively playing channel. Reopening Live TV must
+                // never replace a stream that stayed alive on another tab.
+                let activeID: String? = {
+                    guard let media = activePlayback.miniMedia,
+                          case let .live(id) = media.contentRef else { return nil }
+                    return id
+                }()
+                if let lastID = activeID ?? LiveChannelHistory.currentChannelId(),
+                   let lastStream = try? modelContext.fetch(
+                       FetchDescriptor<LiveStream>(
+                           predicate: #Predicate { $0.id == lastID && $0.isHidden == false }
+                       )
+                   ).first,
+                   !restriction.hides(categoryID: lastStream.categoryId),
+                   let lastMedia = PlayableMedia.from(
+                       stream: lastStream, ownedByOneOf: playlists,
+                       surfScope: LiveSurfScope(catalogScope)
+                   ),
+                   let categoryID = lastStream.categoryId,
+                   let match = sections.first(where: { section in
+                       if case let .category(category) = section {
+                           return category.id == categoryID
+                       }
+                       return false
+                   }) {
+                    selectedSection = match
+                    if activePlayback.miniMedia == nil && !activePlayback.userStopped {
+                        // Keep the original guide auto-restore without creating
+                        // a second decoder or surprising full-screen launch.
+                        let previewMode = GuidePreviewMode(storedValue: guideMiniModeRaw)
+                        if previewMode.showsHero {
+                            activePlayback.tune(lastMedia, previewMode: previewMode)
+                        }
+                    }
+                    seededScopeToken = catalogScope.token
+                    return
                 }
-                seededScopeToken = catalogScope.token
-                return
             }
         #endif
         if seededScopeToken != nil, seededScopeToken != catalogScope.token {
@@ -587,42 +516,32 @@ struct LiveTVView: View {
             : sections.first
     }
 
-    /// Stage two of an iPhone guide selection tunes the mini-player.
-    /// Keep a restored last-watched session when it is already this channel.
+    /// Guide selection tunes the single app-wide mini-player.
+    /// Leaving Live TV or opening another page does not release its decoder.
     private func handleGuideChannel(_ stream: LiveStream, scope: LiveChannelScope?) {
         #if os(iOS)
             guard let media = PlayableMedia.from(
                 stream: stream, ownedByOneOf: playlists,
                 scope: scope, surfScope: LiveSurfScope(catalogScope)
             ) else { return }
-            if GuidePreviewMode(storedValue: guideMiniModeRaw) == .off {
-                present(media)
-                return
-            }
-            guard guideMiniMedia?.id != media.id else { return }
-            guideMiniHandle.stopPreview()
-            guideMiniFailed = false
-            guideMiniMedia = media
-            LiveChannelHistory.record(media)
+            activePlayback.tune(media, previewMode: GuidePreviewMode(storedValue: guideMiniModeRaw))
         #else
             playChannel(stream, scope: scope)
         #endif
     }
 
-    /// Stage three opens the selected channel in full screen and adopts the
-    /// running mini-player decoder when the engine supports live handoff.
+    /// Opens the exact same live session in full screen. On supported
+    /// decoders, the coordinator is adopted rather than reopened.
     private func openGuideChannelFullScreen(_ stream: LiveStream, scope: LiveChannelScope?) {
         #if os(iOS)
             guard let media = PlayableMedia.from(
                 stream: stream, ownedByOneOf: playlists,
                 scope: scope, surfScope: LiveSurfScope(catalogScope)
             ) else { return }
-            if guideMiniHandle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) {
-                guideMiniHandle.handOffToFullScreen()
-            } else {
-                guideMiniHandle.stopPreview()
+            if activePlayback.miniMedia?.id != media.id {
+                activePlayback.tune(media, previewMode: .small)
             }
-            present(media)
+            activePlayback.openFullScreen()
         #else
             playChannel(stream, scope: scope)
         #endif
@@ -688,6 +607,15 @@ struct LiveTVView: View {
         #elseif os(tvOS)
             guidePreview.prepareToPresent(media)
             playingMedia = media
+        #elseif os(iOS)
+            if media.isLive {
+                if activePlayback.miniMedia?.id != media.id {
+                    activePlayback.tune(media, previewMode: .small)
+                }
+                activePlayback.openFullScreen()
+            } else {
+                playingMedia = media
+            }
         #else
             playingMedia = media
         #endif

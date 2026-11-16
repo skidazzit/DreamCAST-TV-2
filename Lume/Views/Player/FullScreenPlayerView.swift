@@ -140,6 +140,10 @@ struct FullScreenPlayerView: View {
     @AppStorage(SortStorageKey.liveContent)
     private var liveContentSortRaw: String = ContentSortOption.playlist.rawValue
     @Environment(\.contentRestriction) private var contentRestriction
+    #if os(iOS) || os(tvOS)
+    /// Optional: non-live players and independent previews have no shared host.
+    @Environment(SportsZonePlaybackSession.self) var sportsZonePlayback: SportsZonePlaybackSession?
+    #endif
     /// The tvOS Guide preview's running session this player took over.
     @State var adoption: PreviewAdoption?
 

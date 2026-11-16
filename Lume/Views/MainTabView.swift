@@ -30,6 +30,11 @@ struct MainTabView: View {
     /// Selected tab and the Movies/Series navigation stacks, shared so an
     /// `onOpenURL` deep link can switch tabs and push a detail screen.
     @State private var router = DeepLinkRouter()
+    #if os(iOS)
+    /// One owner for live streams across every iPhone tab and navigation page.
+    /// Never create a player inside an unmounting tab.
+    @State private var sharedLivePlayback = SportsZonePlaybackSession()
+    #endif
 
     /// The stream a `lume://resume` or `lume://play/...` (widget, Top Shelf)
     /// deep link asked to open. Presented directly here — the link can arrive
@@ -155,8 +160,27 @@ struct MainTabView: View {
                 #endif
             }
         #if os(iOS)
+            .environment(sharedLivePlayback)
+            // The video host is mounted once, above the tab dock. Switching
+            // Live TV, SportsZone, Movies, Shows or Search cannot unmount it.
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if sharedLivePlayback.miniMedia != nil {
+                    SportsZoneMiniPlayer(session: sharedLivePlayback)
+                        .frame(maxWidth: .infinity)
+                        .background(.regularMaterial)
+                        .overlay(alignment: .top) {
+                            Divider()
+                        }
+                }
+            }
+            .fullScreenCover(item: $sharedLivePlayback.fullScreenMedia, onDismiss: {
+                sharedLivePlayback.returnedFromFullScreen()
+            }) { media in
+                FullScreenPlayerView(media: media, adopting: sharedLivePlayback.handle)
+                    .environment(sharedLivePlayback)
+            }
             .tabBarMinimizeOnScrollDownIfAvailable()
-            .castMiniController { linkedMedia = $0 }
+            .castMiniController { openLinkedMedia($0) }
         #endif
             .onOpenURL { url in
                 handleDeepLink(url)
@@ -461,7 +485,7 @@ struct MainTabView: View {
             #if os(macOS)
                 MacPlayerWindowRouter.shared.play(media, using: openWindow)
             #else
-                linkedMedia = media
+                openLinkedMedia(media)
             #endif
         case .downloads:
             // The download Live Activity was tapped.
@@ -486,7 +510,7 @@ struct MainTabView: View {
             #if os(macOS)
                 MacPlayerWindowRouter.shared.play(media, using: openWindow)
             #else
-                linkedMedia = media
+                openLinkedMedia(media)
             #endif
         case let .openSeries(series):
             openSeriesDetail(series)
@@ -495,6 +519,23 @@ struct MainTabView: View {
         case nil:
             break
         }
+    }
+
+    /// Live deep links use the exact same session as the guide and SportsZone.
+    /// Only VOD opens a separate cover from the app root.
+    private func openLinkedMedia(_ media: PlayableMedia) {
+        #if os(iOS)
+            if media.isLive {
+                if sharedLivePlayback.miniMedia?.id != media.id {
+                    sharedLivePlayback.tune(media, previewMode: .small)
+                }
+                sharedLivePlayback.openFullScreen()
+            } else {
+                linkedMedia = media
+            }
+        #else
+            linkedMedia = media
+        #endif
     }
 
     /// Pushes a movie detail screen on the Movies tab — a no-op when the

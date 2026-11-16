@@ -11,8 +11,12 @@ final class SportsZonePlaybackSession {
     var fullScreenMedia: PlayableMedia?
     var failedMediaID: String?
     var reloadToken = 0
+    /// Stop is intentional: opening Live TV must not restart an old stream.
+    var userStopped = false
+    private var isAwaitingFullScreenDismissal = false
 
     func tune(_ media: PlayableMedia, previewMode: GuidePreviewMode = .small) {
+        userStopped = false
         guard miniMedia?.id != media.id else {
             // Off has no mini-player control to reopen the same channel.
             if previewMode == .off { openFullScreen() }
@@ -31,6 +35,16 @@ final class SportsZonePlaybackSession {
         }
     }
 
+    /// Keep the root mini-player on the channel picked while full-screen.
+    /// That player may switch channels without replacing its cover identity.
+    func didSwitchFullScreen(to media: PlayableMedia) {
+        guard fullScreenMedia != nil else { return }
+        miniMedia = media
+        failedMediaID = nil
+    }
+
+    /// Switching pages never touches the media or decoder.
+    /// Only an explicit tune, Stop or full-screen action changes ownership.
     func openFullScreen() {
         guard let media = miniMedia, fullScreenMedia == nil else { return }
         if handle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) {
@@ -40,21 +54,30 @@ final class SportsZonePlaybackSession {
             // preview connection first, then let full screen start normally.
             handle.stopPreview()
         }
+        isAwaitingFullScreenDismissal = true
         fullScreenMedia = media
     }
 
     func returnedFromFullScreen() {
-        if handle.owner == .fullScreen, let id = handle.media?.id {
-            _ = handle.returnToPreview(mediaID: id)
+        guard isAwaitingFullScreenDismissal, fullScreenMedia == nil else { return }
+        isAwaitingFullScreenDismissal = false
+        if handle.owner == .fullScreen, let media = miniMedia,
+           handle.media?.id == media.id {
+            _ = handle.returnToPreview(mediaID: media.id)
         }
-        if !handle.finishReturnToPreview() {
-            handle.release()
-            reloadToken += 1
+        if handle.finishReturnToPreview() {
+            failedMediaID = nil
+            return
         }
+        // Unsupported decoders reopen only after the full-screen host ends.
+        handle.release()
+        failedMediaID = nil
+        reloadToken += 1
     }
 
     func close() {
         guard fullScreenMedia == nil else { return }
+        userStopped = true
         handle.stopPreview()
         miniMedia = nil
         failedMediaID = nil
@@ -158,13 +181,13 @@ struct SportsZoneMiniPlayer: View {
                 } label: {
                     Image(systemName: "arrow.up.left.and.arrow.down.right")
                 }
-                .accessibilityLabel("Open SportsZone full screen")
+                .accessibilityLabel("Open live channel full screen")
                 Button {
                     session.close()
                 } label: {
                     Image(systemName: "stop.fill")
                 }
-                .accessibilityLabel("Stop SportsZone playback")
+                .accessibilityLabel("Stop live playback")
             }
             surface(media)
                 .frame(height: mode == .large || mode == .infoOnly ? 210 : 124)
@@ -194,13 +217,17 @@ struct SportsZoneMiniPlayer: View {
                 Label("Stream unavailable", systemImage: "exclamationmark.triangle")
                     .font(.caption)
                     .foregroundStyle(.white)
-            } else {
+            } else if session.fullScreenMedia == nil ||
+                        session.handle.owner != .released {
+                // The root keeps this video surface mounted behind full screen.
+                // Retaining the tile preserves an adopted decoder and its audio.
                 MultiViewTilePlayer(
                     media: media,
                     isMuted: false,
                     role: .guidePreview(handle: session.handle),
                     onFailure: {
-                        guard session.miniMedia?.id == media.id else { return }
+                        guard session.miniMedia?.id == media.id,
+                              session.handle.owner == .preview else { return }
                         session.failedMediaID = media.id
                     }
                 )
@@ -209,7 +236,7 @@ struct SportsZoneMiniPlayer: View {
         }
         .frame(maxWidth: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: 22))
-        .accessibilityLabel("SportsZone channel: \(media.title)")
+        .accessibilityLabel("Live channel: \(media.title)")
     }
 }
 #endif

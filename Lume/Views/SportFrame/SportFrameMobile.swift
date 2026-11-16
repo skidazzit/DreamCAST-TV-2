@@ -71,12 +71,19 @@ struct SportFrameMobile: View {
     @State private var selectedSport = "All Sports"
     @State private var selectedLeague = "All Leagues"
     @State private var expandedSport: String?
+    @State private var expandedLeagues: Set<String> = []
     @State private var sportsFollowExpanded = false
     @State private var selectedEvent: SportEvent?
     /// Hold the tapped channel until the match sheet has fully dismissed.
     /// This replaces a fixed delay before full-screen playback.
     @State private var pendingPlaybackMedia: PlayableMedia?
+    /// Standalone preview fallback; the actual app injects the root player.
     @State private var sportsPlayback = SportsZonePlaybackSession()
+    @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
+
+    private var activePlayback: SportsZonePlaybackSession {
+        sharedPlayback ?? sportsPlayback
+    }
     @State private var premiumKey = ""
     @State private var keyStatus: String?
     @State private var apiConnectionStatus: SportsDBConnectionStatus = .unchecked
@@ -128,7 +135,9 @@ struct SportFrameMobile: View {
         VStack(spacing: 0) {
             // Like Live TV, keep the mini-player above the scrolling pages.
             // One player host survives navigation into and out of a league.
-            SportsZoneMiniPlayer(session: sportsPlayback)
+            if sharedPlayback == nil {
+                SportsZoneMiniPlayer(session: sportsPlayback)
+            }
 
             NavigationStack {
                 ScrollView {
@@ -159,7 +168,7 @@ struct SportFrameMobile: View {
                     // try to play separate streams at the same time.
                     guard let media = pendingPlaybackMedia else { return }
                     pendingPlaybackMedia = nil
-                    sportsPlayback.tune(
+                    activePlayback.tune(
                         media,
                         previewMode: GuidePreviewMode(storedValue:
                             UserDefaults.standard.string(forKey: PlayerSettings.tvGuidePreviewModeKey))
@@ -178,6 +187,7 @@ struct SportFrameMobile: View {
             sportsPlayback.returnedFromFullScreen()
         }) { media in
             FullScreenPlayerView(media: media, adopting: sportsPlayback.handle)
+                .environment(sportsPlayback)
         }
         .task { await catalog.refresh() }
         .task(id: "\(dayOffset)|\(followedValue)|\(SportsDBAccess.apiKey)|\(page)|\(scenePhase == .active)") {
@@ -304,15 +314,34 @@ struct SportFrameMobile: View {
                         }
                     }
 
-                    ForEach(Array((groups[league] ?? []).prefix(5))) { event in
+                    ForEach(
+                        expandedLeagues.contains(league)
+                            ? (groups[league] ?? [])
+                            : Array((groups[league] ?? []).prefix(5))
+                    ) { event in
                         Button { selectedEvent = event } label: {
                             mobileFixture(event)
                         }
                         .buttonStyle(.plain)
                     }
                     if (groups[league]?.count ?? 0) > 5 {
-                        Text("Showing first 5 matches")
-                            .font(.caption).foregroundStyle(.secondary)
+                        Button {
+                            if expandedLeagues.contains(league) {
+                                expandedLeagues.remove(league)
+                            } else {
+                                expandedLeagues.insert(league)
+                            }
+                        } label: {
+                            Label(
+                                expandedLeagues.contains(league) ? "Show fewer matches" : "Show all \(groups[league]?.count ?? 0) matches",
+                                systemImage: expandedLeagues.contains(league) ? "chevron.up" : "chevron.down"
+                            )
+                            .font(.subheadline.weight(.medium))
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.vertical, 10)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.cyan)
                     }
                 }
             }
@@ -674,6 +703,36 @@ private struct SportFrameMobileMatchSheet: View {
     @State private var epgChannels: [ResolvedChannel] = []
     @State private var loading = true
     @State private var searching = false
+    @State private var channelGroupNames: [String: String] = [:]
+
+    private var visibleMatchIDs: [String] {
+        let broadcasterIDs = Set(matchingBroadcasterChannels.map(\.id))
+        return (matchingBroadcasterChannels + epgChannels.filter { !broadcasterIDs.contains($0.id) })
+            .map(\.id).sorted()
+    }
+
+    private func loadChannelGroupNames() {
+        let ids = visibleMatchIDs
+        guard !ids.isEmpty else {
+            channelGroupNames = [:]
+            return
+        }
+        var streamsQuery = FetchDescriptor<LiveStream>(predicate: #Predicate { ids.contains($0.id) })
+        streamsQuery.propertiesToFetch = [\.id, \.categoryId]
+        let streams = (try? modelContext.fetch(streamsQuery)) ?? []
+        let categoryIDs = Array(Set(streams.compactMap(\.categoryId)))
+        var categoriesQuery = FetchDescriptor<Category>(
+            predicate: #Predicate { categoryIDs.contains($0.id) }
+        )
+        categoriesQuery.propertiesToFetch = [\.id, \.name]
+        let categories = (try? modelContext.fetch(categoriesQuery)) ?? []
+        let names = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0.name) })
+        channelGroupNames = Dictionary(uniqueKeysWithValues: streams.compactMap { stream in
+            guard let categoryID = stream.categoryId,
+                  let name = names[categoryID], !name.isEmpty else { return nil }
+            return (stream.id, name)
+        })
+    }
 
     var body: some View {
         NavigationStack {
@@ -727,6 +786,9 @@ private struct SportFrameMobileMatchSheet: View {
                     Button("Done") { dismiss() }
                 }
             }
+        }
+        .task(id: visibleMatchIDs) {
+            loadChannelGroupNames()
         }
         .task(id: event.idEvent) {
             loading = true
@@ -790,7 +852,15 @@ private struct SportFrameMobileMatchSheet: View {
                     $0.resizable().scaledToFit()
                 } placeholder: { Image(systemName: "tv") }
                 .frame(width: 42, height: 32)
-                Text(channel.stream.name).font(.subheadline).lineLimit(2)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(channel.stream.name)
+                        .font(.subheadline)
+                        .lineLimit(2)
+                    Text("Group: \(channelGroupNames[channel.id] ?? "Unknown Group")")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
                 Spacer()
                 Image(systemName: "play.fill")
             }
