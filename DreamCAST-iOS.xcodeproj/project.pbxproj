@@ -655,6 +655,7 @@
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvsimulator*]" = "Lume/DreamCASTTV-tvOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "Lume/DreamCASTTV-iOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = "Lume/DreamCASTTV-iOS.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_TEAM = P4AHC7Y8S8;
@@ -692,6 +693,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
 				PRODUCT_MODULE_NAME = Lume;
 				PRODUCT_NAME = DreamCASTTV;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -721,6 +723,7 @@
 				"CODE_SIGN_ENTITLEMENTS[sdk=appletvsimulator*]" = "Lume/DreamCASTTV-tvOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "Lume/DreamCASTTV-iOS.entitlements";
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = "Lume/DreamCASTTV-iOS.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_TEAM = P4AHC7Y8S8;
@@ -758,6 +761,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
 				PRODUCT_MODULE_NAME = Lume;
 				PRODUCT_NAME = DreamCASTTV;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1100,7 +1104,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.skidazzit.dreamcasttv2;
 				PRODUCT_MODULE_NAME = Lume;
 				PRODUCT_NAME = DreamCASTTV;
-				REGISTER_APP_GROUPS = NO;
+				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "appletvos appletvsimulator iphoneos iphonesimulator macosx xros xrsimulator";
