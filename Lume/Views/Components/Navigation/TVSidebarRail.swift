@@ -193,7 +193,13 @@
             }
             .onChange(of: requestedFocusSerial) { _, _ in
                 guard let requestedFocusID, itemIDs.contains(requestedFocusID) else { return }
+                // A horizontal handoff is not a fresh sidebar entry.
+                // Arm focus ownership before UIKit can land on another row,
+                // so the normal selected-item snap cannot override it.
+                exitCheck?.cancel()
+                handOffPending = false
                 crossPaneFocusID = requestedFocusID
+                railOwnsFocus = true
                 focusRow(requestedFocusID, proxy: proxy)
             }
             .onChange(of: focusRequest) { _, _ in
@@ -255,6 +261,12 @@
             if !railOwnsFocus {
                 onFocusChange(true)
             }
+            if let requested = crossPaneFocusID, newValue != requested {
+                // UIKit may briefly pick a geometric neighbor before the
+                // explicit horizontal target. Do not snap to selectedID.
+                focusRow(requested, proxy: proxy)
+                return
+            }
             if !railOwnsFocus, !masksFocus,
                let selectedID, newValue != selectedID,
                newValue != crossPaneFocusID {
@@ -308,10 +320,20 @@
         }
 
         private func focusRow(_ id: String, proxy: ScrollViewProxy) {
-            withTransaction(Transaction(animation: nil)) {
-                proxy.scrollTo(id)
+            // Avoid moving the entire rail when the target is already on
+            // screen. The old unconditional scrollTo caused focus jumps.
+            if focused == id {
+                crossPaneFocusID = nil
+                return
             }
+            focused = id
+            // Lazy rows may be absent after a long list scroll. Only scroll
+            // if focus did not settle; keep ordinary cross-pane moves still.
             Task { @MainActor in
+                guard focused != id else { return }
+                withTransaction(Transaction(animation: nil)) {
+                    proxy.scrollTo(id)
+                }
                 focused = id
             }
         }
