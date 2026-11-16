@@ -246,7 +246,7 @@ struct SportFrameHome: View {
                 return newestFirst ? lhs.kickoff > rhs.kickoff : lhs.kickoff < rhs.kickoff
             }
             return lhs.event.idEvent < rhs.event.idEvent
-        }.map(\.event)
+        }.map { $0.event }
     }
 
     private var visibleEvents: [SportEvent] {
