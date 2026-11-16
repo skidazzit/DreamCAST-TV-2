@@ -1426,6 +1426,21 @@ nonisolated private enum SportsZoneBroadcasterSearch {
 }
 
 /// Broadcaster-first lookup from DreamCAST, with Lume's indexed EPG search below it.
+/// Screen-space row centers, used only for horizontal tvOS focus moves.
+private struct MatchBroadcasterRowCenters: PreferenceKey {
+    static var defaultValue: [String: CGFloat] { [:] }
+    static func reduce(value: inout [String: CGFloat], nextValue: () -> [String: CGFloat]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, newest in newest })
+    }
+}
+
+private struct MatchChannelRowCenters: PreferenceKey {
+    static var defaultValue: [String: CGFloat] { [:] }
+    static func reduce(value: inout [String: CGFloat], nextValue: () -> [String: CGFloat]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, newest in newest })
+    }
+}
+
 struct SportFrameMatchSheet: View {
     let event: SportEvent
     let onPlay: (ResolvedChannel, [ResolvedChannel]) -> Void
@@ -1441,6 +1456,8 @@ struct SportFrameMatchSheet: View {
     @State private var loading = true
     @FocusState private var focusedBroadcaster: String?
     @FocusState private var focusedChannel: String?
+    @State private var broadcasterRowCenters: [String: CGFloat] = [:]
+    @State private var channelRowCenters: [String: CGFloat] = [:]
 
     private var broadcasterMatches: [ResolvedChannel] {
         broadcasterChannels
@@ -1451,22 +1468,36 @@ struct SportFrameMatchSheet: View {
         return foundChannels.filter { !used.contains($0.id) }
     }
 
-    /// The IPTV guide results are available even before a broadcaster is
-    /// chosen. Move focus only; a Select click still starts playback.
-    private func focusFirstRightChannel() {
-        guard let first = (broadcasterMatches + epgMatches).first else { return }
+    /// Pick the row nearest the current row's on-screen height.
+    /// Unlike index matching, this also handles different row heights,
+    /// unequal list lengths, and headings above the IPTV results.
+    private func focusNearestRightChannel(from broadcaster: String?) {
+        let rows = broadcasterMatches + epgMatches
+        guard let first = rows.first else { return }
+        let y = broadcaster.flatMap { broadcasterRowCenters[$0] }
+        let destination = y.flatMap { sourceY in
+            rows.filter { channelRowCenters[$0.id] != nil }.min {
+                abs(channelRowCenters[$0.id]! - sourceY) < abs(channelRowCenters[$1.id]! - sourceY)
+            }
+        } ?? first
         focusedBroadcaster = nil
-        focusedChannel = first.id
+        focusedChannel = destination.id
     }
 
-    private func focusLeftBroadcaster() {
+    private func focusNearestLeftBroadcaster(from channel: String?) {
         guard let first = broadcasters.first else {
-            // A fixture with no broadcaster list must not strand focus.
-            focusFirstRightChannel()
+            // A match with no listed networks still keeps the right pane usable.
             return
         }
+        let y = channel.flatMap { channelRowCenters[$0] }
+        let destination = y.flatMap { sourceY in
+            broadcasters.filter { broadcasterRowCenters[$0.name] != nil }.min {
+                abs(broadcasterRowCenters[$0.name]! - sourceY)
+                    < abs(broadcasterRowCenters[$1.name]! - sourceY)
+            }
+        } ?? first
         focusedChannel = nil
-        focusedBroadcaster = first.name
+        focusedBroadcaster = destination.name
     }
 
     // Fetch source groups only for the visible matches, not the entire IPTV catalog.
@@ -1558,13 +1589,21 @@ struct SportFrameMatchSheet: View {
                                     .buttonStyle(.borderless)
                                     .focusEffectDisabled()
                                     .focused($focusedBroadcaster, equals: broadcaster.name)
+                                    .background {
+                                        GeometryReader { geometry in
+                                            Color.clear.preference(
+                                                key: MatchBroadcasterRowCenters.self,
+                                                value: [broadcaster.name: geometry.frame(in: .named("matchRows")).midY]
+                                            )
+                                        }
+                                    }
                                     .onMoveCommand { direction in
                                         // The left pane may have no chosen broadcaster.
                                         // Either horizontal direction can enter the
                                         // ready-to-play IPTV matches on the right.
                                         if direction == .right ||
                                             (direction == .left && selectedBroadcaster == nil) {
-                                            focusFirstRightChannel()
+                                            focusNearestRightChannel(from: broadcaster.name)
                                         }
                                     }
                                     .overlay(alignment: .leading) {
@@ -1579,6 +1618,9 @@ struct SportFrameMatchSheet: View {
                         }
                     }
                     .frame(width: 440)
+                    .onPreferenceChange(MatchBroadcasterRowCenters.self) { _, value in
+                        broadcasterRowCenters = value
+                    }
                     .focusSection()
 
                     VStack(alignment: .leading, spacing: 15) {
@@ -1607,9 +1649,13 @@ struct SportFrameMatchSheet: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .onPreferenceChange(MatchChannelRowCenters.self) { _, value in
+                        channelRowCenters = value
+                    }
                     .focusSection()
                 }
                 .frame(maxHeight: .infinity, alignment: .top)
+                .coordinateSpace(name: "matchRows")
             }
             .padding(.horizontal, 75)
             .padding(.vertical, 55)
@@ -1677,11 +1723,19 @@ struct SportFrameMatchSheet: View {
         .buttonStyle(.borderless)
         .focusEffectDisabled()
         .focused($focusedChannel, equals: channel.id)
+        .background {
+            GeometryReader { geometry in
+                Color.clear.preference(
+                    key: MatchChannelRowCenters.self,
+                    value: [channel.id: geometry.frame(in: .named("matchRows")).midY]
+                )
+            }
+        }
         .onMoveCommand { direction in
             if direction == .left {
                 // Moving back toward Broadcasters must not require choosing
                 // one first. If none exist, keep the right list accessible.
-                focusLeftBroadcaster()
+                focusNearestLeftBroadcaster(from: channel.id)
             }
         }
         .overlay(alignment: .leading) {
@@ -1703,6 +1757,14 @@ struct SportFrameMatchSheet: View {
         }
         let state: SportsFixtureState = event.isLive ? .inProgress : .scheduled
         return SportsFixture(id: "sportsdb:\(event.idEvent)", leagueId: leagueID,
+                             leagueName: event.league, leagueAbbreviation: event.league,
+                             startDate: event.startDate ?? Date(),
+                             status: SportsFixtureStatus(state: state, detail: event.strStatus ?? ""),
+                             home: competitor(event.strHomeTeam, badge: event.homeBadge, score: event.intHomeScore),
+                             away: competitor(event.strAwayTeam, badge: event.awayBadge, score: event.intAwayScore),
+                             broadcasters: broadcasters.map(\.name), name: event.name)
+    }
+}portsFixture(id: "sportsdb:\(event.idEvent)", leagueId: leagueID,
                              leagueName: event.league, leagueAbbreviation: event.league,
                              startDate: event.startDate ?? Date(),
                              status: SportsFixtureStatus(state: state, detail: event.strStatus ?? ""),
