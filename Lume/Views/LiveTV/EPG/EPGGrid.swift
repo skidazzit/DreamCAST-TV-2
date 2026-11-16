@@ -138,12 +138,22 @@ struct EPGGrid: View, Equatable {
         }
         .onChange(of: initialRowOffset) { _, newY in
             guard didInitialScroll else { return }
-            // A saved channel can resolve after the first guide layout.
-            // Keep the "now" time position and replace any pending initial
-            // scroll so its retry cannot jump back to the top row.
+            // A selected/restored channel can change the requested guide row.
+            // Keep the frozen channel column at the SAME vertical offset as
+            // the programme grid. Previously only the grid was moved here,
+            // leaving the channel names shifted after a channel was played.
             let x = sync.viewport.width > 0 ? sync.offset.x : nowTarget
-            let target = CGPoint(x: x, y: newY)
-            #if !os(tvOS)
+            let maxY = max(0, metrics.contentHeight(rowCount: rows.count) - sync.viewport.height)
+            let y = sync.viewport.height > 0
+                ? min(max(0, newY), maxY) : max(0, newY)
+            let target = CGPoint(x: x, y: y)
+            #if os(tvOS)
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    sync.mirror = target
+                }
+            #else
                 pendingInitialScroll = target
                 initialScrollReplays = 0
             #endif
@@ -171,7 +181,12 @@ struct EPGGrid: View, Equatable {
         let clamped = CGPoint(x: max(0, geometry.origin.x), y: max(0, geometry.origin.y))
         sync.offset = clamped
         sync.viewport = geometry.size
-        #if !os(tvOS)
+        #if os(tvOS)
+            // SwiftUI may clamp a programmatic scroll after the guide height
+            // changes. Reconcile the frozen column to the measured scroll
+            // once movement settles, instead of writing every frame.
+            geometryDelivery.reconcileMirrorAfterScroll(sync)
+        #else
             sync.mirror = clamped
         #endif
         let window = EPGRealizeWindow.around(
@@ -218,6 +233,28 @@ struct EPGGrid: View, Equatable {
 private final class EPGGeometryDelivery {
     private var latest: CGRect?
     private var isScheduled = false
+    #if os(tvOS)
+        private var mirrorCorrection: Task<Void, Never>?
+
+        func reconcileMirrorAfterScroll(_ sync: EPGScrollSync) {
+            mirrorCorrection?.cancel()
+            guard abs(sync.mirror.y - sync.offset.y) > 2 else { return }
+            mirrorCorrection = Task { @MainActor in
+                // A 250 ms guide scroll animates both panes. Only correct
+                // after its last geometry event so there is no per-frame
+                // observation-driven layout loop or visual jumping.
+                try? await Task.sleep(for: .milliseconds(180))
+                guard !Task.isCancelled else { return }
+                let actualY = sync.offset.y
+                guard abs(sync.mirror.y - actualY) > 2 else { return }
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    sync.mirror.y = actualY
+                }
+            }
+        }
+    #endif
 
     func enqueue(_ geometry: CGRect, apply: @escaping @MainActor (CGRect) -> Void) {
         latest = geometry
