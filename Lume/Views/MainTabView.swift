@@ -108,12 +108,36 @@ struct MainTabView: View {
         )
     }
 
+    /// The embedded player is a real stack row, NOT a safe-area overlay.
+    /// Keep one video surface mounted above the TabView. Every tab and its
+    /// navigation pages receive the remaining height, so no content sits
+    /// underneath playback and tab switches cannot destroy the decoder.
+    @ViewBuilder
+    private func appPagesWithEmbeddedPlayer(
+        selection: Binding<AppTab>, tabs: Set<PlaylistTab>
+    ) -> some View {
+        #if os(iOS)
+            VStack(spacing: 0) {
+                if sharedLivePlayback.miniMedia != nil {
+                    SportsZoneMiniPlayer(session: sharedLivePlayback)
+                        .frame(maxWidth: .infinity)
+                        .background(.regularMaterial)
+                    Divider()
+                }
+                tabView(selection: selection, tabs: tabs)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        #else
+            tabView(selection: selection, tabs: tabs)
+        #endif
+    }
+
     var body: some View {
         @Bindable var router = router
         @Bindable var autoSyncQueue = autoSyncQueue
         let scope = catalogScope
         let tabs = visibleTabs(in: scope)
-        return tabView(selection: $router.selectedTab, tabs: tabs)
+        return appPagesWithEmbeddedPlayer(selection: $router.selectedTab, tabs: tabs)
         #if os(tvOS)
             .disabled(blockingOverlayOwnsScreen || router.isQuickSwitchPresented)
             // Attached OUTSIDE `.disabled` so the same button closes the modal it
@@ -161,20 +185,6 @@ struct MainTabView: View {
             }
         #if os(iOS)
             .environment(sharedLivePlayback)
-            // A single in-flow header stays above every tab's content.
-            // Unlike a floating overlay, safeAreaInset reserves layout space,
-            // so lists and navigation pages never scroll underneath video.
-            // The root owns this video surface: tab changes do not remount it.
-            .safeAreaInset(edge: .top, spacing: 0) {
-                if sharedLivePlayback.miniMedia != nil {
-                    SportsZoneMiniPlayer(session: sharedLivePlayback)
-                        .frame(maxWidth: .infinity)
-                        .background(.regularMaterial)
-                        .overlay(alignment: .bottom) {
-                            Divider()
-                        }
-                }
-            }
             .fullScreenCover(item: $sharedLivePlayback.fullScreenMedia, onDismiss: {
                 sharedLivePlayback.returnedFromFullScreen()
             }) { media in
