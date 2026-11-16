@@ -1451,40 +1451,6 @@ struct SportFrameMatchSheet: View {
         return foundChannels.filter { !used.contains($0.id) }
     }
 
-    private var orderedMatches: [ResolvedChannel] {
-        broadcasterMatches + epgMatches
-    }
-
-    /// Keep vertical remote navigation inside its current column.
-    /// At the list edges, leave focus on the last available row.
-    private func moveBroadcaster(_ direction: MoveCommandDirection) {
-        guard !broadcasters.isEmpty else { return }
-        let names = broadcasters.map(\.name)
-        let index = names.firstIndex(of: focusedBroadcaster ?? "") ?? 0
-        switch direction {
-        case .up:
-            focusedBroadcaster = names[max(0, index - 1)]
-        case .down:
-            focusedBroadcaster = names[min(names.count - 1, index + 1)]
-        default:
-            break
-        }
-    }
-
-    private func moveChannel(_ direction: MoveCommandDirection) {
-        let ids = orderedMatches.map(\.id)
-        guard !ids.isEmpty else { return }
-        let index = ids.firstIndex(of: focusedChannel ?? "") ?? 0
-        switch direction {
-        case .up:
-            focusedChannel = ids[max(0, index - 1)]
-        case .down:
-            focusedChannel = ids[min(ids.count - 1, index + 1)]
-        default:
-            break
-        }
-    }
-
     /// The IPTV guide results are available even before a broadcaster is
     /// chosen. Move focus only; a Select click still starts playback.
     private func focusFirstRightChannel() {
@@ -1593,19 +1559,12 @@ struct SportFrameMatchSheet: View {
                                     .focusEffectDisabled()
                                     .focused($focusedBroadcaster, equals: broadcaster.name)
                                     .onMoveCommand { direction in
-                                        switch direction {
-                                        case .up, .down:
-                                            moveBroadcaster(direction)
-                                        case .right:
+                                        // The left pane may have no chosen broadcaster.
+                                        // Either horizontal direction can enter the
+                                        // ready-to-play IPTV matches on the right.
+                                        if direction == .right ||
+                                            (direction == .left && selectedBroadcaster == nil) {
                                             focusFirstRightChannel()
-                                        case .left:
-                                            // Preserve the existing route for an
-                                            // unselected broadcaster list.
-                                            if selectedBroadcaster == nil {
-                                                focusFirstRightChannel()
-                                            }
-                                        default:
-                                            break
                                         }
                                     }
                                     .overlay(alignment: .leading) {
@@ -1719,14 +1678,10 @@ struct SportFrameMatchSheet: View {
         .focusEffectDisabled()
         .focused($focusedChannel, equals: channel.id)
         .onMoveCommand { direction in
-            switch direction {
-            case .up, .down:
-                moveChannel(direction)
-            case .left:
-                // Move across columns only on a horizontal command.
+            if direction == .left {
+                // Moving back toward Broadcasters must not require choosing
+                // one first. If none exist, keep the right list accessible.
                 focusLeftBroadcaster()
-            default:
-                break
             }
         }
         .overlay(alignment: .leading) {
