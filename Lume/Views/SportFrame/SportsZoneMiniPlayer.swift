@@ -14,6 +14,9 @@ final class SportsZonePlaybackSession {
     /// Stop is intentional: opening Live TV must not restart an old stream.
     var userStopped = false
     private var isAwaitingFullScreenDismissal = false
+    /// Store channel changes made inside full screen without spawning a
+    /// second decoder in the embedded video host behind that cover.
+    private var pendingReturnMedia: PlayableMedia?
 
     func tune(_ media: PlayableMedia, previewMode: GuidePreviewMode = .small) {
         userStopped = false
@@ -39,7 +42,7 @@ final class SportsZonePlaybackSession {
     /// That player may switch channels without replacing its cover identity.
     func didSwitchFullScreen(to media: PlayableMedia) {
         guard fullScreenMedia != nil else { return }
-        miniMedia = media
+        pendingReturnMedia = media
         failedMediaID = nil
     }
 
@@ -54,6 +57,7 @@ final class SportsZonePlaybackSession {
             // preview connection first, then let full screen start normally.
             handle.stopPreview()
         }
+        pendingReturnMedia = nil
         isAwaitingFullScreenDismissal = true
         fullScreenMedia = media
     }
@@ -61,6 +65,17 @@ final class SportsZonePlaybackSession {
     func returnedFromFullScreen() {
         guard isAwaitingFullScreenDismissal, fullScreenMedia == nil else { return }
         isAwaitingFullScreenDismissal = false
+        if let switchedMedia = pendingReturnMedia {
+            // A different channel was selected in full screen, so the old
+            // preview decoder cannot be adopted. Rebuild only after UIKit
+            // removes the full-screen video host; never while it is playing.
+            pendingReturnMedia = nil
+            handle.release()
+            miniMedia = switchedMedia
+            failedMediaID = nil
+            reloadToken += 1
+            return
+        }
         if handle.owner == .fullScreen, let media = miniMedia,
            handle.media?.id == media.id {
             _ = handle.returnToPreview(mediaID: media.id)
@@ -78,6 +93,7 @@ final class SportsZonePlaybackSession {
     func close() {
         guard fullScreenMedia == nil else { return }
         userStopped = true
+        pendingReturnMedia = nil
         handle.stopPreview()
         miniMedia = nil
         failedMediaID = nil
