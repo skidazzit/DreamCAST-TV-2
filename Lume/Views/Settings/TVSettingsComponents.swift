@@ -81,12 +81,13 @@
 
     // MARK: - Read-only value row
 
-    /// A non-interactive label/value row for read-only information. Not
-    /// focusable, so the focus engine skips it and moves between the actual
-    /// controls — matching the Apple TV Settings information rows.
+    /// Read-only rows must still take tvOS focus. Otherwise, pressing Up
+    /// skips the account/server details and cannot navigate back to the top.
+    /// Focus here is visual only; Select never changes or reveals stored data.
     struct TVSettingsValueRow<Value: View>: View {
         private let label: LocalizedStringKey
         private let value: Value
+        @FocusState private var rowFocused: Bool
 
         init(_ label: LocalizedStringKey, @ViewBuilder value: () -> Value) {
             self.label = label
@@ -104,10 +105,20 @@
             .padding(.horizontal, TVSettingsMetrics.rowHPadding)
             .padding(.vertical, TVSettingsMetrics.rowVPadding + 2)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
+            .background {
                 RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius, style: .continuous)
-                    .fill(Color.white.opacity(0.05))
-            )
+                    .fill(rowFocused ? TVNeonTheme.electricBlue.opacity(0.55)
+                                     : Color.white.opacity(0.05))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius, style: .continuous)
+                    .strokeBorder(rowFocused ? TVNeonTheme.iceBlue : .clear,
+                                  lineWidth: rowFocused ? 2 : 0)
+            }
+            .contentShape(RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius))
+            .focusable(true)
+            .focusEffectDisabled()
+            .focused($rowFocused)
         }
     }
 
