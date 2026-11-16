@@ -177,6 +177,7 @@ struct MainTabView: View {
                 sharedLivePlayback.returnedFromFullScreen()
             }) { media in
                 FullScreenPlayerView(media: media, adopting: sharedLivePlayback.handle)
+                    .environment(sharedLivePlayback)
             }
             .tabBarMinimizeOnScrollDownIfAvailable()
             .castMiniController { openLinkedMedia($0) }
