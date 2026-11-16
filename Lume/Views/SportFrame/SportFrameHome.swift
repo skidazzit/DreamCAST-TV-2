@@ -579,6 +579,7 @@ struct SportFrameMatchSheet: View {
     @State private var selectedBroadcaster: String?
     @State private var foundChannels: [ResolvedChannel] = []
     @State private var broadcasterChannels: [ResolvedChannel] = []
+    @State private var channelGroupNames: [String: String] = [:]
     @State private var searchingBroadcaster = false
     @State private var loading = true
 
@@ -589,6 +590,36 @@ struct SportFrameMatchSheet: View {
     private var epgMatches: [ResolvedChannel] {
         let used = Set(broadcasterMatches.map(\.id))
         return foundChannels.filter { !used.contains($0.id) }
+    }
+
+    // Fetch source groups only for the visible matches, not the entire IPTV catalog.
+    private var matchGroupLookupKey: String {
+        (broadcasterMatches + epgMatches).map(\.id).sorted().joined(separator: "|")
+    }
+
+    private func refreshChannelGroups() {
+        let ids = Array(Set((broadcasterMatches + epgMatches).map(\.id)))
+        guard !ids.isEmpty else {
+            channelGroupNames = [:]
+            return
+        }
+        var streamDescriptor = FetchDescriptor<LiveStream>(
+            predicate: #Predicate { ids.contains($0.id) }
+        )
+        streamDescriptor.propertiesToFetch = [\.id, \.categoryId]
+        let streams = (try? modelContext.fetch(streamDescriptor)) ?? []
+        let categoryIDs = Array(Set(streams.compactMap(\.categoryId)))
+        var categoryDescriptor = FetchDescriptor<Category>(
+            predicate: #Predicate { categoryIDs.contains($0.id) }
+        )
+        categoryDescriptor.propertiesToFetch = [\.id, \.name]
+        let categories = (try? modelContext.fetch(categoryDescriptor)) ?? []
+        let names = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0.name) })
+        channelGroupNames = Dictionary(uniqueKeysWithValues: streams.compactMap { stream in
+            guard let id = stream.categoryId, let name = names[id],
+                  !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+            return (stream.id, name)
+        })
     }
 
     var body: some View {
@@ -675,6 +706,9 @@ struct SportFrameMatchSheet: View {
             .padding(.horizontal, 75)
             .padding(.vertical, 55)
         }
+        .task(id: matchGroupLookupKey) {
+            refreshChannelGroups()
+        }
         .task(id: event.idEvent) {
             loading = true
             broadcasters = await SportFrameBroadcasts.fetch(eventID: event.idEvent)
@@ -705,7 +739,15 @@ struct SportFrameMatchSheet: View {
             HStack {
                 AsyncImage(url: channel.stream.streamIcon.flatMap(URL.init(string:))) { image in image.resizable().scaledToFit() }
                     placeholder: { Image(systemName: "play.tv") }.frame(width: 60, height: 40)
-                Text(channel.stream.name).font(.system(size: 21)).lineLimit(2)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(channel.stream.name)
+                        .font(.system(size: 21))
+                        .lineLimit(2)
+                    Text("Group: \(channelGroupNames[channel.id] ?? "Unknown Group")")
+                        .font(.system(size: 16))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
                 Spacer()
                 Image(systemName: "play.fill")
             }
