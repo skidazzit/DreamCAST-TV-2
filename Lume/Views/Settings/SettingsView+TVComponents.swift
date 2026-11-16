@@ -86,6 +86,7 @@ import SwiftUI
                     }
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
                     .padding(.vertical, 8)
+                    .modifier(TVAboutReadOnlyFocus())
                 }
 
                 tvCreditsSection
@@ -111,6 +112,8 @@ import SwiftUI
                     .font(.system(size: 22))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
+                    .padding(.vertical, 10)
+                    .modifier(TVAboutReadOnlyFocus())
 
                 VStack(spacing: 2) {
                     ForEach(CreditsInfo.libraries) { library in
@@ -123,6 +126,8 @@ import SwiftUI
                     .font(.system(size: 22))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
+                    .padding(.vertical, 10)
+                    .modifier(TVAboutReadOnlyFocus())
 
                 tvCreditRow(name: CreditsInfo.sampleFootage.name, license: CreditsInfo.sampleFootage.license)
 
@@ -130,6 +135,8 @@ import SwiftUI
                     .font(.system(size: 22))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
+                    .padding(.vertical, 10)
+                    .modifier(TVAboutReadOnlyFocus())
 
                 TVSettingsValueRow("Source", value: CreditsInfo.sourceCode)
                 TVSettingsValueRow("Original Project", value: CreditsInfo.upstreamSource)
@@ -154,6 +161,34 @@ import SwiftUI
                 RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius, style: .continuous)
                     .fill(Color.white.opacity(0.05))
             )
+            .modifier(TVAboutReadOnlyFocus())
+        }
+    }
+
+    /// Read-only text and licence rows take remote focus so the About page
+    /// scrolls through the entire credits list. Select makes no changes.
+    private struct TVAboutReadOnlyFocus: ViewModifier {
+        @FocusState private var isFocused: Bool
+
+        func body(content: Content) -> some View {
+            content
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background {
+                    RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius,
+                                     style: .continuous)
+                        .fill(isFocused ? TVNeonTheme.electricBlue.opacity(0.55) : .clear)
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius,
+                                     style: .continuous)
+                        .strokeBorder(isFocused ? TVNeonTheme.iceBlue : .clear,
+                                      lineWidth: isFocused ? 2 : 0)
+                }
+                .contentShape(RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius,
+                                               style: .continuous))
+                .focusable(true)
+                .focusEffectDisabled()
+                .focused($isFocused)
         }
     }
 
