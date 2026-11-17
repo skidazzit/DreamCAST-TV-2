@@ -77,7 +77,7 @@
                             Text("\(Int(transparency * 100))%")
                                 .foregroundStyle(.secondary)
                         }
-                        Slider(value: $transparency, in: 0.2 ... 1.0, step: 0.05)
+                        Slider(value: $transparency, in: 0 ... 0.85, step: 0.05)
                             .accessibilityLabel("Surface transparency")
                     }
                     Text("Glass and opacity apply to shared cards, dock buttons and highlights.")
