@@ -4,6 +4,7 @@ import Foundation
 import Network
 import Observation
 import SwiftUI
+import SwiftData
 
 /// Short-lived LAN transfer, started only when the user selects Back Up/Restore.
 /// Nothing is uploaded to a remote service. Each session has a random URL.
@@ -21,12 +22,22 @@ final class DreamCASTTVLocalTransfer {
     @ObservationIgnored private var requests: [ObjectIdentifier: Data] = [:]
     @ObservationIgnored private var sessionExpiry: Task<Void, Never>?
     @ObservationIgnored private var pendingRestoreData: Data?
+    @ObservationIgnored private var backupPassword = ""
+    @ObservationIgnored private var modelContext: ModelContext?
+    @ObservationIgnored private var configuredPlaylists: [Playlist] = []
     @ObservationIgnored private var token = UUID().uuidString.replacingOccurrences(of: "-", with: "")
     @ObservationIgnored private let headerMarker = Data([13, 10, 13, 10])
     private let maxHeaderBytes = 16_384
 
-    func start() {
+    func start(password: String, context: ModelContext, playlists: [Playlist]) {
         guard listener == nil else { return }
+        guard password.count >= 8 else {
+            statusText = "Use a backup password with at least 8 characters."
+            return
+        }
+        backupPassword = password
+        modelContext = context
+        configuredPlaylists = playlists
         guard let address = Self.localIPv4Address() else {
             statusText = "No local IP found. Connect Apple TV to your home network."
             return
@@ -83,6 +94,9 @@ final class DreamCASTTVLocalTransfer {
         for connection in connections.values { connection.cancel() }
         connections.removeAll()
         requests.removeAll()
+        backupPassword = ""
+        modelContext = nil
+        configuredPlaylists = []
         transferURL = nil
         token = UUID().uuidString.replacingOccurrences(of: "-", with: "")
         if statusText.hasPrefix("Ready") || statusText.hasPrefix("Starting") {
@@ -97,14 +111,17 @@ final class DreamCASTTVLocalTransfer {
         resultText = "Restore cancelled. No settings were changed."
     }
 
-    func approvePendingRestore() {
-        guard let pendingRestoreData else { return }
+    func approvePendingRestore(password: String) {
+        guard let pendingRestoreData, let modelContext else { return }
         do {
-            let count = try DreamCASTLocalSettingsBackup.restoreSettings(from: pendingRestoreData)
-            resultText = "Restored \(count) settings. Restart DreamCAST TV to apply them."
+            let count = try DreamCASTLocalSettingsBackup.restoreSettings(
+                from: pendingRestoreData, password: password, context: modelContext
+            )
+            resultText = "Restored \(count) settings and playlist setups. Restart DreamCAST TV, then sync your playlists to restore favorites and watch history."
             stop()
         } catch {
-            resultText = "Could not restore settings: \(error.localizedDescription)"
+            // Keep the file for a retry when a password is mistyped.
+            resultText = "Could not restore backup: \(error.localizedDescription)"
         }
         self.pendingRestoreData = nil
         pendingSettingsCount = 0
@@ -204,7 +221,14 @@ final class DreamCASTTVLocalTransfer {
                     body: Data(Self.portalHTML.utf8))
         case ("GET", sessionPath + "/download"):
             do {
-                let backup = try DreamCASTLocalSettingsBackup.exportSettings()
+                guard let modelContext else {
+                    respond(connection, status: "503 Service Unavailable", text: "Backup context unavailable.")
+                    return
+                }
+                let backup = try DreamCASTLocalSettingsBackup.exportSettings(
+                    playlists: configuredPlaylists, password: backupPassword,
+                    context: modelContext
+                )
                 respond(connection, status: "200 OK", contentType: "application/json",
                         body: backup, attachment: true)
             } catch {
@@ -246,7 +270,7 @@ final class DreamCASTTVLocalTransfer {
         let id = ObjectIdentifier(connection)
         requests.removeValue(forKey: id)
         let disposition = attachment
-            ? "Content-Disposition: attachment; filename=\"DreamCAST-TV-settings.json\"\r\n" : ""
+            ? "Content-Disposition: attachment; filename=\"DreamCAST-TV-backup.json\"\r\n" : ""
         let headers = "HTTP/1.1 \(status)\r\nContent-Type: \(contentType)\r\nContent-Length: \(body.count)\r\n"
             + disposition
             + "Connection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\n"
@@ -270,15 +294,15 @@ final class DreamCASTTVLocalTransfer {
     text-decoration:none;font:600 17px system-ui;border:0;cursor:pointer}
     p{line-height:1.5}input{font:16px system-ui;max-width:100%;margin-bottom:15px}
     #message{white-space:pre-wrap}</style></head>
-    <body><h1>DreamCAST TV</h1><p>Local settings backup &amp; restore</p>
-    <section><h2>Back Up Settings</h2><p>Save the JSON file to this phone or computer.</p>
+    <body><h1>DreamCAST TV</h1><p>Encrypted IPTV, settings, favorites &amp; history backup</p>
+    <section><h2>Back Up DreamCAST TV</h2><p>Save the password-encrypted JSON file to this phone or computer. Enter the password on Apple TV, not in this web page.</p>
     <a id="download" href="#" download>Download Settings</a></section>
-    <section><h2>Restore Settings</h2>
+    <section><h2>Restore DreamCAST TV</h2>
     <p>Choose a DreamCAST TV settings JSON file. You must approve it on the TV.</p>
     <input id="file" type="file" accept=".json,application/json"><br>
     <button id="restore" type="button">Send to Apple TV</button><p id="message"></p></section>
-    <p>Passwords, account keys, playlists and watch history are not in this file.
-    Close this page and stop the transfer on Apple TV when finished.</p>
+    <p>The encrypted file includes playlist connections, app settings, favorites and watch progress. Provider session tokens and downloaded media are excluded.
+    Keep the backup password safe. Close this page and stop the transfer on Apple TV when finished.</p>
     <script>
     document.getElementById('download').href=location.pathname+'/download';
     document.getElementById('restore').onclick=async()=>{
@@ -326,21 +350,33 @@ final class DreamCASTTVLocalTransfer {
 }
 
 struct TVLocalBackupSettingsPane: View {
+    var isFirstRun = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var modelContext
+    @Query private var playlists: [Playlist]
     @State private var transfer = DreamCASTTVLocalTransfer()
+    @State private var backupPassword = ""
+    @State private var restorePassword = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             TVSettingsSectionLabel("Local Backup & Restore")
-            Text("Back up DreamCAST TV settings to a JSON file. Restore from the same file on another device.")
+            Text(isFirstRun
+                 ? "Restore your DreamCAST TV backup before adding a playlist. Open the local page on your phone or Mac."
+                 : "Back up encrypted settings, IPTV playlist connections, favorites and watch history to a JSON file.")
+                
                 .foregroundStyle(.secondary)
                 .font(.title3)
-            Text("Passwords, account keys, playlists and watched history are not saved. Existing media stays unchanged.")
+            Text("The file is encrypted with your password. No downloaded catalogs or provider session tokens are copied.")
+                
                 .foregroundStyle(.secondary)
                 .font(.subheadline)
             if transfer.transferURL == nil {
+                SecureField("Backup password (8+ characters)", text: $backupPassword)
+                    .textContentType(.newPassword)
                 Button {
-                    transfer.start()
+                    transfer.start(password: backupPassword, context: modelContext, playlists: playlists)
+                    backupPassword = ""
                 } label: {
                     Label("Start Local Backup & Restore", systemImage: "square.and.arrow.up.on.square")
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -357,7 +393,7 @@ struct TVLocalBackupSettingsPane: View {
                             .font(.headline)
                         Text(verbatim: transfer.transferURL ?? "")
                             .font(.system(size: 22, weight: .semibold, design: .monospaced))
-                        Text("Use the web page to download or upload your settings JSON.")
+                        Text("Use the web page to download or upload the encrypted backup JSON.")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -386,10 +422,14 @@ struct TVLocalBackupSettingsPane: View {
             get: { transfer.hasPendingRestore },
             set: { if !$0 && transfer.hasPendingRestore { transfer.dismissPendingRestore() } }
         )) {
-            Button("Restore", role: .destructive) { transfer.approvePendingRestore() }
+            SecureField("Backup password", text: $restorePassword)
+            Button("Restore", role: .destructive) {
+                transfer.approvePendingRestore(password: restorePassword)
+                restorePassword = ""
+            }
             Button("Cancel", role: .cancel) { transfer.dismissPendingRestore() }
         } message: {
-            Text("Restore \(transfer.pendingSettingsCount) settings from this file? Your existing media stays unchanged. Restart the app afterward.")
+            Text("Restore this backup's settings, IPTV connections, favorites and watch history? Enter its password. Existing playlists are kept. Some favorites return after catalog sync.")
         }
     }
 }
