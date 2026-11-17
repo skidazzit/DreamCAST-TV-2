@@ -69,6 +69,25 @@ struct SearchView: View {
         NavigationStack {
             List {
                 if showsFilter {
+                    #if os(iOS)
+                    ScrollView(.horizontal) {
+                        HStack(spacing: 8) {
+                            ForEach(ContentFilter.allCases) { filter in
+                                DreamCASTMobileChip(
+                                    title: filter.rawValue,
+                                    selected: selectedFilter == filter
+                                ) {
+                                    selectedFilter = filter
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                    }
+                    .scrollIndicators(.hidden)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                    #else
                     Picker("Filter", selection: $selectedFilter) {
                         ForEach(ContentFilter.allCases) { filter in
                             Text(filter.label).tag(filter)
@@ -77,6 +96,7 @@ struct SearchView: View {
                     .pickerStyle(.segmented)
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
+                    #endif
                 }
 
                 if trimmedQuery.isEmpty {
@@ -137,6 +157,9 @@ struct SearchView: View {
             #if os(iOS)
             .scrollContentBackground(.hidden)
             .background { DreamCASTMobileWallpaper() }
+            #endif
+            #if os(iOS)
+            .tint(DreamCASTMobileTheme.iceBlue)
             #endif
             .searchField(text: $searchText)
             .navigationDestination(for: Movie.self) { movie in
