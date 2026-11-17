@@ -37,7 +37,7 @@ fi
 
 # TextEdit can save Rich Text even when the name looks like .env. The loader
 # requires KEY=value lines, not an RTF document.
-if LC_ALL=C head -c 5 "$ENV_FILE" | grep -qF '{\\rtf'; then
+if LC_ALL=C head -c 5 "$ENV_FILE" | grep -qF '{\rtf'; then
     echo "warning: $ENV_FILE is Rich Text (RTF); save as plain text .env"
     exit 0
 fi
