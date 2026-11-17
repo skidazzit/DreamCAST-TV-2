@@ -27,6 +27,10 @@ struct SeriesView: View {
     @State private var showingSync = false
     @State private var showingSettings = false
     @State private var genres: [String] = []
+    #if os(iOS)
+    @State private var featuredSeries: Series?
+    @State private var featuredPlayback: PlayableMedia?
+    #endif
 
     @AppStorage(SortStorageKey.seriesCategories) private var categorySortRaw: String = CategorySortOption.playlist.rawValue
     @AppStorage(SortStorageKey.seriesContent) private var contentSortRaw: String = ContentSortOption.playlist.rawValue
@@ -90,6 +94,25 @@ struct SeriesView: View {
                                 }
                                 .scrollIndicators(.hidden)
                                 #endif
+                                #if os(iOS)
+                                if let featuredSeries {
+                                    DreamCASTMobileFeaturedHero(
+                                        title: featuredSeries.name,
+                                        badge: "Featured Series",
+                                        artworkURL: TMDBClient.backdropURL(featuredSeries.backdropPath),
+                                        fallbackURL: URL(string: featuredSeries.cover ?? ""),
+                                        genre: featuredSeries.genre,
+                                        releaseDate: featuredSeries.releaseDate,
+                                        contentRating: featuredSeries.contentRating,
+                                        summary: featuredSeries.plot,
+                                        isFavorite: featuredSeries.isFavorite,
+                                        primaryTitle: featuredSeries.episodes.isEmpty ? "Episodes" : "Play Episode",
+                                        onPrimary: { playFeatured(featuredSeries) },
+                                        onInfo: { navigationPath.wrappedValue.append(featuredSeries) },
+                                        onFavorite: { MediaFavorites.toggle(featuredSeries, in: modelContext) }
+                                    )
+                                }
+                                #endif
                             SeriesCollectionRow(kind: .recentlyWatched, scope: scope, animationNamespace: animationNamespace)
                                 .id("recent")
                             SeriesCollectionRow(kind: .favorites, scope: scope, animationNamespace: animationNamespace)
@@ -119,6 +142,11 @@ struct SeriesView: View {
                     .task(id: scope.token) {
                         genres = await GenreDerivation.seriesGenres(in: modelContext.container, scope: scope, restriction: restriction)
                     }
+                    #if os(iOS)
+                    .task(id: "(scope.token)-(categories.count)-(playlists.map(\.syncStatusRaw).joined(separator: "|"))") {
+                        loadFeaturedSeries()
+                    }
+                    #endif
                 }
             }
             .platformNavigationTitle("Series")
@@ -149,8 +177,47 @@ struct SeriesView: View {
         }
         #if os(iOS)
         .dreamCASTPageTheme()
+        .fullScreenCover(item: $featuredPlayback) { media in
+            FullScreenPlayerView(media: media)
+        }
         #endif
     }
+
+    #if os(iOS)
+    private func loadFeaturedSeries() {
+        var descriptor = FetchDescriptor<Series>(
+            sortBy: [SortDescriptor(\Series.lastModified, order: .reverse)]
+        )
+        descriptor.fetchLimit = 300
+        let visibleCategories = Set(categories.map(\.id))
+        let members = Set(playlists.members(of: scope, for: .series).map(\.id))
+        let candidates = ((try? modelContext.fetch(descriptor)) ?? []).filter { series in
+            guard let owner = playlists.owner(ofContentID: series.id),
+                  members.contains(owner.id) else { return false }
+            if let category = series.categoryId, !visibleCategories.contains(category) {
+                return false
+            }
+            return !restriction.hides(categoryID: series.categoryId)
+        }
+        featuredSeries = candidates.first(where: { $0.backdropPath != nil })
+            ?? candidates.first(where: { $0.cover != nil })
+            ?? candidates.first
+    }
+
+    private func playFeatured(_ series: Series) {
+        guard let episode = SeriesEpisodeProgress.nextEpisode(
+            in: series.episodes, fallback: series.episodes.first
+        ), let playlist = playlists.owner(ofContentID: series.id),
+        let media = PlayableMedia.from(episode: episode, playlist: playlist) else {
+            // Episode lists are lazy-loaded by the series detail page.
+            // Open that page rather than claiming playback can start.
+            navigationPath.wrappedValue.append(series)
+            return
+        }
+        if ExternalPlayback.open(media) { return }
+        featuredPlayback = media
+    }
+    #endif
 
     /// Drives the stack from the shared `DeepLinkRouter` so an `onOpenURL` push
     /// lands here; falls back to a local path in previews where no router exists.
