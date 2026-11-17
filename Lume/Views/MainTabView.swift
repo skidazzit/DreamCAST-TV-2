@@ -190,7 +190,8 @@ struct MainTabView: View {
             }
         }
         return HStack(spacing: 3) {
-            ForEach(available, id: \.0) { tab, title, symbol in
+            ForEach(available.indices, id: \.self) { index in
+                let (tab, title, symbol) = available[index]
                 Button {
                     selection.wrappedValue = tab
                 } label: {
