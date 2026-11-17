@@ -210,7 +210,7 @@ struct LiveTVView: View {
                 }
             }
             #if os(iOS)
-            .background { DreamCASTMobileWallpaper() }
+            .background { DreamCASTThemeBackground() }
             #endif
             .libraryToolbar(config: LibraryToolbarConfiguration(
                 playlists: playlists,
