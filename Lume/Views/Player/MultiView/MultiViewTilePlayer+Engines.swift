@@ -302,7 +302,11 @@ struct MultiViewAVTile: View {
     }
 
     var body: some View {
-        MultiViewAVSurface(coordinator: coordinator, handle: role.previewHandle)
+        MultiViewAVSurface(
+            coordinator: coordinator,
+            handle: role.previewHandle,
+            returnGeneration: role.previewHandle?.returnGeneration ?? 0
+        )
             .onAppear {
                 if role.mixesWithOtherAudio {
                     MultiViewTileAudioSession.configureMixing()
@@ -541,6 +545,10 @@ enum MultiViewTileAudioSession {
     private struct MultiViewAVSurface: UIViewRepresentable {
         let coordinator: AVPlayerCoordinator
         let handle: PreviewPlayerHandle?
+        /// Observing this token makes SwiftUI update the existing UIView
+        /// after a full-screen cover returns the running AVPlayer. No
+        /// AVPlayerItem or network request is created during this reattach.
+        let returnGeneration: Int
 
         func makeUIView(context _: Context) -> MultiViewAVHostView {
             let view = MultiViewAVHostView()
@@ -550,8 +558,12 @@ enum MultiViewTileAudioSession {
         }
 
         func updateUIView(_ view: MultiViewAVHostView, context _: Context) {
-            // Returning from full-screen must reconnect the display layer,
-            // not the provider stream or the AVPlayer item.
+            // Trigger a UIView update at every ownership return, even when
+            // the mini-player stays mounted behind the modal the whole time.
+            _ = returnGeneration
+            // The full-screen layer currently owns the AVPlayer. Reattach
+            // that SAME player to the original inline layer; never configure
+            // or replace the AVPlayerItem just because the view changed size.
             if handle?.owner == .preview, view.playerLayer.player !== coordinator.player {
                 coordinator.attach(layer: view.playerLayer)
             }
