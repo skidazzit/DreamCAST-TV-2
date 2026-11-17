@@ -71,6 +71,58 @@ struct LiveChannelHistoryTests {
         (num: 3, name: "Charlie", category: "cat-a")
     ]
 
+    // MARK: - Cold launch
+
+    @Test func `startup resumes only when the last played item was live`() throws {
+        let (context, playlist) = try makeWorld(streams: threeChannels)
+        let defaults = try makeDefaults()
+        let live = try media(forStreamId: 100, playlist: playlist, in: context)
+        let movie = PlayableMedia(
+            id: "film", url: URL(string: "https://example.org/film.mp4")!,
+            title: "Film", subtitle: nil, posterURL: nil,
+            kind: .vod, startTime: 0, contentRef: .movie("film")
+        )
+        let episode = PlayableMedia(
+            id: "episode", url: URL(string: "https://example.org/episode.mp4")!,
+            title: "Episode", subtitle: nil, posterURL: nil,
+            kind: .vod, startTime: 0, contentRef: .episode("episode")
+        )
+
+        // Existing installations may have a saved live channel but no
+        // last-played-kind marker until the first play on this app version.
+        #expect(LiveChannelHistory.shouldResumeLiveOnLaunch(defaults: defaults))
+        LiveChannelHistory.record(live, defaults: defaults)
+        #expect(LiveChannelHistory.shouldResumeLiveOnLaunch(defaults: defaults))
+
+        LiveChannelHistory.record(movie, defaults: defaults)
+        #expect(!LiveChannelHistory.shouldResumeLiveOnLaunch(defaults: defaults))
+        #expect(LiveChannelHistory.currentChannelId(defaults: defaults) != nil)
+
+        LiveChannelHistory.record(episode, defaults: defaults)
+        #expect(!LiveChannelHistory.shouldResumeLiveOnLaunch(defaults: defaults))
+
+        LiveChannelHistory.record(live, defaults: defaults)
+        #expect(LiveChannelHistory.shouldResumeLiveOnLaunch(defaults: defaults))
+        #expect(LiveChannelHistory.currentChannelId(defaults: defaults) != nil)
+    }
+
+    @Test func `startup playback kind stays separate for each profile`() throws {
+        let defaults = try makeDefaults()
+        let first = UUID()
+        let second = UUID()
+        let movie = PlayableMedia(
+            id: "film", url: URL(string: "https://example.org/film.mp4")!,
+            title: "Film", subtitle: nil, posterURL: nil,
+            kind: .vod, startTime: 0, contentRef: .movie("film")
+        )
+        LiveChannelHistory.record(movie, profileID: first, defaults: defaults)
+        #expect(!LiveChannelHistory.shouldResumeLiveOnLaunch(profileID: first, defaults: defaults))
+        #expect(LiveChannelHistory.shouldResumeLiveOnLaunch(profileID: second, defaults: defaults))
+
+        LiveChannelHistory.purge(profileID: first, defaults: defaults)
+        #expect(LiveChannelHistory.shouldResumeLiveOnLaunch(profileID: first, defaults: defaults))
+    }
+
     // MARK: - Recall
 
     @Test func `recall returns the previously watched channel`() throws {
