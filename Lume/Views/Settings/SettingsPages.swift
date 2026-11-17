@@ -41,10 +41,10 @@
                             accentRaw = theme.rawValue
                         } label: {
                             HStack(spacing: 14) {
-                                Circle()
-                                    .fill(theme.color)
-                                    .frame(width: 30, height: 30)
-                                    .overlay(Circle().strokeBorder(.white.opacity(0.25)))
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(theme.gradient)
+                                    .frame(width: 54, height: 34)
+                                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(theme.color.opacity(0.6)))
                                 Text(theme.title)
                                     .foregroundStyle(.primary)
                                 Spacer()
@@ -62,7 +62,7 @@
                 } header: {
                     Text("Color Theme")
                 } footer: {
-                    Text("Choose an accent for buttons and controls. Changes save right away.")
+                    Text("Choose matching accent colors and gradient backgrounds. Changes save right away.")
                 }
             }
             .tint(DreamCASTAccentTheme.resolve(accentRaw).color)
