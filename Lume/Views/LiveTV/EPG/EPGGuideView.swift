@@ -141,6 +141,9 @@ struct EPGGuideView: View {
                 .timelineLayoutDirection()
             }
         }
+        #if os(iOS)
+        .background { DreamCASTThemeBackground() }
+        #endif
         // Reload when the channel set changes or a guide import settles. Keyed on
         // `isSyncing` (which flips twice per sync) rather than observing the store,
         // so the grid rebuilds a handful of times — not on every batch write.
