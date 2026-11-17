@@ -77,7 +77,11 @@ struct SeriesDetailView: View {
                         .transition(.opacity)
                 }
             }
+            #if os(iOS)
+            .background { DreamCASTMobileWallpaper() }
+            #else
             .background(backgroundColor)
+            #endif
             #if os(iOS)
                 .toolbar(.hidden, for: .tabBar)
                 .navigationBarBackButtonHidden(true)
