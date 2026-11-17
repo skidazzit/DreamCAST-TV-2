@@ -162,3 +162,7 @@ for provider in IPTVEDITOR DREAMCAST KLEPTO STRONG; do
     fi
     set_plist "XtreamProvider${provider}URL" "$address"
 done
+
+# The remote feed contains addresses only, never playlist credentials.
+XTREAM_PROVIDER_DIRECTORY_URL="$(read_env XTREAM_PROVIDER_DIRECTORY_URL)"
+set_plist XtreamProviderDirectoryURL "${XTREAM_PROVIDER_DIRECTORY_URL:-https://dreamcast-server-manager.inquisitivemagpie.chatgpt.site/api/providers}"

@@ -341,6 +341,7 @@ struct LumeApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .task { await XtreamProviderStore.shared.refresh() }
                 .environment(TraktService.shared)
                 .environment(PremiumManager.shared)
                 .environment(cloudSync)
@@ -500,6 +501,7 @@ struct LumeApp: App {
                     DiagnosticSession.scenePhaseChanged(to: phase)
                     cloudSync.handleScenePhaseChange(to: phase)
                     if phase == .active {
+                        Task { await XtreamProviderStore.shared.refresh() }
                         Task { await backendChoiceWatcher.refresh() }
                     }
                     // Keep the image disk cache inside its size limit. Rate-limited

@@ -118,7 +118,7 @@ actor EPGSyncManager {
         }
         do {
             let isRemote = !(URL(string: source.url)?.isFileURL ?? false)
-            let fileURL = try await client.downloadEPG(from: source.url)
+            let fileURL = try await client.downloadEPG(from: XtreamProviderDirectory.resolvedGuideURL(source.url))
             return Download(source: source, fileURL: fileURL, isRemote: isRemote)
         } catch {
             // Credential-free detail (never a URL) so it can be public in

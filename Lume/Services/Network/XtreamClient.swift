@@ -108,8 +108,8 @@ final nonisolated class XtreamClient: Sendable {
     /// standalone EPG source — the guide is no longer fetched during a playlist
     /// sync.
     nonisolated static func xmltvURL(for playlist: Playlist) -> URL? {
-        guard !playlist.serverURL.isEmpty else { return nil }
-        var components = URLComponents(string: playlist.serverURL)
+        guard !playlist.effectiveXtreamServerURL.isEmpty else { return nil }
+        var components = URLComponents(string: playlist.effectiveXtreamServerURL)
         guard components != nil else { return nil }
         if !(components?.path.hasSuffix("/") ?? false) {
             components?.path.append("/")
@@ -284,7 +284,7 @@ final nonisolated class XtreamClient: Sendable {
             URLQueryItem(name: "password", value: playlist.password)
         ]
 
-        guard let url = buildURL(serverURL: playlist.serverURL, path: "player_api.php", queryItems: queryItems) else {
+        guard let url = buildURL(serverURL: playlist.effectiveXtreamServerURL, path: "player_api.php", queryItems: queryItems) else {
             throw XtreamError.invalidURL
         }
 
@@ -300,7 +300,7 @@ final nonisolated class XtreamClient: Sendable {
             URLQueryItem(name: "action", value: "get_live_categories")
         ]
 
-        guard let url = buildURL(serverURL: playlist.serverURL, path: "player_api.php", queryItems: queryItems) else {
+        guard let url = buildURL(serverURL: playlist.effectiveXtreamServerURL, path: "player_api.php", queryItems: queryItems) else {
             throw XtreamError.invalidURL
         }
 
@@ -319,7 +319,7 @@ final nonisolated class XtreamClient: Sendable {
             queryItems.append(URLQueryItem(name: "category_id", value: categoryId))
         }
 
-        guard let url = buildURL(serverURL: playlist.serverURL, path: "player_api.php", queryItems: queryItems) else {
+        guard let url = buildURL(serverURL: playlist.effectiveXtreamServerURL, path: "player_api.php", queryItems: queryItems) else {
             throw XtreamError.invalidURL
         }
 
@@ -335,7 +335,7 @@ final nonisolated class XtreamClient: Sendable {
             URLQueryItem(name: "action", value: "get_vod_categories")
         ]
 
-        guard let url = buildURL(serverURL: playlist.serverURL, path: "player_api.php", queryItems: queryItems) else {
+        guard let url = buildURL(serverURL: playlist.effectiveXtreamServerURL, path: "player_api.php", queryItems: queryItems) else {
             throw XtreamError.invalidURL
         }
 
@@ -354,7 +354,7 @@ final nonisolated class XtreamClient: Sendable {
             queryItems.append(URLQueryItem(name: "category_id", value: categoryId))
         }
 
-        guard let url = buildURL(serverURL: playlist.serverURL, path: "player_api.php", queryItems: queryItems) else {
+        guard let url = buildURL(serverURL: playlist.effectiveXtreamServerURL, path: "player_api.php", queryItems: queryItems) else {
             throw XtreamError.invalidURL
         }
 
@@ -371,7 +371,7 @@ final nonisolated class XtreamClient: Sendable {
             URLQueryItem(name: "vod_id", value: String(vodId))
         ]
 
-        guard let url = buildURL(serverURL: playlist.serverURL, path: "player_api.php", queryItems: queryItems) else {
+        guard let url = buildURL(serverURL: playlist.effectiveXtreamServerURL, path: "player_api.php", queryItems: queryItems) else {
             throw XtreamError.invalidURL
         }
 
@@ -386,7 +386,7 @@ final nonisolated class XtreamClient: Sendable {
             URLQueryItem(name: "action", value: "get_series_categories")
         ]
 
-        guard let url = buildURL(serverURL: playlist.serverURL, path: "player_api.php", queryItems: queryItems) else {
+        guard let url = buildURL(serverURL: playlist.effectiveXtreamServerURL, path: "player_api.php", queryItems: queryItems) else {
             throw XtreamError.invalidURL
         }
 
@@ -405,7 +405,7 @@ final nonisolated class XtreamClient: Sendable {
             queryItems.append(URLQueryItem(name: "category_id", value: categoryId))
         }
 
-        guard let url = buildURL(serverURL: playlist.serverURL, path: "player_api.php", queryItems: queryItems) else {
+        guard let url = buildURL(serverURL: playlist.effectiveXtreamServerURL, path: "player_api.php", queryItems: queryItems) else {
             throw XtreamError.invalidURL
         }
 
@@ -422,7 +422,7 @@ final nonisolated class XtreamClient: Sendable {
             URLQueryItem(name: "series_id", value: String(seriesId))
         ]
 
-        guard let url = buildURL(serverURL: playlist.serverURL, path: "player_api.php", queryItems: queryItems) else {
+        guard let url = buildURL(serverURL: playlist.effectiveXtreamServerURL, path: "player_api.php", queryItems: queryItems) else {
             throw XtreamError.invalidURL
         }
 
@@ -441,7 +441,7 @@ final nonisolated class XtreamClient: Sendable {
             queryItems.append(URLQueryItem(name: "limit", value: String(limit)))
         }
 
-        guard let url = buildURL(serverURL: playlist.serverURL, path: "player_api.php", queryItems: queryItems) else {
+        guard let url = buildURL(serverURL: playlist.effectiveXtreamServerURL, path: "player_api.php", queryItems: queryItems) else {
             throw XtreamError.invalidURL
         }
 
@@ -465,7 +465,7 @@ final nonisolated class XtreamClient: Sendable {
             URLQueryItem(name: "password", value: playlist.password)
         ]
 
-        guard let url = buildURL(serverURL: playlist.serverURL, path: "xmltv.php", queryItems: queryItems) else {
+        guard let url = buildURL(serverURL: playlist.effectiveXtreamServerURL, path: "xmltv.php", queryItems: queryItems) else {
             throw XtreamError.invalidURL
         }
 
@@ -498,13 +498,13 @@ final nonisolated class XtreamClient: Sendable {
     /// Builds a playback URL for a movie
     func buildMovieURL(for movie: Movie, playlist: Playlist) -> URL? {
         let ext = movie.containerExtension ?? "mp4"
-        return URL(string: "\(playlist.serverURL)/movie/\(playlist.username)/\(playlist.password)/\(movie.streamId).\(ext)")
+        return URL(string: "\(playlist.effectiveXtreamServerURL)/movie/\(playlist.username)/\(playlist.password)/\(movie.streamId).\(ext)")
     }
 
     /// Builds a playback URL for an episode
     func buildEpisodeURL(for episode: Episode, playlist: Playlist) -> URL? {
         let ext = episode.containerExtension
-        return URL(string: "\(playlist.serverURL)/series/\(playlist.username)/\(playlist.password)/\(episode.episodeId).\(ext)")
+        return URL(string: "\(playlist.effectiveXtreamServerURL)/series/\(playlist.username)/\(playlist.password)/\(episode.episodeId).\(ext)")
     }
 
     /// Builds a playback URL for a live stream. `format` overrides the
@@ -512,7 +512,7 @@ final nonisolated class XtreamClient: Sendable {
     /// falling back to HLS.
     func buildLiveStreamURL(for stream: LiveStream, playlist: Playlist, format: StreamFormat? = nil) -> URL? {
         let ext = Self.resolvedFormat(format, playlist: playlist, fallback: .m3u8).rawValue
-        return URL(string: "\(playlist.serverURL)/live/\(playlist.username)/\(playlist.password)/\(stream.streamId).\(ext)")
+        return URL(string: "\(playlist.effectiveXtreamServerURL)/live/\(playlist.username)/\(playlist.password)/\(stream.streamId).\(ext)")
     }
 
     /// An explicit argument or playlist choice wins. On automatic, `fallback`

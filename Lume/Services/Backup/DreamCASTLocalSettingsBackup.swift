@@ -143,6 +143,7 @@ enum DreamCASTLocalSettingsBackup {
     private struct PlaylistRecord: Codable {
         var name: String
         var serverURL: String
+        var xtreamProviderID: String?
         var username: String
         var password: String
         var sourceTypeRaw: String
@@ -156,7 +157,9 @@ enum DreamCASTLocalSettingsBackup {
 
         init(_ p: Playlist) {
             name = p.name
-            serverURL = p.serverURL
+            serverURL = p.effectiveXtreamServerURL
+            xtreamProviderID = p.sourceType == .xtream
+                ? (p.xtreamProviderID ?? XtreamProviderDirectory.provider(address: p.serverURL)?.id) : nil
             username = p.username
             password = p.password
             sourceTypeRaw = p.sourceTypeRaw
@@ -176,6 +179,7 @@ enum DreamCASTLocalSettingsBackup {
             }
             let p = Playlist(name: name, serverURL: serverURL,
                              username: username, password: password)
+            p.xtreamProviderID = xtreamProviderID
             p.sourceTypeRaw = sourceTypeRaw
             p.epgURL = epgURL
             p.streamFormatRaw = PlaylistStreamFormat(rawValue: streamFormatRaw)?.rawValue
@@ -408,10 +412,10 @@ enum DreamCASTLocalSettingsBackup {
             let existing = try context.fetch(FetchDescriptor<Playlist>())
             // Skip sources already installed and repeated records in one file.
             var seen = Set(existing.map {
-                "\($0.sourceTypeRaw)|\($0.serverURL)|\($0.username)"
+                "\($0.sourceTypeRaw)|\($0.effectiveXtreamServerURL)|\($0.username)"
             })
             for playlist in imported {
-                let identifier = "\(playlist.sourceTypeRaw)|\(playlist.serverURL)|\(playlist.username)"
+                let identifier = "\(playlist.sourceTypeRaw)|\(playlist.effectiveXtreamServerURL)|\(playlist.username)"
                 guard seen.insert(identifier).inserted else { continue }
                 context.insert(playlist)
             }
