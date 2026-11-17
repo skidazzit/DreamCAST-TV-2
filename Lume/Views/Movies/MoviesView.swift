@@ -123,6 +123,9 @@ struct MoviesView: View {
                 #endif
             }
         }
+        #if os(iOS)
+        .dreamCASTPageTheme()
+        #endif
     }
 
     /// Drives the stack from the shared `DeepLinkRouter` so an `onOpenURL` push
