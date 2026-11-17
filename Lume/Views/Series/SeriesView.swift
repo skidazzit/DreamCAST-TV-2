@@ -104,12 +104,16 @@ struct SeriesView: View {
                                         genre: featuredSeries.genre,
                                         releaseDate: featuredSeries.releaseDate,
                                         contentRating: featuredSeries.contentRating,
+                                        extraInfo: featuredSeries.episodes.isEmpty ? nil : "\(featuredSeries.episodes.count) Episodes",
                                         summary: featuredSeries.plot,
-                                        isFavorite: featuredSeries.isFavorite,
+                                        isWatchlisted: featuredSeries.addedToWatchlistDate != nil,
                                         primaryTitle: featuredSeries.episodes.isEmpty ? "Episodes" : "Play Episode",
                                         onPrimary: { playFeatured(featuredSeries) },
                                         onInfo: { navigationPath.wrappedValue.append(featuredSeries) },
-                                        onFavorite: { MediaFavorites.toggle(featuredSeries, in: modelContext) }
+                                        onWatchlist: {
+                                            featuredSeries.addedToWatchlistDate = featuredSeries.addedToWatchlistDate == nil ? .now : nil
+                                            try? modelContext.save()
+                                        }
                                     )
                                 }
                                 #endif
