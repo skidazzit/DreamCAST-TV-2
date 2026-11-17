@@ -76,6 +76,38 @@ enum AppAppearance: String, CaseIterable, Identifiable {
     }
 }
 
+
+\n/// Saved accent choices. tvOS keeps its dark display style.
+enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
+    case dreamcast, ocean, violet, emerald, sunset, ruby
+    static let storageKey = "dreamcast.appearance.accent"
+    static let defaultValue: DreamCASTAccentTheme = .dreamcast
+    static func resolve(_ raw: String) -> DreamCASTAccentTheme {
+        Self(rawValue: raw) ?? defaultValue
+    }
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .dreamcast: "DreamCAST Blue"
+        case .ocean: "Ocean"
+        case .violet: "Violet"
+        case .emerald: "Emerald"
+        case .sunset: "Sunset"
+        case .ruby: "Ruby"
+        }
+    }
+    var color: Color {
+        switch self {
+        case .dreamcast: Color(red: 0.12, green: 0.53, blue: 1.0)
+        case .ocean: Color(red: 0.0, green: 0.76, blue: 0.86)
+        case .violet: Color(red: 0.66, green: 0.43, blue: 1.0)
+        case .emerald: Color(red: 0.13, green: 0.79, blue: 0.53)
+        case .sunset: Color(red: 1.0, green: 0.58, blue: 0.25)
+        case .ruby: Color(red: 0.99, green: 0.34, blue: 0.44)
+        }
+    }
+}
+
 extension View {
     /// Applies the user's appearance override to the hosting window (see the
     /// file header for why this is not `.preferredColorScheme`). Views that
