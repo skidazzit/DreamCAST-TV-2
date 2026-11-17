@@ -80,9 +80,6 @@ struct LiveTVView: View {
         /// only used when LiveTVView is launched outside MainTabView.
         @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
         @State private var fallbackLivePlayback = SportsZonePlaybackSession()
-        @AppStorage(PlayerSettings.tvGuidePreviewModeKey)
-        private var guideMiniModeRaw = PlayerSettings.tvGuidePreviewModeDefault.rawValue
-
         private var activePlayback: SportsZonePlaybackSession {
             sharedPlayback ?? fallbackLivePlayback
         }
@@ -461,9 +458,11 @@ struct LiveTVView: View {
                 return
             }
         #elseif os(iOS)
-            if layoutMode == .guide {
+            if layoutMode == .guide,
+               (activePlayback.miniMedia?.isLive == true || LiveChannelHistory.shouldResumeLiveOnLaunch()) {
                 // Prefer the actively playing channel. Reopening Live TV must
                 // never replace a stream that stayed alive on another tab.
+                // If VOD played last, do not highlight or start an older channel.
                 let activeID: String? = {
                     guard let media = activePlayback.miniMedia,
                           case let .live(id) = media.contentRef else { return nil }
@@ -488,13 +487,14 @@ struct LiveTVView: View {
                        return false
                    }) {
                     selectedSection = match
-                    if activePlayback.miniMedia == nil && !activePlayback.userStopped {
-                        // Keep the original guide auto-restore without creating
-                        // a second decoder or surprising full-screen launch.
-                        let previewMode = GuidePreviewMode(storedValue: guideMiniModeRaw)
-                        if previewMode.showsHero {
-                            activePlayback.tune(lastMedia, previewMode: previewMode)
-                        }
+                    if sharedPlayback == nil,
+                       activePlayback.miniMedia == nil,
+                       !activePlayback.userStopped,
+                       LiveChannelHistory.shouldResumeLiveOnLaunch() {
+                        // Standalone previews have no app-root restore task.
+                        // The real iPhone app tunes from MainTabView once,
+                        // regardless of Guide/List mode or preview settings.
+                        activePlayback.tune(lastMedia, previewMode: .small)
                     }
                     seededScopeToken = catalogScope.token
                     return
