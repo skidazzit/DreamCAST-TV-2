@@ -285,6 +285,8 @@ struct MainTabView: View {
                 EPGSyncService.shared.setAutoSyncQueued(busy)
                 if !busy {
                     try? DreamCASTLocalSettingsBackup.applyPendingViewingState(in: modelContext)
+                    // The channel may not exist until the first sync completes.
+                    restoreLastLiveChannelOnLaunch()
                 }
             }
             .onDisappear {
