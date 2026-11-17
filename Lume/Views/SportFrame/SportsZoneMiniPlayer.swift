@@ -113,6 +113,19 @@ final class SportsZonePlaybackSession {
         #endif
     }
 
+    /// An explicit restart replaces only the current mini-player decoder.
+    /// Keep automatic full-screen return and tab navigation untouched.
+    func restartCurrentChannel() {
+        guard miniMedia != nil, fullScreenMedia == nil,
+              !isAwaitingFullScreenDismissal,
+              !guidePreview.isSuspended,
+              handle.owner == .preview || handle.owner == .released else { return }
+        handle.stopPreview()
+        failedMediaID = nil
+        userStopped = false
+        reloadToken += 1
+    }
+
     func close() {
         guard fullScreenMedia == nil else { return }
         userStopped = true
