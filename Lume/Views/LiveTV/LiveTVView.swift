@@ -222,10 +222,11 @@ struct LiveTVView: View {
             NotificationCenter.default.post(name: .dreamCASTReturnToTopMenu, object: nil)
         }
         .task {
-            // The list layout has no guide hero to seed first playback.
-            // Restore the last permitted channel only when no stream is live.
+            // In standalone Live TV previews, restore when the saved media
+            // was a live channel. The app root handles normal startup.
             guard layoutMode == .list,
                   autoResumeLastChannel,
+                  LiveChannelHistory.shouldResumeLiveOnLaunch(),
                   let sharedPlayback, sharedPlayback.miniMedia == nil,
                   !sharedPlayback.userStopped,
                   let lastID = LiveChannelHistory.currentChannelId(),
@@ -319,7 +320,13 @@ struct LiveTVView: View {
                         PlayableMedia.from(stream: stream, ownedByOneOf: playlists)
                     },
                     onTune: { tuneSharedPreview($0, onlyIfEmpty: false) },
-                    onAutoTune: { if autoResumeLastChannel { tuneSharedPreview($0, onlyIfEmpty: true) } },
+                    onAutoTune: { stream in
+                        guard autoResumeLastChannel,
+                              LiveChannelHistory.shouldResumeLiveOnLaunch(),
+                              stream.id == LiveChannelHistory.currentChannelId()
+                        else { return }
+                        tuneSharedPreview(stream, onlyIfEmpty: true)
+                    },
                     playlistIDs: catalogScope.members(for: .liveTV),
                     controller: guidePreview,
                     hero: guideHero
@@ -403,6 +410,7 @@ struct LiveTVView: View {
             // Live TV. Never jump into a hidden or locked section.
             if autoResumeLastChannel,
                layoutMode == .guide,
+               LiveChannelHistory.shouldResumeLiveOnLaunch(),
                let lastID = LiveChannelHistory.currentChannelId(),
                let lastStream = try? modelContext.fetch(
                    FetchDescriptor<LiveStream>(predicate: #Predicate { $0.id == lastID && $0.isHidden == false })
