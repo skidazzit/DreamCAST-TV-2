@@ -80,7 +80,7 @@ enum AppAppearance: String, CaseIterable, Identifiable {
 \n/// Accent presets. This is separate from light/dark appearance so users can
 /// keep their preferred contrast while changing the app's interactive tint.
 enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
-    case dreamcast, ocean, violet, emerald, sunset, ruby
+    case dreamcast, ocean, violet, emerald, sunset, ruby, grey, charcoal
 
     static let storageKey = "dreamcast.appearance.accent"
     static let defaultValue: DreamCASTAccentTheme = .dreamcast
@@ -96,17 +96,65 @@ enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
         case .emerald: "Emerald"
         case .sunset: "Sunset"
         case .ruby: "Ruby"
+        case .grey: "Grey"
+        case .charcoal: "Charcoal"
         }
     }
     var color: Color {
         switch self {
-        case .dreamcast: Color(red: 0.12, green: 0.53, blue: 1.0)
-        case .ocean: Color(red: 0.0, green: 0.76, blue: 0.86)
-        case .violet: Color(red: 0.66, green: 0.43, blue: 1.0)
+        case .dreamcast: Color(red: 0.12, green: 0.53, blue: 1)
+        case .ocean: Color(red: 0, green: 0.76, blue: 0.86)
+        case .violet: Color(red: 0.66, green: 0.43, blue: 1)
         case .emerald: Color(red: 0.13, green: 0.79, blue: 0.53)
-        case .sunset: Color(red: 1.0, green: 0.58, blue: 0.25)
+        case .sunset: Color(red: 1, green: 0.58, blue: 0.25)
         case .ruby: Color(red: 0.99, green: 0.34, blue: 0.44)
+        case .grey: Color(red: 0.68, green: 0.71, blue: 0.76)
+        case .charcoal: Color(red: 0.43, green: 0.46, blue: 0.51)
         }
+    }
+    var gradientColors: [Color] {
+        switch self {
+        case .dreamcast: [Color(red: 0.05, green: 0.10, blue: 0.21), Color(red: 0.07, green: 0.20, blue: 0.36), Color(red: 0.02, green: 0.06, blue: 0.16)]
+        case .ocean: [Color(red: 0.03, green: 0.15, blue: 0.18), Color(red: 0.02, green: 0.30, blue: 0.34), Color(red: 0.01, green: 0.11, blue: 0.14)]
+        case .violet: [Color(red: 0.15, green: 0.08, blue: 0.24), Color(red: 0.24, green: 0.12, blue: 0.38), Color(red: 0.10, green: 0.04, blue: 0.18)]
+        case .emerald: [Color(red: 0.04, green: 0.16, blue: 0.11), Color(red: 0.06, green: 0.29, blue: 0.19), Color(red: 0.03, green: 0.11, blue: 0.08)]
+        case .sunset: [Color(red: 0.24, green: 0.12, blue: 0.07), Color(red: 0.40, green: 0.18, blue: 0.10), Color(red: 0.18, green: 0.08, blue: 0.05)]
+        case .ruby: [Color(red: 0.22, green: 0.06, blue: 0.10), Color(red: 0.36, green: 0.08, blue: 0.15), Color(red: 0.16, green: 0.04, blue: 0.08)]
+        case .grey: [Color(red: 0.16, green: 0.18, blue: 0.22), Color(red: 0.24, green: 0.26, blue: 0.31), Color(red: 0.11, green: 0.12, blue: 0.16)]
+        case .charcoal: [Color(red: 0.05, green: 0.06, blue: 0.08), Color(red: 0.10, green: 0.11, blue: 0.14), Color(red: 0.03, green: 0.04, blue: 0.05)]
+        }
+    }
+    var gradient: LinearGradient {
+        LinearGradient(colors: gradientColors, startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+}
+
+/// A static, low-cost ambient glow that changes when the saved theme changes.
+/// No timer or animation loop is used, so playback stays smooth.
+struct DreamCASTThemeBackground: View {
+    @AppStorage(DreamCASTAccentTheme.storageKey)
+    private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+
+    var body: some View {
+        let theme = DreamCASTAccentTheme.resolve(themeRaw)
+        ZStack {
+            theme.gradient
+            RadialGradient(
+                colors: [theme.color.opacity(0.22), .clear],
+                center: .topTrailing,
+                startRadius: 30,
+                endRadius: 600
+            )
+            RadialGradient(
+                colors: [theme.color.opacity(0.09), .clear],
+                center: .bottomLeading,
+                startRadius: 30,
+                endRadius: 450
+            )
+        }
+        .ignoresSafeArea()
+        .animation(.easeInOut(duration: 0.35), value: themeRaw)
+        .accessibilityHidden(true)
     }
 }
 
