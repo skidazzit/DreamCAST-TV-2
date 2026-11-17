@@ -85,7 +85,8 @@ struct LoginView: View {
     private var isFormValid: Bool {
         switch sourceType {
         case .xtream:
-            !serverURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            !trimmedName.isEmpty
+                && XtreamProvider.available.contains(where: { $0.serverURL == serverURL })
                 && !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 && !password.isEmpty
         case .m3u:
@@ -273,7 +274,7 @@ struct LoginView: View {
                         TVSettingsField(title: "Name", placeholder: "e.g. My IPTV", text: $name, contentType: .name)
                         switch sourceType {
                         case .xtream:
-                            TVSettingsField(title: "Server URL", placeholder: "e.g. http://example.com:8080", text: $serverURL, contentType: .URL)
+                            XtreamProviderPicker(serverURL: $serverURL)
                             TVSettingsField(title: "Username", placeholder: "Username", text: $username, contentType: .username)
                             TVSettingsField(title: "Password", placeholder: "Password", text: $password, isSecure: true, contentType: .password)
                         case .m3u:

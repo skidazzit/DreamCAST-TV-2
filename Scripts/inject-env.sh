@@ -18,7 +18,7 @@ PLIST="${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
 
 if [ ! -f "$ENV_FILE" ]; then
     echo "warning: .env not found at $ENV_FILE — secrets not injected"
-    exit 0
+    ENV_FILE="/dev/null"
 fi
 
 if [ ! -f "$PLIST" ]; then
@@ -117,3 +117,19 @@ if [ -n "$LUME_CLOUD_URL" ]; then
     set_plist LumeCloudServerURL "$LUME_CLOUD_URL"
     echo "Injected LUME_CLOUD_URL into Info.plist"
 fi
+
+# Provider mappings use the checked-in template only when a key is absent.
+# An explicitly blank override hides a provider. Always write the key so an
+# incremental build cannot retain an address removed from the configuration.
+for provider in IPTVEDITOR DREAMCAST KLEPTO STRONG; do
+    env_key="XTREAM_PROVIDER_${provider}_URL"
+    if grep -qE "^[[:space:]]*${env_key}[[:space:]]*=" "$ENV_FILE"; then
+        address="$(read_env "$env_key")"
+    else
+        original_env_file="$ENV_FILE"
+        ENV_FILE="${SRCROOT}/.env.example"
+        address="$(read_env "$env_key")"
+        ENV_FILE="$original_env_file"
+    fi
+    set_plist "XtreamProvider${provider}URL" "$address"
+done
