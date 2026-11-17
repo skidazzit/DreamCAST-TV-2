@@ -67,11 +67,35 @@ struct SeriesView: View {
                         )
                     }
                 } else {
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 24, pinnedViews: []) {
+                    ScrollViewReader { scroller in
+                        ScrollView {
+                            LazyVStack(alignment: .leading, spacing: 24, pinnedViews: []) {
+                                #if os(iOS)
+                                ScrollView(.horizontal) {
+                                    HStack(spacing: 9) {
+                                        DreamCASTMobileChip(title: "Continue", symbol: "play.circle") {
+                                            withAnimation { scroller.scrollTo("recent", anchor: .top) }
+                                        }
+                                        DreamCASTMobileChip(title: "Favorites", symbol: "star") {
+                                            withAnimation { scroller.scrollTo("favorites", anchor: .top) }
+                                        }
+                                        DreamCASTMobileChip(title: "New Releases", symbol: "sparkles") {
+                                            withAnimation { scroller.scrollTo("new", anchor: .top) }
+                                        }
+                                        DreamCASTMobileChip(title: "Genres", symbol: "square.grid.2x2") {
+                                            withAnimation { scroller.scrollTo("genres", anchor: .top) }
+                                        }
+                                    }
+                                    .padding(.horizontal, 16)
+                                }
+                                .scrollIndicators(.hidden)
+                                #endif
                             SeriesCollectionRow(kind: .recentlyWatched, scope: scope, animationNamespace: animationNamespace)
+                                .id("recent")
                             SeriesCollectionRow(kind: .favorites, scope: scope, animationNamespace: animationNamespace)
+                                .id("favorites")
                             SeriesCollectionRow(kind: .recentlyAdded, scope: scope, animationNamespace: animationNamespace)
+                                .id("new")
 
                             ForEach(layout.previews) { category in
                                 SeriesCategoryPreview(category: category, limit: previewLimit, sort: contentSort, animationNamespace: animationNamespace)
@@ -80,6 +104,7 @@ struct SeriesView: View {
 
                             if !genres.isEmpty {
                                 GenreGridSection(genres: genres, type: .series)
+                                    .id("genres")
                             }
 
                             ForEach(layout.remaining) { group in
@@ -87,7 +112,8 @@ struct SeriesView: View {
                                     .padding(.top, 12)
                             }
                         }
-                        .padding(.vertical)
+                            .padding(.vertical)
+                        }
                     }
                     .browseActivity()
                     .task(id: scope.token) {
