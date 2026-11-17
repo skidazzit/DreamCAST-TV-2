@@ -185,6 +185,7 @@ struct DreamCASTMobileWallpaper: View {
 private struct DreamCASTMobilePageTheme: ViewModifier {
     func body(content: Content) -> some View {
         content
+            .scrollContentBackground(.hidden)
             .background { DreamCASTMobileWallpaper() }
             .toolbarBackground(.hidden, for: .navigationBar)
             .preferredColorScheme(.dark)
