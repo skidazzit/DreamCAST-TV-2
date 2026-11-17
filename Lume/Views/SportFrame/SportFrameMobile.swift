@@ -151,7 +151,7 @@ struct SportFrameMobile: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 16)
                 }
-                .background(Color(red: 0.025, green: 0.055, blue: 0.11).ignoresSafeArea())
+                .background { DreamCASTMobileWallpaper() }
                 .foregroundStyle(.white)
                 .navigationTitle("SportsZone")
                 .navigationBarTitleDisplayMode(.inline)
@@ -182,7 +182,7 @@ struct SportFrameMobile: View {
                 }
             }
         }
-        .background(Color(red: 0.025, green: 0.055, blue: 0.11).ignoresSafeArea())
+        .background { DreamCASTMobileWallpaper() }
         .fullScreenCover(item: $sportsPlayback.fullScreenMedia, onDismiss: {
             sportsPlayback.returnedFromFullScreen()
         }) { media in
