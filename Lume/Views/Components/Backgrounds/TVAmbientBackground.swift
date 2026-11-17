@@ -62,7 +62,7 @@
             GeometryReader { proxy in
                 let scale = proxy.size.width / Self.canvasWidth
                 let size = CGSize(width: Self.glowSize.width * scale, height: Self.glowSize.height * scale)
-                Self.base
+                DreamCASTThemeBackground()
                     .overlay(alignment: .topLeading) {
                         Rectangle()
                             .fill(Self.glow(tint))
