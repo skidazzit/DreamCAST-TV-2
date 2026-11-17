@@ -193,7 +193,11 @@ struct AVPlayerEngineView: View {
         .onDisappear {
             hideTask?.cancel()
             NowPlayingService.shared.detachTransport(owner: coordinator)
-            if returnHandle?.owner != .preview && returnHandle?.owner != .returning {
+            // SwiftUI may dismantle the child before the full-screen host's
+            // onDisappear changes ownership to .returning. Keep adopted
+            // AVPlayer sessions alive in .fullScreen as well; the root's
+            // onDismiss returns the same decoder to its embedded host.
+            if returnHandle == nil || returnHandle?.owner == .released {
                 coordinator.tearDown()
             }
         }
