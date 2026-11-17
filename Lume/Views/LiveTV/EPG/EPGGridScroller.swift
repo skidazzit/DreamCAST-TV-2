@@ -55,10 +55,11 @@ struct EPGGridScroller: View {
         @State private var channelDragStartY: CGFloat?
         /// A drag must never become a channel-select tap on release.
         @State private var lastChannelDragEndedAt: TimeInterval = -.infinity
+        /// A restored highlight is not a user tap. A fresh first tap
+        /// must select a channel; the second tunes the embedded player.
+        @State private var lastTappedChannelID: String?
         /// 0: none, 1: highlighted, 2: mini-player, 3: full screen.
         @State private var channelTapStage = 0
-        @AppStorage(PlayerSettings.tvGuidePreviewModeKey)
-        private var guidePreviewModeRaw = PlayerSettings.tvGuidePreviewModeDefault.rawValue
     #endif
     /// Tracks the tapped channel for the iPhone name marquee.
     /// Other platforms ignore this value.
@@ -214,7 +215,13 @@ struct EPGGridScroller: View {
                 // Mark this row as selected, without calling onPlay twice.
                 guard let restoredID, rows.contains(where: { $0.id == restoredID }) else { return }
                 selectedChannelID = restoredID
-                channelTapStage = GuidePreviewMode(storedValue: guidePreviewModeRaw).playsVideo ? 2 : 1
+                // The restored mini-player may be playing, but the first
+                // touch after returning to this guide remains selection only.
+                // Do not reset taps caused by this guide's own second tap.
+                if lastTappedChannelID != restoredID {
+                    lastTappedChannelID = nil
+                    channelTapStage = 0
+                }
             }
         #endif
     }
@@ -266,7 +273,8 @@ struct EPGGridScroller: View {
     /// Stage two tunes the mini-player, and stage three opens full screen.
     private func activateChannel(_ row: EPGChannelRow) {
         #if os(iOS)
-            if selectedChannelID != row.id {
+            if lastTappedChannelID != row.id || channelTapStage == 0 {
+                lastTappedChannelID = row.id
                 selectedChannelID = row.id
                 channelTapStage = 1
                 return
