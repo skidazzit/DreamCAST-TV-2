@@ -73,6 +73,14 @@ else
     echo "warning: TMDB_ACCESS_TOKEN not set in .env — Trending will be hidden"
 fi
 
+# TheSportsDB Premium API key for SportsZone. The app uses its existing
+# Keychain key first, then this build-time default, then demo/free key 123.
+THESPORTSDB_API_KEY="$(read_env THESPORTSDB_API_KEY)"
+if [ -n "$THESPORTSDB_API_KEY" ]; then
+    set_plist TheSportsDBAPIKey "$THESPORTSDB_API_KEY"
+    echo "Injected TheSportsDB API key into Info.plist"
+fi
+
 MDBLIST_API_KEY="$(read_env MDBLIST_API_KEY)"
 if [ -n "$MDBLIST_API_KEY" ]; then
     set_plist MDBListAPIKey "$MDBLIST_API_KEY"
