@@ -29,7 +29,7 @@ final class SportsZonePlaybackSession {
         failedMediaID = nil
         reloadToken += 1
         miniMedia = media
-        LiveChannelHistory.record(media)
+        if media.isLive { LiveChannelHistory.record(media) }
 
         // Match the Live TV setting: "Off" means no inline preview.
         // Open the stream full screen rather than playing it off-screen.
@@ -114,6 +114,13 @@ struct SportsZoneMiniPlayer: View {
         GuidePreviewMode(storedValue: modeRaw)
     }
 
+    /// IPTV guide preferences should not hide a playing movie or episode.
+    /// All media uses the same root-owned player and preview decoder.
+    private var embeddedMode: GuidePreviewMode {
+        if session.miniMedia?.isLive == false { return .small }
+        return mode
+    }
+
     #if os(tvOS)
     @AppStorage(TVGuideDesign.storageKey)
     private var guideDesignRaw = TVGuideDesign.classic.rawValue
@@ -124,7 +131,7 @@ struct SportsZoneMiniPlayer: View {
     #endif
 
     var body: some View {
-        if let media = session.miniMedia, mode.showsHero {
+        if let media = session.miniMedia, embeddedMode.showsHero {
             #if os(tvOS)
             tvPlayer(media)
             #else
@@ -187,14 +194,18 @@ struct SportsZoneMiniPlayer: View {
     private func phonePlayer(_ media: PlayableMedia) -> some View {
         VStack(spacing: 0) {
             surface(media)
-                .frame(height: mode == .large ? 192 : (mode == .infoOnly ? 98 : 152))
+                .frame(height: embeddedMode == .large ? 192 : (embeddedMode == .infoOnly ? 98 : 152))
                 .overlay(alignment: .bottom) {
                     HStack(alignment: .bottom, spacing: 8) {
-                        Text("LIVE")
+                        Text(media.isLive ? "LIVE" : "PLAYING")
                             .font(.caption2.bold())
                             .padding(.horizontal, 9)
                             .padding(.vertical, 6)
-                            .background(.red.opacity(0.9), in: Capsule())
+                            .background(
+                                media.isLive ? Color.red.opacity(0.9)
+                                    : DreamCASTMobileTheme.electricBlue.opacity(0.9),
+                                in: Capsule()
+                            )
                         Text(media.title)
                             .font(.subheadline.bold())
                             .lineLimit(1)
@@ -204,13 +215,13 @@ struct SportsZoneMiniPlayer: View {
                             Image(systemName: "arrow.up.left.and.arrow.down.right")
                                 .frame(width: 35, height: 35)
                         }
-                        .accessibilityLabel("Open live channel full screen")
+                        .accessibilityLabel("Open video full screen")
                         .dreamCASTGlass(radius: 11)
                         Button { session.close() } label: {
                             Image(systemName: "stop.fill")
                                 .frame(width: 35, height: 35)
                         }
-                        .accessibilityLabel("Stop live playback")
+                        .accessibilityLabel("Stop playback")
                         .dreamCASTGlass(radius: 11)
                     }
                     .buttonStyle(.plain)
@@ -241,7 +252,7 @@ struct SportsZoneMiniPlayer: View {
     private func surface(_ media: PlayableMedia) -> some View {
         ZStack {
             Color.black
-            if !mode.playsVideo {
+            if !embeddedMode.playsVideo {
                 if let artwork = media.posterURL {
                     AsyncImage(url: artwork) { image in
                         image.resizable().scaledToFit()
@@ -274,7 +285,7 @@ struct SportsZoneMiniPlayer: View {
         }
         .frame(maxWidth: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: 22))
-        .accessibilityLabel("Live channel: \(media.title)")
+        .accessibilityLabel("Now playing: \(media.title)")
     }
 }
 #endif
