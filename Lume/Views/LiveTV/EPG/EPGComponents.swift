@@ -350,6 +350,10 @@ struct EPGMetrics {
 /// progress bar while live. On tvOS the card is taller than the row and is
 /// drawn over the grid by `EPGRows`.
 struct EPGProgramBlock: View {
+    #if os(iOS)
+    @AppStorage(DreamCASTVisualSettings.transparencyKey)
+    private var surfaceTransparency = DreamCASTVisualSettings.defaultTransparency
+    #endif
     let cell: EPGProgramCell
     let metrics: EPGMetrics
     let now: Date
@@ -455,7 +459,11 @@ struct EPGProgramBlock: View {
         if isFocused {
             return .primary.opacity(0.18)
         }
+        #if os(iOS)
+        return .primary.opacity((isLive ? 0.19 : 0.09) * max(0.12, 1 - surfaceTransparency))
+        #else
         return .primary.opacity(isLive ? 0.12 : 0.05)
+        #endif
     }
 
     private var borderColor: Color {
