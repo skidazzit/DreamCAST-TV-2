@@ -105,7 +105,7 @@ struct MultiViewTilePlayer: View {
         // Live previews follow the Live TV engine preference. A movie or
         // episode in the SAME embedded host must use its VOD engine priority,
         // or full screen cannot adopt the coordinator and reloads the stream.
-        enginePriority = media.isLive && role.isGuidePreview
+        let configuredPriority = media.isLive && role.isGuidePreview
             ? LiveTVEngineSelection.priority(defaults: defaults)
             : PlayerEnginePriority.playable(
                 PlayerEnginePriority.resolve(
@@ -115,6 +115,21 @@ struct MultiViewTilePlayer: View {
                 ),
                 for: media
             )
+        #if os(iOS)
+        if role.isGuidePreview, role.previewHandle != nil {
+            // A persistent iPhone player must never open a second decoder on
+            // mini <-> full-screen transitions. KSPlayer and AVPlayer can lend
+            // the current coordinator; the other engines cannot. Keep the
+            // user's ordering among these two engines, including fallback.
+            enginePriority = configuredPriority.filter {
+                $0 == .ksPlayer || $0 == .avPlayer
+            }
+        } else {
+            enginePriority = configuredPriority
+        }
+        #else
+        enginePriority = configuredPriority
+        #endif
     }
 
     private var engine: PlayerEngineKind {
