@@ -833,6 +833,8 @@ struct SettingsView: View {
             .buttonStyle(TVDashboardCardStyle())
         }
 
+        @AppStorage(DreamCASTAccentTheme.storageKey) private var accentThemeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+
         private var tvDashboardAppearance: some View {
             VStack(alignment: .leading, spacing: 26) {
                 Text("Appearance")
@@ -844,6 +846,42 @@ struct SettingsView: View {
                 // Reuse the existing playlist-aware bindings and PIN-gated
                 // Content Management action. Do not create duplicate settings.
                 tvLibraryDetail
+
+                Text("Color Theme")
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundStyle(.white)
+
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 180), spacing: 14)], spacing: 14) {
+                    ForEach(DreamCASTAccentTheme.allCases) { theme in
+                        Button {
+                            accentThemeRaw = theme.rawValue
+                        } label: {
+                            VStack(alignment: .leading, spacing: 12) {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(theme.color)
+                                    .frame(height: 30)
+                                HStack {
+                                    Text(theme.title)
+                                        .font(.system(size: 18, weight: .medium))
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
+                                    Spacer(minLength: 4)
+                                    if accentThemeRaw == theme.rawValue {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundStyle(theme.color)
+                                    }
+                                }
+                            }
+                            .padding(12)
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(TVDashboardCardStyle())
+                        .accessibilityAddTraits(accentThemeRaw == theme.rawValue ? [.isSelected] : [])
+                    }
+                }
+                Text("Choose a color for system buttons and controls. Changes save automatically.")
+                    .font(.system(size: 18))
+                    .foregroundStyle(.white.opacity(0.65))
 
                 Text("Display & Layout")
                     .font(.system(size: 26, weight: .bold))
