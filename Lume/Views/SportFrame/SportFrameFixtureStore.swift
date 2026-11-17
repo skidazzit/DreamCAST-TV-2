@@ -32,8 +32,25 @@ enum SportsZoneScoreRefreshPolicy {
 enum SportsDBAccess {
     private static let keychainAccount = "sportFrameSportsDBPremiumKey"
 
-    static var hasPremiumKey: Bool { loadKey() != nil }
-    static var apiKey: String { loadKey() ?? "123" }
+    /// An on-device Settings key overrides a build-time .env key.
+    /// When neither is set, the public demo API remains available.
+    static var hasPremiumKey: Bool { loadKey() != nil || bundledKey != nil }
+    static var apiKey: String { loadKey() ?? bundledKey ?? "123" }
+    static var isUsingBundledKey: Bool { loadKey() == nil && bundledKey != nil }
+
+    private static var bundledKey: String? {
+        guard let raw = Bundle.main.object(forInfoDictionaryKey: "TheSportsDBAPIKey") as? String else {
+            return nil
+        }
+        let cleaned = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Match the manual Keychain validation. Empty templates and the public
+        // demo key must not be treated as a configured Premium subscription.
+        guard !cleaned.isEmpty, cleaned != "123",
+              cleaned.unicodeScalars.allSatisfy({
+                  CharacterSet.alphanumerics.contains($0)
+              }) else { return nil }
+        return cleaned
+    }
 
     private static var keyQuery: [String: Any] {
         [kSecClass as String: kSecClassGenericPassword,
