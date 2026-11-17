@@ -64,6 +64,8 @@ struct EPGGridScroller: View {
     /// Tracks the tapped channel for the iPhone name marquee.
     /// Other platforms ignore this value.
     @State private var selectedChannelID: String?
+    @AppStorage(DreamCASTAccentTheme.storageKey)
+    private var selectedThemeRaw = DreamCASTAccentTheme.defaultValue.rawValue
     @State private var selection: EPGSelection?
     @State private var scrollRequest: EPGScrollRequest?
     #if os(tvOS)
@@ -164,6 +166,29 @@ struct EPGGridScroller: View {
 
                 grid
             }
+            #if os(iOS)
+            // Highlight the entire chosen channel row without making programme
+            // events selectable. The band follows the shared vertical offset.
+            .overlay(alignment: .topLeading) {
+                if let selectedChannelID,
+                   let index = rows.firstIndex(where: { $0.id == selectedChannelID }) {
+                    RoundedRectangle(cornerRadius: metrics.channelCornerRadius)
+                        .fill(DreamCASTAccentTheme.resolve(selectedThemeRaw).selectionAccent.opacity(0.09))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: metrics.channelCornerRadius)
+                                .strokeBorder(
+                                    DreamCASTAccentTheme.resolve(selectedThemeRaw).selectionAccent.opacity(0.75),
+                                    lineWidth: 1.4
+                                )
+                        }
+                        .frame(height: metrics.rowHeight)
+                        .offset(y: metrics.rowOriginY(index) - sync.mirror.y)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
+            }
+            .clipped()
+            #endif
             // On tvOS the focus strip overlays the channel column — the
             // guide's leftmost band, directly beside the rail. Being adjacent
             // to the rail is what makes entry (right from a category) and exit
