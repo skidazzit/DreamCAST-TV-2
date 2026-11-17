@@ -102,12 +102,18 @@ struct MultiViewTilePlayer: View {
         self.role = role
         self.onFailure = onFailure
         let defaults = UserDefaults.standard
-        enginePriority = role.isGuidePreview
+        // Live previews follow the Live TV engine preference. A movie or
+        // episode in the SAME embedded host must use its VOD engine priority,
+        // or full screen cannot adopt the coordinator and reloads the stream.
+        enginePriority = media.isLive && role.isGuidePreview
             ? LiveTVEngineSelection.priority(defaults: defaults)
-            : PlayerEnginePriority.resolve(
-                priorityRaw: defaults.string(forKey: PlayerSettings.enginePriorityKey) ?? "",
-                legacyEngineRaw: defaults.string(forKey: PlayerSettings.engineKey)
-                    ?? PlayerEngineKind.defaultValue.rawValue
+            : PlayerEnginePriority.playable(
+                PlayerEnginePriority.resolve(
+                    priorityRaw: defaults.string(forKey: PlayerSettings.enginePriorityKey) ?? "",
+                    legacyEngineRaw: defaults.string(forKey: PlayerSettings.engineKey)
+                        ?? PlayerEngineKind.defaultValue.rawValue
+                ),
+                for: media
             )
     }
 
