@@ -77,7 +77,7 @@ enum AppAppearance: String, CaseIterable, Identifiable {
 }
 
 
-\n/// Saved accent choices. tvOS keeps its dark display style.
+/// Saved accent choices. tvOS keeps its dark display style.
 enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
     case dreamcast, ocean, violet, emerald, sunset, ruby, grey, charcoal
 
