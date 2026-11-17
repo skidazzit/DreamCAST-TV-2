@@ -277,7 +277,7 @@ struct SettingsView: View {
                 #if os(iOS)
                 .scrollContentBackground(.hidden)
                 .listRowSeparatorTint(DreamCASTMobileTheme.iceBlue.opacity(0.2))
-                .background { DreamCASTMobileWallpaper() }
+                .background { DreamCASTThemeBackground() }
                 #endif
                 .platformNavigationTitle("Settings")
                 .navigationDestination(for: SettingsRoute.self) { route in
