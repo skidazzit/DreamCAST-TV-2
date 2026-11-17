@@ -140,7 +140,6 @@ struct MainTabView: View {
                 dreamCASTMobileDock(selection: selection, tabs: tabs)
             }
             .background { DreamCASTThemeBackground() }
-            .preferredColorScheme(.dark)
         #else
             tabView(selection: selection, tabs: tabs)
         #endif
