@@ -17,6 +17,9 @@ final class SportsZonePlaybackSession {
     /// Store channel changes made inside full screen without spawning a
     /// second decoder in the embedded video host behind that cover.
     private var pendingReturnMedia: PlayableMedia?
+    /// A full-screen request made before the preview rendered a frame waits
+    /// for the same decoder. Never start a parallel stream just for the cover.
+    private(set) var pendingFullScreenRequest = false
 
     func tune(_ media: PlayableMedia, previewMode: GuidePreviewMode = .small) {
         userStopped = false
@@ -25,6 +28,7 @@ final class SportsZonePlaybackSession {
             if previewMode == .off { openFullScreen() }
             return
         }
+        pendingFullScreenRequest = false
         handle.stopPreview()
         failedMediaID = nil
         reloadToken += 1
@@ -34,7 +38,9 @@ final class SportsZonePlaybackSession {
         // Match the Live TV setting: "Off" means no inline preview.
         // Open the stream full screen rather than playing it off-screen.
         if previewMode == .off {
-            openFullScreen()
+            // An explicitly disabled preview has no decoder to borrow.
+            // This is the initial playback, not a handoff/restart.
+            presentFullScreenWithoutPreview()
         }
     }
 
@@ -50,13 +56,31 @@ final class SportsZonePlaybackSession {
     /// Only an explicit tune, Stop or full-screen action changes ownership.
     func openFullScreen() {
         guard let media = miniMedia, fullScreenMedia == nil else { return }
-        if handle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) {
-            handle.handOffToFullScreen()
-        } else {
-            // The selected engine cannot hand over its decoder. Release the
-            // preview connection first, then let full screen start normally.
-            handle.stopPreview()
+        // A tap while the first frame is still buffering must not destroy the
+        // preview and create a second provider request. Wait for the preview's
+        // KSPlayer/AVPlayer decoder, then borrow that exact session.
+        guard handle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) else {
+            pendingFullScreenRequest = true
+            return
         }
+        pendingFullScreenRequest = false
+        handle.handOffToFullScreen()
+        pendingReturnMedia = nil
+        isAwaitingFullScreenDismissal = true
+        fullScreenMedia = media
+    }
+
+    /// Called when the preview coordinator starts producing frames. One pending
+    /// full-screen request can now take ownership without reloading the URL.
+    func previewDidStart() {
+        guard pendingFullScreenRequest else { return }
+        openFullScreen()
+    }
+
+    /// Used only when preview was explicitly disabled, so no decoder exists.
+    private func presentFullScreenWithoutPreview() {
+        guard let media = miniMedia, fullScreenMedia == nil else { return }
+        pendingFullScreenRequest = false
         pendingReturnMedia = nil
         isAwaitingFullScreenDismissal = true
         fullScreenMedia = media
@@ -65,6 +89,7 @@ final class SportsZonePlaybackSession {
     func returnedFromFullScreen() {
         guard isAwaitingFullScreenDismissal, fullScreenMedia == nil else { return }
         isAwaitingFullScreenDismissal = false
+        pendingFullScreenRequest = false
         if let switchedMedia = pendingReturnMedia {
             // A different channel was selected in full screen, so the old
             // preview decoder cannot be adopted. Rebuild only after UIKit
@@ -93,6 +118,7 @@ final class SportsZonePlaybackSession {
     func close() {
         guard fullScreenMedia == nil else { return }
         userStopped = true
+        pendingFullScreenRequest = false
         pendingReturnMedia = nil
         handle.stopPreview()
         miniMedia = nil
@@ -135,12 +161,17 @@ struct SportsZoneMiniPlayer: View {
     #endif
 
     var body: some View {
-        if let media = session.miniMedia, embeddedMode.showsHero {
-            #if os(tvOS)
-            tvPlayer(media)
-            #else
-            phonePlayer(media)
-            #endif
+        Group {
+            if let media = session.miniMedia, embeddedMode.showsHero {
+                #if os(tvOS)
+                tvPlayer(media)
+                #else
+                phonePlayer(media)
+                #endif
+            }
+        }
+        .onChange(of: session.handle.hasStarted) { _, started in
+            if started { session.previewDidStart() }
         }
     }
 
