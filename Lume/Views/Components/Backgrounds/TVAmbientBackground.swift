@@ -181,6 +181,115 @@ struct DreamCASTMobileWallpaper: View {
     }
 }
 
+/// Shared neon-glass surfaces derived from the tvOS design references.
+struct DreamCASTMobileGlass: ViewModifier {
+    var highlighted = false
+    var radius: CGFloat = 18
+
+    func body(content: Content) -> some View {
+        content
+            .background {
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .fill(LinearGradient(
+                        colors: [
+                            DreamCASTMobileTheme.glassTop.opacity(0.93),
+                            DreamCASTMobileTheme.glassBottom.opacity(0.89)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .strokeBorder(
+                        highlighted ? DreamCASTMobileTheme.iceBlue
+                            : DreamCASTMobileTheme.iceBlue.opacity(0.28),
+                        lineWidth: highlighted ? 1.7 : 0.8
+                    )
+            }
+            .shadow(
+                color: highlighted ? DreamCASTMobileTheme.electricBlue.opacity(0.42) : .clear,
+                radius: highlighted ? 13 : 0
+            )
+    }
+}
+
+struct DreamCASTMobileChip: View {
+    let title: String
+    var symbol: String? = nil
+    var selected = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 7) {
+                if let symbol {
+                    Image(systemName: symbol)
+                        .font(.subheadline.weight(.semibold))
+                }
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 14)
+            .frame(minHeight: 43)
+            .background {
+                if selected {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(LinearGradient(
+                            colors: [
+                                DreamCASTMobileTheme.electricBlue,
+                                Color(red: 0.015, green: 0.22, blue: 0.58)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ))
+                }
+            }
+            .dreamCASTGlass(highlighted: selected, radius: 14)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? [.isSelected] : [])
+    }
+}
+
+/// A compact shared brand and section header above the persistent player.
+/// Content tabs retain their own navigation stacks and data-driven labels.
+struct DreamCASTMobilePageHeading: View {
+    let title: String
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 10) {
+            Image(systemName: "play.tv.fill")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundStyle(DreamCASTMobileTheme.iceBlue)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 3) {
+                    Text("DreamCAST").foregroundStyle(.white)
+                    Text("TV 2").foregroundStyle(DreamCASTMobileTheme.iceBlue)
+                }
+                .font(.subheadline.weight(.heavy))
+                Text(title)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.white)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+extension View {
+    func dreamCASTGlass(highlighted: Bool = false, radius: CGFloat = 18) -> some View {
+        modifier(DreamCASTMobileGlass(highlighted: highlighted, radius: radius))
+    }
+}
+
 /// Apply to page roots. The wallpaper is not inside ScrollView content.
 private struct DreamCASTMobilePageTheme: ViewModifier {
     func body(content: Content) -> some View {
