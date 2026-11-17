@@ -260,24 +260,14 @@ struct DreamCASTMobilePageHeading: View {
     let title: String
 
     var body: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 0) {
-                // The user-supplied DreamCAST TV crescent/play wordmark is
-                // shared by every iPhone tab. Its transparent PNG ships in
-                // DreamCASTHeaderLogo.imageset; no SF Symbol or fake wordmark.
-                Image("DreamCASTHeaderLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 176, height: 90, alignment: .leading)
-                    .accessibilityHidden(true)
-
-                Text(title)
-                    .font(.title3.weight(.bold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                    .padding(.leading, 65)
-                    .padding(.top, -3)
-            }
+        HStack(alignment: .center) {
+            // Shared brand logo, sized to half its former width and height.
+            // Keep the tab name only as an accessibility label, not on screen.
+            Image("DreamCASTHeaderLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 88, height: 45, alignment: .leading)
+                .accessibilityHidden(true)
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 18)
