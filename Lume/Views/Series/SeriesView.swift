@@ -154,6 +154,9 @@ struct SeriesView: View {
                     #endif
                 }
             }
+            #if os(iOS)
+            .background { DreamCASTThemeBackground() }
+            #endif
             .platformNavigationTitle("Series")
             .profileMenuToolbar()
             .libraryToolbar(config: LibraryToolbarConfiguration(
