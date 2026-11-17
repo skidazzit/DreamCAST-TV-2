@@ -779,6 +779,7 @@ private struct SportFrameMobileMatchSheet: View {
                 }
                 .padding()
             }
+            .background { DreamCASTMobileWallpaper() }
             .navigationTitle("Match channels")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
