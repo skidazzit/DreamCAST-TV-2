@@ -834,6 +834,10 @@ struct SettingsView: View {
         }
 
         @AppStorage(DreamCASTAccentTheme.storageKey) private var accentThemeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+        @AppStorage(DreamCASTVisualSettings.liquidGlassKey)
+        private var dashboardLiquidGlass = DreamCASTVisualSettings.defaultLiquidGlass
+        @AppStorage(DreamCASTVisualSettings.transparencyKey)
+        private var dashboardTransparency = DreamCASTVisualSettings.defaultTransparency
 
         private var tvDashboardAppearance: some View {
             VStack(alignment: .leading, spacing: 26) {
@@ -881,6 +885,24 @@ struct SettingsView: View {
                     }
                 }
                 Text("Choose matching accent colors and gradient backgrounds. Changes save automatically.")
+                    .font(.system(size: 18))
+                    .foregroundStyle(.white.opacity(0.65))
+
+                Text("Surface Style")
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundStyle(TVNeonTheme.iceBlue)
+                TVOptionToggleRow(title: "Liquid Glass", isOn: $dashboardLiquidGlass)
+                HStack(spacing: 20) {
+                    Text("Transparency")
+                        .font(.system(size: 22))
+                    Slider(value: $dashboardTransparency, in: 0.2 ... 1, step: 0.05)
+                    Text("\(Int(dashboardTransparency * 100))%")
+                        .font(.system(size: 20, weight: .semibold))
+                        .frame(width: 70, alignment: .trailing)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                Text("Adjust dock cards, menu surfaces, and selected controls.")
                     .font(.system(size: 18))
                     .foregroundStyle(.white.opacity(0.65))
 
