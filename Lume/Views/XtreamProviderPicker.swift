@@ -7,10 +7,10 @@ struct XtreamProvider: Identifiable {
     let serverURL: String
 
     static let available: [XtreamProvider] = [
-        ("IPTVEDITOR", "IPTVeditor"),
-        ("DREAMCAST", "DreamCast TV"),
+        ("DREAMCAST", "DreamCAST TV"),
         ("KLEPTO", "Klepto TV"),
-        ("STRONG", "Strong")
+        ("STRONG", "Strong"),
+        ("IPTVEDITOR", "IPTVeditor")
     ].compactMap { id, name in
         guard let address = Bundle.main.object(forInfoDictionaryKey: "XtreamProvider\(id)URL") as? String else {
             return nil
