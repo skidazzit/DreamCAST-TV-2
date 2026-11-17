@@ -145,6 +145,7 @@ struct DreamCASTMobileGlass: ViewModifier {
 
 struct DreamCASTMobileChip: View {
     @AppStorage(DreamCASTAccentTheme.storageKey) private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+    @AppStorage(AppAppearance.storageKey) private var appearanceRaw = AppAppearance.defaultValue.rawValue
     let title: String
     var symbol: String? = nil
     var selected = false
@@ -168,7 +169,7 @@ struct DreamCASTMobileChip: View {
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(AppAppearance.resolve(appearanceRaw) == .light || DreamCASTAccentTheme.resolve(themeRaw) == .white ? Color.black : Color.white)
             .padding(.horizontal, 14)
             .frame(minHeight: 43)
             .background {
@@ -176,7 +177,7 @@ struct DreamCASTMobileChip: View {
                     RoundedRectangle(cornerRadius: 14)
                         .fill(LinearGradient(
                             colors: [
-                                DreamCASTAccentTheme.resolve(themeRaw).color,
+                                DreamCASTAccentTheme.resolve(themeRaw).selectionAccent,
                                 DreamCASTAccentTheme.resolve(themeRaw).gradientColors[1]
                             ],
                             startPoint: .top,
