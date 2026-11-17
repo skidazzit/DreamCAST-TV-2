@@ -134,7 +134,9 @@ struct MainTabView: View {
                         .frame(maxWidth: .infinity)
                 }
                 dreamCASTMobileContent(selection: selection, tabs: tabs)
+                    // The guide owns the flexible height when the phone rotates.
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .layoutPriority(1)
                 dreamCASTMobileDock(selection: selection, tabs: tabs)
             }
             .background { DreamCASTThemeBackground() }
