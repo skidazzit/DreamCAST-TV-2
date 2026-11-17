@@ -531,7 +531,10 @@ struct FullScreenPlayerView: View {
 
     func returnAdoptedLiveToGuide() {
         #if os(tvOS) || os(iOS)
-            guard activeMedia.isLive, let adoption, adoption.mediaID == activeMedia.id,
+            // This root-owned player now hosts live channels AND VOD.
+            // Reclaim the same decoder for either type, without preparing the
+            // media again when the full-screen cover closes.
+            guard let adoption, adoption.mediaID == activeMedia.id,
                   adoption.engineAttempt == engineAttempt, adoption.coordinator.engine == engine else { return }
             _ = adoption.handle.returnToPreview(mediaID: activeMedia.id)
         #endif
