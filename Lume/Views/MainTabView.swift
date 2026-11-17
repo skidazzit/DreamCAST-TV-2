@@ -13,6 +13,8 @@ struct MainTabView: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.colorScheme) private var deviceScheme
     @AppStorage(AppAppearance.storageKey) private var displayModeRaw = AppAppearance.defaultValue.rawValue
+    @AppStorage(DreamCASTVisualSettings.transparencyKey)
+    private var surfaceTransparency = DreamCASTVisualSettings.defaultTransparency
     private var isLightDisplay: Bool {
         let mode = AppAppearance.resolve(displayModeRaw)
         return mode == .light || (mode == .system && deviceScheme == .light)
@@ -223,7 +225,7 @@ struct MainTabView: View {
                     .background {
                         if selection.wrappedValue == tab {
                             RoundedRectangle(cornerRadius: 15)
-                                .fill(DreamCASTVisualSettings.theme.selectionAccent.opacity(0.82))
+                                .fill(DreamCASTVisualSettings.theme.selectionAccent.opacity(max(0.38, 1 - surfaceTransparency * 0.65)))
                         }
                     }
                     .dreamCASTGlass(highlighted: selection.wrappedValue == tab, radius: 15)
