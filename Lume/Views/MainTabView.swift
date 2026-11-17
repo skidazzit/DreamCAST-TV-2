@@ -9,6 +9,9 @@ import SwiftData
 import SwiftUI
 
 struct MainTabView: View {
+    #if os(iOS)
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    #endif
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
     // Optional so previews (which don't inject it) don't crash.
@@ -119,7 +122,11 @@ struct MainTabView: View {
     ) -> some View {
         #if os(iOS)
             VStack(spacing: 0) {
-                DreamCASTMobilePageHeading(title: mobileTitle(for: selection.wrappedValue))
+                // Landscape needs the freed space for guide rows and drag gestures.
+                // Keep the same live player mounted; only its layout becomes compact.
+                if verticalSizeClass != .compact {
+                    DreamCASTMobilePageHeading(title: mobileTitle(for: selection.wrappedValue))
+                }
                 if sharedLivePlayback.miniMedia != nil {
                     // This host never moves between page views. Keep the same
                     // decoder while the custom dock changes the content below.
@@ -196,16 +203,16 @@ struct MainTabView: View {
                 Button {
                     selection.wrappedValue = tab
                 } label: {
-                    VStack(spacing: 4) {
+                    VStack(spacing: verticalSizeClass == .compact ? 1 : 4) {
                         Image(systemName: symbol)
-                            .font(.system(size: 19, weight: .semibold))
+                            .font(.system(size: verticalSizeClass == .compact ? 16 : 19, weight: .semibold))
                         Text(title)
                             .font(.system(size: 9.5, weight: .semibold))
                             .lineLimit(1)
                             .minimumScaleFactor(0.75)
                     }
                     .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, minHeight: 55)
+                    .frame(maxWidth: .infinity, minHeight: verticalSizeClass == .compact ? 35 : 55)
                     .background {
                         if selection.wrappedValue == tab {
                             RoundedRectangle(cornerRadius: 15)
@@ -219,10 +226,10 @@ struct MainTabView: View {
                 .accessibilityAddTraits(selection.wrappedValue == tab ? [.isSelected] : [])
             }
         }
-        .padding(5)
+        .padding(verticalSizeClass == .compact ? 2 : 5)
         .dreamCASTGlass(radius: 22)
         .padding(.horizontal, 10)
-        .padding(.bottom, 4)
+        .padding(.bottom, verticalSizeClass == .compact ? 0 : 4)
     }
     #endif
 
