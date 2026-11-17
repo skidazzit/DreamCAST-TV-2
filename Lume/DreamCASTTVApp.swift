@@ -304,6 +304,7 @@ struct LumeApp: App {
     /// `.preferredColorScheme` can't do this. The players stay unaffected —
     /// they force dark themselves.
     @AppStorage(AppAppearance.storageKey) private var appearanceRaw = AppAppearance.defaultValue.rawValue
+    @AppStorage(DreamCASTAccentTheme.storageKey) private var accentThemeRaw = DreamCASTAccentTheme.defaultValue.rawValue
 
     /// Rebuilds the shared widget / Top Shelf snapshot off the main actor. Cheap
     /// enough to run on every launch and backgrounding: a handful of bounded
@@ -546,6 +547,7 @@ struct LumeApp: App {
                     #endif
                 }
                 .appAppearance(AppAppearance.resolve(appearanceRaw))
+                .tint(DreamCASTAccentTheme.resolve(accentThemeRaw).color)
         }
         .modelContainer(catalogContainer)
 
