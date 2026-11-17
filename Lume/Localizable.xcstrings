@@ -3458,7 +3458,7 @@
         }
       }
     },
-    "A Premium key is saved. The status above checks whether v2 access works." : {
+    "A Premium key is saved on this device. The status above checks whether v2 access works." : {
 
     },
     "A sentence or two helps a lot. It's added to the top of the report." : {
@@ -58130,6 +58130,9 @@
           }
         }
       }
+    },
+    "Premium key loaded from the build's .env file. To change it, edit .env and rebuild. A key saved below takes priority." : {
+
     },
     "premium.chromecast.subtitle" : {
       "comment" : "Lume Pro feature description: casting from iPhone or iPad to a Chromecast on the same network.",
