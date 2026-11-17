@@ -55,7 +55,16 @@ final class SportsZonePlaybackSession {
     /// Switching pages never touches the media or decoder.
     /// Only an explicit tune, Stop or full-screen action changes ownership.
     func openFullScreen() {
-        guard let media = miniMedia, fullScreenMedia == nil else { return }
+        guard let media = miniMedia, fullScreenMedia == nil,
+              failedMediaID != media.id else { return }
+        // AirPlay sends full-screen video through a different route. That
+        // cannot adopt the local decoder, so keep the prior explicit fallback
+        // instead of leaving a pending request that could never complete.
+        if CastService.shared.isAirPlayActive {
+            handle.stopPreview()
+            presentFullScreenWithoutPreview()
+            return
+        }
         // A tap while the first frame is still buffering must not destroy the
         // preview and create a second provider request. Wait for the preview's
         // KSPlayer/AVPlayer decoder, then borrow that exact session.
@@ -73,8 +82,16 @@ final class SportsZonePlaybackSession {
     /// Called when the preview coordinator starts producing frames. One pending
     /// full-screen request can now take ownership without reloading the URL.
     func previewDidStart() {
-        guard pendingFullScreenRequest else { return }
+        guard pendingFullScreenRequest, handle.hasStarted else { return }
         openFullScreen()
+    }
+
+    /// A failed preview must cancel a pending full-screen request. Otherwise
+    /// tapping Full Screen would wait forever for a frame that cannot arrive.
+    func previewFailed(_ mediaID: String) {
+        guard miniMedia?.id == mediaID, handle.owner == .preview else { return }
+        pendingFullScreenRequest = false
+        failedMediaID = mediaID
     }
 
     /// Used only when preview was explicitly disabled, so no decoder exists.
@@ -309,11 +326,7 @@ struct SportsZoneMiniPlayer: View {
                     media: media,
                     isMuted: false,
                     role: .guidePreview(handle: session.handle),
-                    onFailure: {
-                        guard session.miniMedia?.id == media.id,
-                              session.handle.owner == .preview else { return }
-                        session.failedMediaID = media.id
-                    }
+                    onFailure: { session.previewFailed(media.id) }
                 )
                 .id("\(media.id)-\(session.reloadToken)")
             }
