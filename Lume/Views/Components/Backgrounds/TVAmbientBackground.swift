@@ -111,16 +111,21 @@ struct DreamCASTMobileGlass: ViewModifier {
     var highlighted = false
     var radius: CGFloat = 18
     @AppStorage(DreamCASTAccentTheme.storageKey) private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+    @AppStorage(AppAppearance.storageKey) private var appearanceRaw = AppAppearance.defaultValue.rawValue
     @AppStorage(DreamCASTVisualSettings.liquidGlassKey) private var liquidGlass = DreamCASTVisualSettings.defaultLiquidGlass
     @AppStorage(DreamCASTVisualSettings.transparencyKey) private var transparency = DreamCASTVisualSettings.defaultTransparency
+    @Environment(\.colorScheme) private var deviceScheme
 
     func body(content: Content) -> some View {
         let theme = DreamCASTAccentTheme.resolve(themeRaw)
+        let mode = AppAppearance.resolve(appearanceRaw)
+        let isLight = mode == .light || (mode == .system && deviceScheme == .light)
+        let palette = theme.backgroundColors(light: isLight)
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
         return content
             .background {
                 shape.fill(LinearGradient(
-                    colors: theme.gradientColors.map { $0.opacity(liquidGlass ? (1 - transparency) * 0.46 : (1 - transparency)) },
+                    colors: palette.map { $0.opacity(liquidGlass ? (1 - transparency) * 0.46 : (1 - transparency)) },
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 ))
@@ -170,7 +175,7 @@ struct DreamCASTMobileChip: View {
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
             }
-            .foregroundStyle(AppAppearance.resolve(appearanceRaw) == .light || (AppAppearance.resolve(appearanceRaw) == .system && deviceScheme == .light) ? Color.black : Color.white)
+            .foregroundStyle(selected ? Color.white : (AppAppearance.resolve(appearanceRaw) == .light || (AppAppearance.resolve(appearanceRaw) == .system && deviceScheme == .light) ? Color.black : Color.white))
             .padding(.horizontal, 14)
             .frame(minHeight: 43)
             .background {
