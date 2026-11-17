@@ -207,6 +207,9 @@ struct LiveTVView: View {
                     }
                 }
             }
+            #if os(iOS)
+            .background { DreamCASTMobileWallpaper() }
+            #endif
             .libraryToolbar(config: LibraryToolbarConfiguration(
                 playlists: playlists,
                 selectedPlaylistID: $selectedPlaylistID,
