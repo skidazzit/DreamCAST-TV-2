@@ -2,15 +2,15 @@
 //  EPGGrid.swift
 //  DreamCAST TV
 //
-//  The Guide is a read-only window onto the current EPG time.
-//  Only the channel-name column scrolls vertically. No swipes or remote
-//  focus moves in programme cells can move the time ruler.
+//  iOS: swipe horizontally across the programme surface to browse times.
+//  Only the channel-name column selects stations and scrolls vertically.
+//  Programme events never take focus or trigger playback.
 //
 
 import SwiftUI
 
-/// A fixed, clipped programme surface. The channel rail sends vertical
-/// scroll requests and the clock keeps the displayed time parked near now.
+/// A clipped programme surface. The channel rail scrolls vertically;
+/// a horizontal drag on the grid browses programme times without selection.
 /// The same offset is published to the ruler and frozen channel names.
 struct EPGGrid: View, Equatable {
     let rows: [EPGChannelRow]
@@ -40,6 +40,9 @@ struct EPGGrid: View, Equatable {
     @State private var parkedOffset = CGPoint.zero
     @State private var viewport = CGSize.zero
     @State private var didMount = false
+    #if os(iOS)
+    @State private var horizontalDragStart: CGFloat?
+    #endif
 
     var body: some View {
         GeometryReader { geometry in
@@ -66,6 +69,31 @@ struct EPGGrid: View, Equatable {
             )
             .clipped()
             .allowsHitTesting(false)
+            #if os(iOS)
+            .overlay {
+                // The transparent gesture layer accepts only horizontal swipes.
+                // Channel selection remains exclusively in the frozen name rail.
+                Color.clear
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 12)
+                            .onChanged { gesture in
+                                guard abs(gesture.translation.width) > abs(gesture.translation.height) else { return }
+                                let start = horizontalDragStart ?? parkedOffset.x
+                                if horizontalDragStart == nil { horizontalDragStart = start }
+                                park(x: start - gesture.translation.width,
+                                     y: parkedOffset.y, animated: false)
+                            }
+                            .onEnded { gesture in
+                                if let start = horizontalDragStart {
+                                    park(x: start - gesture.translation.width,
+                                         y: parkedOffset.y, animated: false)
+                                }
+                                horizontalDragStart = nil
+                            }
+                    )
+            }
+            #endif
             .onAppear {
                 updateViewport(geometry.size)
                 guard !didMount else { return }
@@ -78,16 +106,16 @@ struct EPGGrid: View, Equatable {
         }
         .onChange(of: initialRowOffset) { _, rowOffset in
             guard didMount else { return }
-            park(x: currentTimeOffset(), y: rowOffset, animated: false)
+            park(x: parkedOffset.x, y: rowOffset, animated: false)
         }
         .onChange(of: scrollRequest) { _, request in
             guard let request else { return }
-            // Ignore requests to pan time. Only channel-rail Y survives.
-            park(x: currentTimeOffset(), y: request.point.y, animated: request.animated)
+            // Keep the time selected by horizontal swipes while the rail moves vertically.
+            park(x: parkedOffset.x, y: request.point.y, animated: request.animated)
         }
         .task {
-            // Keep "now" in the same part of the ruler during long viewing
-            // sessions. This never changes the current channel or playback.
+            // Refresh row realization without snapping the timeline to "now".
+            // Horizontal browsing remains where the viewer left it.
             while !Task.isCancelled {
                 do {
                     try await Task.sleep(for: .seconds(60))
@@ -95,7 +123,7 @@ struct EPGGrid: View, Equatable {
                     break
                 }
                 guard !Task.isCancelled, didMount else { break }
-                park(x: currentTimeOffset(), y: parkedOffset.y, animated: false)
+                park(x: parkedOffset.x, y: parkedOffset.y, animated: false)
             }
         }
     }
@@ -114,7 +142,7 @@ struct EPGGrid: View, Equatable {
               || abs(size.height - viewport.height) > 1 else { return }
         viewport = size
         park(
-            x: didMount ? currentTimeOffset() : nowTarget,
+            x: didMount ? parkedOffset.x : nowTarget,
             y: didMount ? parkedOffset.y : initialRowOffset,
             animated: false
         )
