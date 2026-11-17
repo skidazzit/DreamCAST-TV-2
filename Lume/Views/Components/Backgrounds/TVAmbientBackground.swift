@@ -15,18 +15,21 @@
     /// DreamCAST TV 2 visual tokens, matched to the approved dark/neon reference.
     /// Names here keep every tvOS tab using the same colors and outlines.
     enum TVNeonTheme {
-        static let midnight = Color(red: 3 / 255, green: 11 / 255, blue: 25 / 255)
-        static let electricBlue = Color(red: 17 / 255, green: 127 / 255, blue: 255 / 255)
-        static let iceBlue = Color(red: 89 / 255, green: 205 / 255, blue: 255 / 255)
-        static let glassTop = Color(red: 27 / 255, green: 45 / 255, blue: 68 / 255)
-        static let glassBottom = Color(red: 14 / 255, green: 27 / 255, blue: 47 / 255)
+        static var midnight: Color { DreamCASTVisualSettings.theme.gradientColors[2] }
+        static var electricBlue: Color { DreamCASTVisualSettings.theme.color }
+        static var iceBlue: Color { DreamCASTVisualSettings.theme.color.opacity(0.88) }
+        static var glassTop: Color { DreamCASTVisualSettings.theme.gradientColors[1] }
+        static var glassBottom: Color { DreamCASTVisualSettings.theme.gradientColors[0] }
 
         static var glass: LinearGradient {
-            LinearGradient(colors: [glassTop.opacity(0.94), glassBottom.opacity(0.94)],
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
+            let a = DreamCASTVisualSettings.transparency
+            return LinearGradient(
+                colors: [glassTop.opacity(a), glassBottom.opacity(a)],
+                startPoint: .topLeading, endPoint: .bottomTrailing
+            )
         }
         static var selection: LinearGradient {
-            LinearGradient(colors: [electricBlue, Color(red: 0.02, green: 0.25, blue: 0.64)],
+            LinearGradient(colors: [electricBlue, DreamCASTVisualSettings.theme.gradientColors[1]],
                            startPoint: .top, endPoint: .bottom)
         }
     }
@@ -43,7 +46,7 @@
         let hero: GuideHeroModel?
 
         /// `#090B10`.
-        static let base = TVNeonTheme.midnight
+        static var base: Color { TVNeonTheme.midnight }
 
         /// Laid out on the 1920 × 1080 design canvas and scaled to the screen.
         private static let canvasWidth: CGFloat = 1920
@@ -53,8 +56,11 @@
         private static let glowSize = CGSize(width: 1980, height: 1660)
         private static let glowOpacity = 0.5
 
+        @AppStorage(DreamCASTAccentTheme.storageKey) private var selectedThemeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+        @AppStorage(DreamCASTVisualSettings.transparencyKey) private var transparency = DreamCASTVisualSettings.defaultTransparency
+
         private var tint: Color {
-            hero?.glowTint ?? LiveTVPalette.accent
+            DreamCASTAccentTheme.resolve(selectedThemeRaw).color
         }
 
         var body: some View {
@@ -152,7 +158,7 @@
             )
         }
 
-        private static let darkening = LinearGradient(
+        private static var darkening: LinearGradient { LinearGradient(
             stops: [
                 .init(color: base.opacity(0.15), location: 0),
                 .init(color: base.opacity(0.7), location: 0.52),
@@ -161,6 +167,6 @@
             ],
             startPoint: .top,
             endPoint: .bottom
-        )
+        ) }
     }
 #endif
