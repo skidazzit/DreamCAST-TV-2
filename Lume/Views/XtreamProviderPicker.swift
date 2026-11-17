@@ -1,48 +1,43 @@
 import SwiftUI
 
-/// Provider addresses come from the build's .env mapping, never user input.
-struct XtreamProvider: Identifiable {
-    let id: String
-    let name: String
-    let serverURL: String
+@Observable
+final class XtreamProviderStore {
+    static let shared = XtreamProviderStore()
+    var providers = XtreamProvider.available
 
-    static let available: [XtreamProvider] = [
-        ("DREAMCAST", "DreamCAST TV"),
-        ("KLEPTO", "Klepto TV"),
-        ("STRONG", "Strong"),
-        ("IPTVEDITOR", "IPTVeditor")
-    ].compactMap { id, name in
-        guard let address = Bundle.main.object(forInfoDictionaryKey: "XtreamProvider\(id)URL") as? String else {
-            return nil
-        }
-        let trimmed = address.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let url = URL(string: trimmed),
-              let scheme = url.scheme?.lowercased(),
-              ["http", "https"].contains(scheme),
-              let host = url.host, !host.isEmpty,
-              url.user == nil, url.password == nil else { return nil }
-        return XtreamProvider(id: id, name: name, serverURL: trimmed)
+    func refresh() async {
+        await XtreamProviderRefresh.shared.refresh()
+        providers = XtreamProvider.available
     }
 }
 
 struct XtreamProviderPicker: View {
     @Binding var serverURL: String
+    @State private var store = XtreamProviderStore.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Picker("Server Provider", selection: $serverURL) {
                 Text("Select a provider").tag("")
-                ForEach(XtreamProvider.available) { provider in
+                ForEach(store.providers) { provider in
                     Text(verbatim: provider.name).tag(provider.serverURL)
                 }
             }
             #if !os(tvOS)
                 .pickerStyle(.menu)
             #endif
-            if XtreamProvider.available.isEmpty {
+            if store.providers.isEmpty {
                 Text("No servers are set up. Contact app support.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+            }
+        }
+        .task { await store.refresh() }
+        .onChange(of: store.providers.map(\.serverURL)) { _, _ in
+            // Keep a selected provider selected if its address changed while open.
+            guard !serverURL.isEmpty else { return }
+            if let provider = XtreamProviderDirectory.provider(address: serverURL) {
+                serverURL = provider.enabled ? provider.serverURL : ""
             }
         }
     }

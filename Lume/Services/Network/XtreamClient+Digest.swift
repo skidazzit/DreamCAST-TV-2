@@ -65,7 +65,7 @@ extension XtreamClient {
             URLQueryItem(name: "password", value: playlist.password),
             URLQueryItem(name: "action", value: action)
         ]
-        guard let url = buildURL(serverURL: playlist.serverURL, path: "player_api.php", queryItems: queryItems) else {
+        guard let url = buildURL(serverURL: playlist.effectiveXtreamServerURL, path: "player_api.php", queryItems: queryItems) else {
             throw XtreamError.invalidURL
         }
         return try await withRetries(action: action) {

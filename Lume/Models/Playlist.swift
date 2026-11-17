@@ -8,6 +8,8 @@ final class Playlist {
     /// Xtream: the portal base URL. M3U: the playlist URL (http(s) or a local
     /// `file://` URL produced by the file importer).
     var serverURL: String
+    /// Stable directory ID; nil preserves custom and older playlist setups.
+    var xtreamProviderID: String?
     var username: String
     var password: String
 
@@ -340,7 +342,7 @@ extension Playlist {
     /// userinfo credentials are stripped, so a URL that carries them cannot be
     /// shown, screenshotted or read aloud.
     var displayURL: String {
-        guard var components = URLComponents(string: serverURL) else { return serverURL }
+        guard var components = URLComponents(string: effectiveXtreamServerURL) else { return serverURL }
         components.user = nil
         components.password = nil
         return components.string ?? serverURL

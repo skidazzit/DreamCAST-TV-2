@@ -22,7 +22,7 @@ nonisolated struct RecordingPlaylistSource: Hashable {
 
 extension RecordingPlaylistSource {
     init(playlist: Playlist) {
-        self.init(id: playlist.id, sourceType: playlist.sourceType, serverURL: playlist.serverURL)
+        self.init(id: playlist.id, sourceType: playlist.sourceType, serverURL: playlist.effectiveXtreamServerURL)
     }
 }
 

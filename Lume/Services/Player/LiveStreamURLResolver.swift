@@ -31,7 +31,9 @@ nonisolated enum LiveStreamURLResolver {
         // An m3u channel plays at the URL the playlist listed; the chosen
         // container rewrites it only when the provider used one of the two
         // interchangeable live endpoints. Xtream URLs are built with it.
-        let directURL = stream.directURL.flatMap(URL.init(string:)).map(playlist.streamFormat.applied(to:))
+        let directURL = stream.directURL.flatMap(URL.init(string:))
+            .map { XtreamProviderDirectory.resolvedDirectURL($0, playlist: playlist) }
+            .map(playlist.streamFormat.applied(to:))
         return directURL ?? client.buildLiveStreamURL(for: stream, playlist: playlist)
     }
 

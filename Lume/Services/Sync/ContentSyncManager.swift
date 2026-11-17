@@ -93,6 +93,13 @@ actor ContentSyncManager {
             throw SyncError.playlistNotFound
         }
 
+        if playlist.sourceType == .xtream {
+            await XtreamProviderRefresh.shared.refresh()
+            if playlist.xtreamProviderID == nil {
+                playlist.xtreamProviderID = XtreamProviderDirectory.provider(address: playlist.serverURL)?.id
+            }
+        }
+
         playlist.syncStatus = .syncing
         try statusContext.save()
 

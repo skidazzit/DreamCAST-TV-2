@@ -414,7 +414,7 @@ struct PlaylistDetailView: View {
 extension PlaylistDetailView {
     func startEditing() {
         editName = playlist.name
-        editServerURL = playlist.serverURL
+        editServerURL = playlist.effectiveXtreamServerURL
         editUsername = playlist.username
         editPassword = playlist.password
         editEPGURL = playlist.epgURL ?? ""
@@ -428,7 +428,11 @@ extension PlaylistDetailView {
 
     func saveChanges() {
         playlist.name = editName.trimmingCharacters(in: .whitespacesAndNewlines)
-        playlist.serverURL = editServerURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let updatedAddress = editServerURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        if playlist.sourceType == .xtream, updatedAddress != playlist.effectiveXtreamServerURL {
+            playlist.xtreamProviderID = XtreamProviderDirectory.provider(address: updatedAddress)?.id
+        }
+        playlist.serverURL = updatedAddress
         if isM3U {
             let epgURL = editEPGURL.trimmingCharacters(in: .whitespacesAndNewlines)
             playlist.epgURL = epgURL.isEmpty ? nil : epgURL

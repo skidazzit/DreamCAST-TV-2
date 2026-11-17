@@ -52,6 +52,7 @@ struct LoginView: View {
 
     @State private var name = ""
     @State private var serverURL = ""
+    @State private var providerStore = XtreamProviderStore.shared
     @State var username = ""
     @State var password = ""
 
@@ -86,7 +87,7 @@ struct LoginView: View {
         switch sourceType {
         case .xtream:
             !trimmedName.isEmpty
-                && XtreamProvider.available.contains(where: { $0.serverURL == serverURL })
+                && providerStore.providers.contains(where: { $0.serverURL == serverURL })
                 && !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 && !password.isEmpty
         case .m3u:
@@ -397,6 +398,8 @@ struct LoginView: View {
                 username: username,
                 password: password
             )
+
+            playlist.xtreamProviderID = XtreamProviderDirectory.provider(address: serverURL)?.id
 
             let client = XtreamClient()
             do {

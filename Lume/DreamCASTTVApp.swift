@@ -340,6 +340,7 @@ struct LumeApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .task { await XtreamProviderStore.shared.refresh() }
                 #if os(tvOS)
                 .overlay {
                     if showDreamCASTSplash {
@@ -518,6 +519,7 @@ struct LumeApp: App {
                     DiagnosticSession.scenePhaseChanged(to: phase)
                     cloudSync.handleScenePhaseChange(to: phase)
                     if phase == .active {
+                        Task { await XtreamProviderStore.shared.refresh() }
                         Task { await backendChoiceWatcher.refresh() }
                     }
                     // Keep the image disk cache inside its size limit. Rate-limited

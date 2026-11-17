@@ -76,7 +76,7 @@ extension XtreamClient {
         let ext = Self.resolvedFormat(format, playlist: playlist, fallback: .tsStream).rawValue
         return Self.buildCatchupURL(
             TimeshiftTarget(
-                serverURL: playlist.serverURL,
+                serverURL: playlist.effectiveXtreamServerURL,
                 username: playlist.username,
                 password: playlist.password,
                 streamId: stream.streamId,

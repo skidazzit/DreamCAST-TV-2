@@ -218,7 +218,8 @@ nonisolated extension PlayableMedia {
         // the walk stored the resolved file URL (WebDAV) or the sync stored the
         // token-free stream URL (Jellyfin/Emby/Plex), and there is nothing to
         // build.
-        return directURL.flatMap(URL.init(string:)) ?? build()
+        return directURL.flatMap(URL.init(string:))
+            .map { XtreamProviderDirectory.resolvedDirectURL($0, playlist: playlist) } ?? build()
     }
 
     static func from(episode: Episode, playlist: Playlist, client: XtreamClient = XtreamClient()) -> PlayableMedia? {
