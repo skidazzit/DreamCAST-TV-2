@@ -895,7 +895,7 @@ struct SettingsView: View {
                 HStack(spacing: 20) {
                     Text("Transparency")
                         .font(.system(size: 22))
-                    Slider(value: $dashboardTransparency, in: 0.2 ... 1, step: 0.05)
+                    Slider(value: $dashboardTransparency, in: 0 ... 0.85, step: 0.05)
                     Text("\(Int(dashboardTransparency * 100))%")
                         .font(.system(size: 20, weight: .semibold))
                         .frame(width: 70, alignment: .trailing)
