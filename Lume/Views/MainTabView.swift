@@ -33,6 +33,7 @@ struct MainTabView: View {
     #if os(tvOS)
     /// This session belongs to the app root, not a tab. No tab switch unmounts it.
     @State private var sharedLivePlayback = SportsZonePlaybackSession()
+    @State private var restoredLastLiveOnLaunch = false
     @State private var backFocus = TVBackFocusCoordinator()
     @State private var ambientTheme = TVAmbientThemeSession()
     @State private var livePlayerSlotFrame: CGRect?
@@ -221,6 +222,13 @@ struct MainTabView: View {
             .onChange(of: playlists.map { "\($0.id)|\($0.syncStatusRaw)" }) { _, _ in
                 try? DreamCASTLocalSettingsBackup.applyPendingViewingState(in: modelContext)
             }
+            #if os(iOS) || os(tvOS)
+            .task(id: "\(scope.token)|\(playlists.map { "\($0.id)|\($0.syncStatusRaw)" }.joined(separator: ";"))") {
+                // Run at launch, and retry after a catalog import finishes.
+                // Do not replay an old live channel when VOD played last.
+                restoreLastLiveChannelOnLaunch()
+            }
+            #endif
             .task(id: playlists.count) {
                 // On launch (and whenever a playlist is added) sync the active
                 // playlist if it is due, plus any playlist that has never synced.
@@ -809,6 +817,35 @@ struct MainTabView: View {
             .filter { !restriction.hides(categoryID: $0.categoryId) && !playlists.isLocked(contentID: $0.id) }
         return matches.first { matcher.contains($0.id, .series) } ?? matches.first
     }
+
+    // MARK: - Cold launch Live TV restore
+
+    #if os(iOS) || os(tvOS)
+    /// The app-root player is mounted across every tab. Restore at most once,
+    /// after cached or freshly synced rows are available, without opening
+    /// full screen or replacing any playback the viewer already started.
+    private func restoreLastLiveChannelOnLaunch() {
+        guard !restoredLastLiveOnLaunch,
+              LiveChannelHistory.shouldResumeLiveOnLaunch(),
+              sharedLivePlayback.miniMedia == nil,
+              sharedLivePlayback.fullScreenMedia == nil,
+              !sharedLivePlayback.userStopped,
+              visibleTabs(in: catalogScope).showsTab(.liveTV),
+              let lastID = LiveChannelHistory.currentChannelId(),
+              let stream = PlayerContentLookup.liveStream(lastID, in: modelContext),
+              !stream.isHidden,
+              !contentRestriction.hides(categoryID: stream.categoryId),
+              let owner = playlists.owner(ofContentID: stream.id),
+              catalogScope.members(for: .liveTV).contains(owner.id),
+              let media = PlayableMedia.from(
+                  stream: stream,
+                  ownedByOneOf: playlists,
+                  surfScope: LiveSurfScope(catalogScope)
+              ) else { return }
+        restoredLastLiveOnLaunch = true
+        sharedLivePlayback.tune(media, previewMode: .small)
+    }
+    #endif
 
     // MARK: - Automatic sync
 
