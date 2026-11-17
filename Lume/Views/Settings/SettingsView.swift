@@ -873,7 +873,7 @@ struct SettingsView: View {
                                     Spacer(minLength: 4)
                                     if accentThemeRaw == theme.rawValue {
                                         Image(systemName: "checkmark.circle.fill")
-                                            .foregroundStyle(theme.color)
+                                            .foregroundStyle(theme.selectionAccent)
                                     }
                                 }
                             }
