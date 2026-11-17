@@ -345,6 +345,7 @@ struct MainTabView: View {
             }
             .onChange(of: autoSyncQueue.isBusy, initial: true) { _, busy in
                 EPGSyncService.shared.setAutoSyncQueued(busy)
+                if !busy { restoreLastLiveChannelOnLaunch() }
             }
             .onDisappear {
                 // The queue goes with this view (deleting the last playlist
