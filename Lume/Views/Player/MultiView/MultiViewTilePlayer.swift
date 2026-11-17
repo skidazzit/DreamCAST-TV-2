@@ -121,9 +121,10 @@ struct MultiViewTilePlayer: View {
             // mini <-> full-screen transitions. KSPlayer and AVPlayer can lend
             // the current coordinator; the other engines cannot. Keep the
             // user's ordering among these two engines, including fallback.
-            enginePriority = configuredPriority.filter {
+            let transferable = configuredPriority.filter {
                 $0 == .ksPlayer || $0 == .avPlayer
             }
+            enginePriority = transferable.isEmpty ? [.ksPlayer, .avPlayer] : transferable
         } else {
             enginePriority = configuredPriority
         }
