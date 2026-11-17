@@ -204,19 +204,21 @@ struct SportFrameMobile: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Picker("SportsZone section", selection: $page) {
-                Text("Sports").tag(0)
-                Text("Settings").tag(1)
+            HStack(spacing: 6) {
+                themeSegment("Sports", selected: page == 0) { page = 0 }
+                themeSegment("Settings", selected: page == 1) { page = 1 }
             }
-            .pickerStyle(.segmented)
+            .padding(5)
+            .dreamCASTGlass(radius: 16)
             .accessibilityLabel("SportsZone section")
             if page == 0 {
-                Picker("Day", selection: $dayOffset) {
-                    Text("Yesterday").tag(-1)
-                    Text("Today").tag(0)
-                    Text("Tomorrow").tag(1)
+                HStack(spacing: 6) {
+                    themeSegment("Yesterday", selected: dayOffset == -1) { dayOffset = -1 }
+                    themeSegment("Today", selected: dayOffset == 0) { dayOffset = 0 }
+                    themeSegment("Tomorrow", selected: dayOffset == 1) { dayOffset = 1 }
                 }
-                .pickerStyle(.segmented)
+                .padding(5)
+                .dreamCASTGlass(radius: 16)
 
                 ScrollView(.horizontal) {
                     HStack(spacing: 8) {
@@ -238,6 +240,25 @@ struct SportFrameMobile: View {
                 }
             }
         }
+    }
+
+    private func themeSegment(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline.weight(selected ? .bold : .medium))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 39)
+                .background {
+                    if selected {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(DreamCASTVisualSettings.theme.color.opacity(0.68))
+                    }
+                }
+                .dreamCASTGlass(highlighted: selected, radius: 12)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? [.isSelected] : [])
     }
 
     private func sportChip(_ sport: String) -> some View {
