@@ -165,7 +165,8 @@ struct LiveTVView: View {
                 catalogScope: catalogScope,
                 sort: contentSort,
                 onStartMultiView: { startMultiView(with: $0) },
-                onPlay: { playChannel($0, scope: section.scope) }
+                onPlay: { handleGuideChannel($0, scope: section.scope) },
+                onPlayFullScreen: { openGuideChannelFullScreen($0, scope: section.scope) }
             )
         #endif
     }
@@ -527,7 +528,9 @@ struct LiveTVView: View {
                 stream: stream, ownedByOneOf: playlists,
                 scope: scope, surfScope: LiveSurfScope(catalogScope)
             ) else { return }
-            activePlayback.tune(media, previewMode: GuidePreviewMode(storedValue: guideMiniModeRaw))
+            // A deliberate tap always starts the root mini-player first,
+            // even if the guide's auto-preview preference is Off.
+            activePlayback.tune(media, previewMode: .small)
         #else
             playChannel(stream, scope: scope)
         #endif
@@ -542,7 +545,10 @@ struct LiveTVView: View {
                 scope: scope, surfScope: LiveSurfScope(catalogScope)
             ) else { return }
             if activePlayback.miniMedia?.id != media.id {
+                // Do not bypass the mini-player, even when an action tries
+                // to enter full-screen before this channel has been tuned.
                 activePlayback.tune(media, previewMode: .small)
+                return
             }
             activePlayback.openFullScreen()
         #else
@@ -611,14 +617,9 @@ struct LiveTVView: View {
             guidePreview.prepareToPresent(media)
             playingMedia = media
         #elseif os(iOS)
-            if media.isLive {
-                if activePlayback.miniMedia?.id != media.id {
-                    activePlayback.tune(media, previewMode: .small)
-                }
-                activePlayback.openFullScreen()
-            } else {
-                playingMedia = media
-            }
+            // All user-selected channels (and catch-up programmes) start in
+            // the same fixed mini-player. Full screen is a separate action.
+            activePlayback.tune(media, previewMode: .small)
         #else
             playingMedia = media
         #endif
