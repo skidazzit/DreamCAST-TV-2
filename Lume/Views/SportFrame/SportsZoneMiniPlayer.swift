@@ -39,6 +39,8 @@ final class SportsZonePlaybackSession {
         #if os(tvOS)
         guidePreview.preferredStreamID = media.id
         #endif
+        // The next cold start must know whether Live TV or VOD played last.
+        // LiveChannelHistory keeps its channel recall unchanged for VOD.
         LiveChannelHistory.record(media)
 
         // Match the Live TV setting: "Off" means no inline preview.
