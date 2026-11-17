@@ -78,6 +78,9 @@ struct LoginView: View {
     /// The slim diagnostics screen — the only way to send a report before a
     /// playlist exists, since Settings isn't reachable until then.
     @State var showDiagnostics = false
+    #if os(tvOS)
+    @State private var showFirstRunRestore = false
+    #endif
 
     private var isFormValid: Bool {
         switch sourceType {
@@ -236,6 +239,27 @@ struct LoginView: View {
                             .foregroundStyle(.secondary)
                     }
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
+
+                    if !isModal {
+                        VStack(alignment: .leading, spacing: 14) {
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    showFirstRunRestore.toggle()
+                                }
+                            } label: {
+                                Label(
+                                    showFirstRunRestore ? "Hide Backup Restore" : "Restore from DreamCAST TV Backup",
+                                    systemImage: "square.and.arrow.down"
+                                )
+                            }
+                            .buttonStyle(TVSettingsActionButtonStyle(prominent: false))
+                            if showFirstRunRestore {
+                                TVLocalBackupSettingsPane(isFirstRun: true)
+                                    .padding(.vertical, 16)
+                            }
+                        }
+                        .padding(.horizontal, TVSettingsMetrics.rowHPadding)
+                    }
 
                     Picker("Playlist Type", selection: $sourceType) {
                         ForEach(LoginSourceType.allCases, id: \.self) { type in
