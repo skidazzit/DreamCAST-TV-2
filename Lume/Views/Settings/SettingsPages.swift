@@ -55,7 +55,7 @@
                                 Spacer()
                                 if accentRaw == theme.rawValue {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(theme.color)
+                                        .foregroundStyle(theme.selectionAccent)
                                         .accessibilityHidden(true)
                                 }
                             }
