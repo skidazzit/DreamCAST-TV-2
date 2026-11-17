@@ -352,7 +352,7 @@ struct SportFrameMobile: View {
                             .padding(.vertical, 10)
                         }
                         .buttonStyle(.plain)
-                        .foregroundStyle(.cyan)
+                        .foregroundStyle(DreamCASTVisualSettings.theme.color)
                     }
                 }
             }
@@ -462,7 +462,7 @@ struct SportFrameMobile: View {
                                 followedValue = sports.filter { selected.contains($0) }.joined(separator: "|")
                             }
                         ))
-                        .tint(.cyan)
+                        .tint(DreamCASTVisualSettings.theme.color)
                     }
                 }
             }
@@ -480,10 +480,10 @@ struct SportFrameMobile: View {
                 Spacer(minLength: 8)
                 Text(SportsDBAccess.hasPremiumKey ? "Premium" : "Free")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.cyan)
+                    .foregroundStyle(DreamCASTVisualSettings.theme.color)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .background(.cyan.opacity(0.13), in: Capsule())
+                    .background(DreamCASTVisualSettings.theme.color.opacity(0.13), in: Capsule())
             }
 
             HStack(alignment: .top, spacing: 10) {
@@ -669,7 +669,7 @@ struct SportFrameMobile: View {
                                     saveLeagues(chosen.count == available.count ? nil : chosen.sorted(), for: sport)
                                 }
                             ))
-                            .tint(.cyan)
+                            .tint(DreamCASTVisualSettings.theme.color)
                         }
                     }
                 }
@@ -772,7 +772,7 @@ private struct SportFrameMobileMatchSheet: View {
                                 Text(broadcaster.name)
                                 Spacer()
                                 if selectedBroadcaster == broadcaster.name {
-                                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.cyan)
+                                    Image(systemName: "checkmark.circle.fill").foregroundStyle(DreamCASTVisualSettings.theme.color)
                                 }
                             }
                         }
