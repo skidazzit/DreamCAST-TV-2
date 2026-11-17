@@ -147,7 +147,7 @@ struct SeriesView: View {
                         genres = await GenreDerivation.seriesGenres(in: modelContext.container, scope: scope, restriction: restriction)
                     }
                     #if os(iOS)
-                    .task(id: "(scope.token)-(categories.count)-(playlists.map(\.syncStatusRaw).joined(separator: "|"))") {
+                    .task(id: "\(scope.token)-\(categories.count)-\(playlists.map(\.syncStatusRaw).joined(separator: "|"))") {
                         loadFeaturedSeries()
                     }
                     #endif
