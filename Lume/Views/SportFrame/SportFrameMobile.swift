@@ -241,15 +241,26 @@ struct SportFrameMobile: View {
     }
 
     private func sportChip(_ sport: String) -> some View {
-        Button(sport) {
+        let symbol: String = switch sport.lowercased() {
+        case "soccer", "football": "soccerball"
+        case "basketball", "nba": "basketball"
+        case "baseball", "mlb": "baseball"
+        case "hockey", "nhl": "hockey.puck"
+        case "boxing", "ufc", "mma": "figure.boxing"
+        case "tennis": "tennis.racket"
+        case "golf": "flag.fill"
+        case "motorsports", "racing": "flag.checkered"
+        case "all sports": "square.grid.2x2"
+        default: "trophy"
+        }
+        return DreamCASTMobileChip(
+            title: sport,
+            symbol: symbol,
+            selected: selectedSport == sport
+        ) {
             selectedSport = sport
             selectedLeague = "All Leagues"
         }
-        .font(.subheadline.weight(.semibold))
-        .padding(.horizontal, 14)
-        .padding(.vertical, 9)
-        .background(selectedSport == sport ? Color.cyan : Color.white.opacity(0.12), in: Capsule())
-        .foregroundStyle(selectedSport == sport ? .black : .white)
     }
 
     private var matchesPage: some View {
@@ -300,7 +311,7 @@ struct SportFrameMobile: View {
                             }
                             .padding(12)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(.cyan.opacity(0.22), in: RoundedRectangle(cornerRadius: 12))
+                            .dreamCASTGlass(radius: 14)
                             .contentShape(RoundedRectangle(cornerRadius: 12))
                         }
                         .buttonStyle(.plain)
@@ -370,7 +381,7 @@ struct SportFrameMobile: View {
             }
         }
         .padding(12)
-        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+        .dreamCASTGlass(highlighted: isLive, radius: 14)
     }
 
     private func mobileTeam(_ name: String, icon: URL?) -> some View {
