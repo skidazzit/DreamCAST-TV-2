@@ -16,6 +16,17 @@ enum LiveChannelHistory {
     private static let currentKeyBase = "player.live.currentChannelId"
     private static let previousKeyBase = "player.live.previousChannelId"
     private static let recentsKeyBase = "player.live.recentChannelIds"
+    private static let lastPlaybackKindKeyBase = "dreamcast.player.lastPlaybackKind"
+
+    /// Only restore Live TV on a cold launch if the most recent media was live.
+    /// An older install without this key can still resume its saved channel.
+    /// Keep the choice per profile, just like channel history.
+    static func shouldResumeLiveOnLaunch(
+        profileID: UUID? = ActiveProfileStore.current,
+        defaults: UserDefaults = .standard
+    ) -> Bool {
+        defaults.string(forKey: key(lastPlaybackKindKeyBase, profileID)) != "vod"
+    }
 
     /// How many channels the in-player "Recent" rail remembers. Capped so the
     /// list stays a quick shortcut rather than a full history.
@@ -45,6 +56,10 @@ enum LiveChannelHistory {
         profileID: UUID? = ActiveProfileStore.current,
         defaults: UserDefaults = .standard
     ) {
+        // The live recall pair still ignores films and episodes. The startup
+        // rule must NOT: if VOD played after a channel, do not auto-start that
+        // old live stream on the next app launch.
+        defaults.set(media.isLive ? "live" : "vod", forKey: key(lastPlaybackKindKeyBase, profileID))
         guard case let .live(id) = media.historyRef else { return }
 
         let recentsKey = key(recentsKeyBase, profileID)
@@ -127,5 +142,6 @@ enum LiveChannelHistory {
         defaults.removeObject(forKey: key(currentKeyBase, profileID))
         defaults.removeObject(forKey: key(previousKeyBase, profileID))
         defaults.removeObject(forKey: key(recentsKeyBase, profileID))
+        defaults.removeObject(forKey: key(lastPlaybackKindKeyBase, profileID))
     }
 }
