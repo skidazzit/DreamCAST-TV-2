@@ -427,59 +427,156 @@ enum DreamCASTLocalSettingsBackup {
     }
 }
 
-/// Backup includes encrypted IPTV setup, favorites and watch progress; not catalogs.
+/// Keep Files and password entry on a stable navigation destination.
+/// Alerts attached to a virtualized List Section can dismiss when the
+/// keyboard opens. Do not mount a password alert on the settings row.
 struct DreamCASTBackupSettingsSection: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var playlists: [Playlist]
-    @State private var exportDocument: DreamCASTSettingsFile?
-    @State private var exporting = false
-    @State private var importing = false
-    @State private var exportPrompt = false
-    @State private var restorePrompt = false
-    @State private var backupPassword = ""
-    @State private var pendingImport: Data?
-    @State private var notice: String?
-
     var body: some View {
         Section {
-            Button {
-                backupPassword = ""
-                exportPrompt = true
+            NavigationLink {
+                DreamCASTBackupCenterView(mode: .backup)
             } label: {
                 Label("Back Up Settings and Playlists", systemImage: "square.and.arrow.up")
             }
-            Button { importing = true } label: {
+            NavigationLink {
+                DreamCASTBackupCenterView(mode: .restore)
+            } label: {
                 Label("Restore Settings and Playlists", systemImage: "square.and.arrow.down")
             }
         } header: {
             Text("Local Backup & Restore")
         } footer: {
-            Text("Backs up settings and playlist connection details, including credentials, in a password-protected JSON file. Keep the backup password safe. Channel catalogs and provider session tokens are not copied. Favorites and watch history are restored after imported playlists sync. Existing playlists are kept.")
+            Text("Encrypted backups include IPTV connections, app settings, favorites and watch progress. A backup password is required. Downloaded channels and guide data sync after restore.")
         }
-        .alert("Protect IPTV Backup", isPresented: $exportPrompt) {
-            SecureField("Backup password (8+ characters)", text: $backupPassword)
-            Button("Cancel", role: .cancel) { backupPassword = "" }
-            Button("Create Backup") {
-                do {
-                    exportDocument = try DreamCASTLocalSettingsBackup.exportSettings(
-                        playlists: playlists, password: backupPassword, context: modelContext
-                    )
-                    exporting = true
-                } catch {
-                    notice = "Could not prepare backup: \(error.localizedDescription)"
+    }
+}
+
+/// Dedicated full-page flow. The password field never lives in a transient
+/// UIAlertController or the List's virtualized row hierarchy.
+private struct DreamCASTBackupCenterView: View {
+    enum Mode {
+        case backup
+        case restore
+    }
+
+    let mode: Mode
+
+    @Environment(\.modelContext) private var modelContext
+    @Query private var playlists: [Playlist]
+
+    @State private var password = ""
+    @State private var exporting = false
+    @State private var importing = false
+    @State private var exportDocument: DreamCASTSettingsFile?
+    @State private var pendingImport: Data?
+    @State private var selectedFilename: String?
+    @State private var needsPassword = true
+    @State private var message: String?
+    @State private var messageIsError = false
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Label(mode == .backup ? "Protect Your Backup" : "Restore Your Backup",
+                      systemImage: mode == .backup ? "lock.shield" : "square.and.arrow.down")
+                    .font(.title2.bold())
+                    .foregroundStyle(.white)
+
+                Text(mode == .backup
+                     ? "Back up IPTV playlist logins, app settings, favorites and watch history. Your file is encrypted with the password you choose."
+                     : "Select a DreamCAST TV backup from Files. Enter the password used to create it, then restore your playlists and settings.")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.8))
+
+                if mode == .restore {
+                    Button {
+                        message = nil
+                        importing = true
+                    } label: {
+                        Label("Choose Backup File", systemImage: "doc")
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    if let selectedFilename {
+                        Label(selectedFilename, systemImage: "doc.text")
+                            .font(.subheadline)
+                            .lineLimit(2)
+                            .foregroundStyle(.white)
+                    }
                 }
-                backupPassword = ""
+
+                if mode == .backup || (pendingImport != nil && needsPassword) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(mode == .backup ? "Backup Password" : "Backup Password")
+                            .font(.headline)
+                        SecureField(
+                            mode == .backup ? "At least 8 characters" : "Enter your backup password",
+                            text: $password
+                        )
+                        .textContentType(mode == .backup ? .newPassword : .password)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .privacySensitive()
+                        .padding(14)
+                        .dreamCASTGlass(radius: 13)
+
+                        Text(mode == .backup
+                             ? "Keep this password safe. You need it to open the file on another device."
+                             : "This password is never saved in DreamCAST TV.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                if mode == .backup {
+                    Button(action: prepareBackup) {
+                        Label("Create Encrypted Backup", systemImage: "square.and.arrow.up")
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(password.count < 8)
+                } else if pendingImport != nil {
+                    Button(action: restoreBackup) {
+                        Label("Restore Settings and Playlists", systemImage: "arrow.clockwise")
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(needsPassword && password.isEmpty)
+                }
+
+                if let message {
+                    Label(message, systemImage: messageIsError
+                          ? "exclamationmark.triangle" : "checkmark.circle")
+                        .font(.subheadline)
+                        .foregroundStyle(messageIsError ? .orange : .green)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(14)
+                        .dreamCASTGlass(radius: 13)
+                        .accessibilityAddTraits(.updatesFrequently)
+                }
             }
-        } message: {
-            Text("Your backup may contain IPTV passwords and private playlist URLs. Use a strong password.")
+            .frame(maxWidth: 550)
+            .frame(maxWidth: .infinity)
+            .padding(20)
         }
-        .fileExporter(isPresented: $exporting, document: exportDocument,
-                      contentType: .json, defaultFilename: "DreamCAST-TV-backup") { result in
+        .background { DreamCASTMobileWallpaper() }
+        .navigationTitle(mode == .backup ? "Back Up DreamCAST TV" : "Restore DreamCAST TV")
+        .navigationBarTitleDisplayMode(.inline)
+        // Present the exporter from this stable navigation page, not a
+        // Section embedded within a virtualized Settings list.
+        .fileExporter(
+            isPresented: $exporting,
+            document: exportDocument,
+            contentType: .json,
+            defaultFilename: "DreamCAST-TV-backup"
+        ) { result in
             switch result {
-            case .success: notice = "Backup saved to Files. Keep your backup password."
+            case .success:
+                showMessage("Encrypted backup saved to Files. Keep your backup password.", error: false)
             case .failure(let error):
                 if (error as NSError).code != NSUserCancelledError {
-                    notice = "Could not save backup: \(error.localizedDescription)"
+                    showMessage("Could not save backup: \(error.localizedDescription)", error: true)
                 }
             }
             exportDocument = nil
@@ -490,53 +587,57 @@ struct DreamCASTBackupSettingsSection: View {
                 let scoped = url.startAccessingSecurityScopedResource()
                 defer { if scoped { url.stopAccessingSecurityScopedResource() } }
                 let data = try Data(contentsOf: url)
-                if try DreamCASTLocalSettingsBackup.hasEncryptedPlaylists(data) {
-                    pendingImport = data
-                    backupPassword = ""
-                    restorePrompt = true
-                } else {
-                    let count = try DreamCASTLocalSettingsBackup.restoreSettings(
-                        from: data, context: modelContext
-                    )
-                    notice = "Restored \(count) settings. Reopen DreamCAST TV to apply them."
-                }
+                needsPassword = try DreamCASTLocalSettingsBackup.hasEncryptedPlaylists(data)
+                pendingImport = data
+                selectedFilename = url.lastPathComponent
+                password = ""
+                showMessage("Backup selected. Confirm the restore below.", error: false)
             } catch {
                 if (error as NSError).code != NSUserCancelledError {
-                    notice = "Could not open backup: \(error.localizedDescription)"
+                    showMessage("Could not open backup: \(error.localizedDescription)", error: true)
                 }
             }
         }
-        .alert("Unlock IPTV Backup", isPresented: $restorePrompt) {
-            SecureField("Backup password", text: $backupPassword)
-            Button("Cancel", role: .cancel) {
-                pendingImport = nil
-                backupPassword = ""
+    }
+
+    private func prepareBackup() {
+        do {
+            exportDocument = try DreamCASTLocalSettingsBackup.exportSettings(
+                playlists: playlists, password: password, context: modelContext
+            )
+            password = ""
+            message = nil
+            // Allow SwiftUI to register the new FileDocument before opening
+            // Files. The document stays owned by this navigation page.
+            Task { @MainActor in
+                await Task.yield()
+                exporting = true
             }
-            Button("Restore") {
-                do {
-                    if let data = pendingImport {
-                        let count = try DreamCASTLocalSettingsBackup.restoreSettings(
-                            from: data, password: backupPassword, context: modelContext
-                        )
-                        notice = "Restored \(count) settings and playlist setups. Restart DreamCAST TV to sync the imported playlists."
-                    }
-                } catch {
-                    notice = "Could not restore backup: \(error.localizedDescription)"
-                }
-                pendingImport = nil
-                backupPassword = ""
-            }
-        } message: {
-            Text("Enter the password used when the IPTV backup was created.")
+        } catch {
+            showMessage("Could not prepare backup: \(error.localizedDescription)", error: true)
         }
-        .alert("Local Backup & Restore", isPresented: Binding(
-            get: { notice != nil },
-            set: { if !$0 { notice = nil } }
-        )) {
-            Button("OK") { notice = nil }
-        } message: {
-            Text(notice ?? "")
+    }
+
+    private func restoreBackup() {
+        guard let pendingImport else { return }
+        do {
+            let count = try DreamCASTLocalSettingsBackup.restoreSettings(
+                from: pendingImport,
+                password: needsPassword ? password : nil,
+                context: modelContext
+            )
+            self.pendingImport = nil
+            password = ""
+            showMessage("Restored \(count) settings and your playlist setups. Restart DreamCAST TV to sync channels, favorites and watch progress.", error: false)
+        } catch {
+            // Keep the selected file so an incorrect password can be retried.
+            showMessage("Could not restore backup: \(error.localizedDescription)", error: true)
         }
+    }
+
+    private func showMessage(_ text: String, error: Bool) {
+        message = text
+        messageIsError = error
     }
 }
 #endif
