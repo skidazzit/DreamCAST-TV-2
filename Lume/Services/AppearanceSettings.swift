@@ -133,14 +133,14 @@ enum DreamCASTVisualSettings {
     static let liquidGlassKey = "dreamcast.appearance.liquidGlass"
     static let transparencyKey = "dreamcast.appearance.transparency"
     static let defaultLiquidGlass = true
-    static let defaultTransparency = 0.76
+    static let defaultTransparency = 0.35
 
     static var theme: DreamCASTAccentTheme {
         DreamCASTAccentTheme.resolve(UserDefaults.standard.string(forKey: DreamCASTAccentTheme.storageKey) ?? "")
     }
     static var transparency: Double {
         guard UserDefaults.standard.object(forKey: transparencyKey) != nil else { return defaultTransparency }
-        return min(1, max(0.2, UserDefaults.standard.double(forKey: transparencyKey)))
+        return min(0.85, max(0, UserDefaults.standard.double(forKey: transparencyKey)))
     }
     static var liquidGlass: Bool {
         guard UserDefaults.standard.object(forKey: liquidGlassKey) != nil else { return defaultLiquidGlass }
