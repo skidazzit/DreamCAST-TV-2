@@ -309,7 +309,7 @@ final class DreamCASTTVLocalTransfer {
       const file=document.getElementById('file').files[0];
       const message=document.getElementById('message');
       if(!file){message.textContent='Choose a JSON file first.';return;}
-      if(file.size>8000000){message.textContent='File exceeds 8 MB.';return;}
+      if(file.size>16000000){message.textContent='File exceeds 16 MB.';return;}
       message.textContent='Sending...';
       try{
         const response=await fetch(location.pathname+'/restore',
@@ -378,7 +378,7 @@ struct TVLocalBackupSettingsPane: View {
                     transfer.start(password: backupPassword, context: modelContext, playlists: playlists)
                     backupPassword = ""
                 } label: {
-                    Label("Start Local Backup & Restore", systemImage: "square.and.arrow.up.on.square")
+                    Label("Start Secure Backup & Restore", systemImage: "square.and.arrow.up.on.square")
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .buttonStyle(TVSettingsRowButtonStyle())
