@@ -234,8 +234,17 @@ struct SettingsView: View {
                     }
                 }
                 #endif
+                #if os(iOS)
+                .scrollContentBackground(.hidden)
+                .background { DreamCASTMobileWallpaper() }
+                #endif
                 .platformNavigationTitle("Settings")
-                .navigationDestination(for: SettingsRoute.self) { SettingsRouteDestination(route: $0) }
+                .navigationDestination(for: SettingsRoute.self) { route in
+                    SettingsRouteDestination(route: route)
+                    #if os(iOS)
+                        .dreamCASTPageTheme()
+                    #endif
+                }
                 .paywall(isPresented: $showPaywall, highlight: paywallHighlight)
             }
             #if os(macOS)
