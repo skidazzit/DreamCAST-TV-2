@@ -34,7 +34,8 @@ enum SportsDBAccess {
 
     /// An on-device Settings key overrides a build-time .env key.
     /// When neither is set, the public demo API remains available.
-    static var hasPremiumKey: Bool { loadKey() != nil || bundledKey != nil }
+    static var hasSavedKey: Bool { loadKey() != nil }
+    static var hasPremiumKey: Bool { hasSavedKey || bundledKey != nil }
     static var apiKey: String { loadKey() ?? bundledKey ?? "123" }
     static var isUsingBundledKey: Bool { loadKey() == nil && bundledKey != nil }
 
