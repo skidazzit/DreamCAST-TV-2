@@ -119,12 +119,17 @@ struct DreamCASTMobileGlass: ViewModifier {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
         return content
             .background {
-                shape.fill(theme.gradient.opacity(liquidGlass ? transparency * 0.46 : transparency))
+                shape.fill(LinearGradient(
+                    colors: theme.gradientColors.map { $0.opacity(liquidGlass ? transparency * 0.46 : transparency) },
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ))
             }
             .background {
                 if liquidGlass {
-                    shape.fill(.ultraThinMaterial)
-                        .opacity(transparency * 0.6)
+                    Color.clear
+                        .glassEffectCompat(.regular, in: shape)
+                        .opacity(transparency * 0.75)
                 }
             }
             .overlay {
