@@ -454,7 +454,7 @@ struct DreamCASTBackupSettingsSection: View {
 /// Dedicated full-page flow. The password field never lives in a transient
 /// UIAlertController or the List's virtualized row hierarchy.
 private struct DreamCASTBackupCenterView: View {
-    enum Mode {
+    enum Mode: Equatable {
         case backup
         case restore
     }
@@ -553,7 +553,6 @@ private struct DreamCASTBackupCenterView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(14)
                         .dreamCASTGlass(radius: 13)
-                        .accessibilityAddTraits(.updatesFrequently)
                 }
             }
             .frame(maxWidth: 550)
