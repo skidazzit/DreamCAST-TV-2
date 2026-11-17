@@ -369,6 +369,10 @@
             let isDestructive: Bool
             @Environment(\.isFocused) private var isFocused
             @Environment(\.isEnabled) private var isEnabled
+            @AppStorage(DreamCASTVisualSettings.liquidGlassKey)
+            private var liquidGlass = DreamCASTVisualSettings.defaultLiquidGlass
+            @AppStorage(DreamCASTVisualSettings.transparencyKey)
+            private var transparency = DreamCASTVisualSettings.defaultTransparency
 
             var body: some View {
                 let foreground: Color = isDestructive && !isFocused ? .red : .white
@@ -383,6 +387,16 @@
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
                     .padding(.vertical, TVSettingsMetrics.rowVPadding + 2)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .background {
+                        if liquidGlass && !isFocused {
+                            Color.clear
+                                .glassEffectCompat(
+                                    .regular,
+                                    in: RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius)
+                                )
+                                .opacity(1 - transparency)
+                        }
+                    }
                     .background(
                         RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius, style: .continuous)
                             .fill(fill)
