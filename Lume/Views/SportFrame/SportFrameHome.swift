@@ -254,7 +254,7 @@ struct SportFrameHome: View {
         case sportSetting(String)
     }
 
-    private let accent = Color(red: 0.0, green: 0.8, blue: 0.94)
+    private var accent: Color { DreamCASTVisualSettings.theme.color }
     private let fallbackSports = ["Soccer", "Basketball", "American Football", "Tennis", "Motorsport", "Ice Hockey", "Cricket", "Baseball", "Rugby", "Golf"]
 
     private var sportOrder: [String] {
@@ -1011,7 +1011,7 @@ struct SportFrameHome: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(
                                 LinearGradient(
-                                    colors: [accent.opacity(0.67), .blue.opacity(0.16)],
+                                    colors: [accent.opacity(0.67), DreamCASTVisualSettings.theme.color.opacity(0.16)],
                                     startPoint: .leading, endPoint: .trailing
                                 ),
                                 in: RoundedRectangle(cornerRadius: 18)
@@ -1379,7 +1379,7 @@ private struct SportFrameFixtureCard: View {
     let score: SportFrameScore
     let isLive: Bool
     @Environment(\.isFocused) private var focused
-    private let accent = Color(red: 0.0, green: 0.8, blue: 0.94)
+    private var accent: Color { DreamCASTVisualSettings.theme.color }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -1625,7 +1625,7 @@ struct SportFrameMatchSheet: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0.025, green: 0.055, blue: 0.11).ignoresSafeArea()
+            DreamCASTThemeBackground()
             VStack(alignment: .leading, spacing: 25) {
                 HStack(spacing: 24) {
                     VStack(alignment: .leading, spacing: 7) {
