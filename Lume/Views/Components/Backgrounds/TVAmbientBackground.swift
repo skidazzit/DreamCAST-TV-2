@@ -146,6 +146,7 @@ struct DreamCASTMobileGlass: ViewModifier {
 struct DreamCASTMobileChip: View {
     @AppStorage(DreamCASTAccentTheme.storageKey) private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
     @AppStorage(AppAppearance.storageKey) private var appearanceRaw = AppAppearance.defaultValue.rawValue
+    @Environment(\.colorScheme) private var deviceScheme
     let title: String
     var symbol: String? = nil
     var selected = false
@@ -169,7 +170,7 @@ struct DreamCASTMobileChip: View {
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
             }
-            .foregroundStyle(AppAppearance.resolve(appearanceRaw) == .light ? Color.black : Color.white)
+            .foregroundStyle(AppAppearance.resolve(appearanceRaw) == .light || (AppAppearance.resolve(appearanceRaw) == .system && deviceScheme == .light) ? Color.black : Color.white)
             .padding(.horizontal, 14)
             .frame(minHeight: 43)
             .background {
