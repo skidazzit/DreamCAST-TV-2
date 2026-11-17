@@ -79,7 +79,7 @@ enum AppAppearance: String, CaseIterable, Identifiable {
 
 /// Saved accent choices. tvOS keeps its dark display style.
 enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
-    case dreamcast, ocean, violet, emerald, sunset, ruby, grey, charcoal
+    case dreamcast, lightBlue, ocean, violet, emerald, sunset, ruby, grey, charcoal, white
 
     static let storageKey = "dreamcast.appearance.accent"
     static let defaultValue: DreamCASTAccentTheme = .dreamcast
@@ -90,6 +90,7 @@ enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .dreamcast: "DreamCAST Blue"
+        case .lightBlue: "Light Blue"
         case .ocean: "Ocean"
         case .violet: "Violet"
         case .emerald: "Emerald"
@@ -97,11 +98,13 @@ enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
         case .ruby: "Ruby"
         case .grey: "Grey"
         case .charcoal: "Charcoal"
+        case .white: "White"
         }
     }
     var color: Color {
         switch self {
         case .dreamcast: Color(red: 0.12, green: 0.53, blue: 1)
+        case .lightBlue: Color(red: 0.30, green: 0.72, blue: 0.98)
         case .ocean: Color(red: 0, green: 0.76, blue: 0.86)
         case .violet: Color(red: 0.66, green: 0.43, blue: 1)
         case .emerald: Color(red: 0.13, green: 0.79, blue: 0.53)
@@ -109,10 +112,12 @@ enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
         case .ruby: Color(red: 0.99, green: 0.34, blue: 0.44)
         case .grey: Color(red: 0.68, green: 0.71, blue: 0.76)
         case .charcoal: Color(red: 0.43, green: 0.46, blue: 0.51)
+        case .white: Color(red: 0.86, green: 0.89, blue: 0.94)
         }
     }
     var gradientColors: [Color] {
         switch self {
+        case .lightBlue: [Color(red: 0.08, green: 0.19, blue: 0.28), Color(red: 0.12, green: 0.34, blue: 0.49), Color(red: 0.05, green: 0.12, blue: 0.20)]
         case .dreamcast: [Color(red: 0.05, green: 0.10, blue: 0.21), Color(red: 0.07, green: 0.20, blue: 0.36), Color(red: 0.02, green: 0.06, blue: 0.16)]
         case .ocean: [Color(red: 0.03, green: 0.15, blue: 0.18), Color(red: 0.02, green: 0.30, blue: 0.34), Color(red: 0.01, green: 0.11, blue: 0.14)]
         case .violet: [Color(red: 0.15, green: 0.08, blue: 0.24), Color(red: 0.24, green: 0.12, blue: 0.38), Color(red: 0.10, green: 0.04, blue: 0.18)]
@@ -121,7 +126,18 @@ enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
         case .ruby: [Color(red: 0.22, green: 0.06, blue: 0.10), Color(red: 0.36, green: 0.08, blue: 0.15), Color(red: 0.16, green: 0.04, blue: 0.08)]
         case .grey: [Color(red: 0.16, green: 0.18, blue: 0.22), Color(red: 0.24, green: 0.26, blue: 0.31), Color(red: 0.11, green: 0.12, blue: 0.16)]
         case .charcoal: [Color(red: 0.05, green: 0.06, blue: 0.08), Color(red: 0.10, green: 0.11, blue: 0.14), Color(red: 0.03, green: 0.04, blue: 0.05)]
+        case .white: [Color(red: 0.94, green: 0.96, blue: 0.99), Color(red: 0.86, green: 0.90, blue: 0.95), Color(red: 0.78, green: 0.84, blue: 0.91)]
         }
+    }
+    /// In Light Mode, retain the chosen hue with pale backgrounds.
+    func backgroundColors(light: Bool) -> [Color] {
+        if self == .white { return gradientColors }
+        if !light { return gradientColors }
+        return [
+            Color.white.opacity(0.94),
+            Color(red: 0.91, green: 0.94, blue: 0.98),
+            Color(red: 0.84, green: 0.89, blue: 0.95)
+        ]
     }
     var gradient: LinearGradient {
         LinearGradient(colors: gradientColors, startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -153,19 +169,25 @@ enum DreamCASTVisualSettings {
 struct DreamCASTThemeBackground: View {
     @AppStorage(DreamCASTAccentTheme.storageKey)
     private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+    @AppStorage(AppAppearance.storageKey)
+    private var appearanceRaw = AppAppearance.defaultValue.rawValue
+    @Environment(\.colorScheme) private var systemColorScheme
 
     var body: some View {
         let theme = DreamCASTAccentTheme.resolve(themeRaw)
+        let mode = AppAppearance.resolve(appearanceRaw)
+        let isLight = theme == .white || mode == .light || (mode == .system && systemColorScheme == .light)
         ZStack {
-            theme.gradient
+            LinearGradient(colors: theme.backgroundColors(light: isLight),
+                           startPoint: .topLeading, endPoint: .bottomTrailing)
             RadialGradient(
-                colors: [theme.color.opacity(0.22), .clear],
+                colors: [theme.color.opacity(isLight ? 0.10 : 0.22), .clear],
                 center: .topTrailing,
                 startRadius: 30,
                 endRadius: 600
             )
             RadialGradient(
-                colors: [theme.color.opacity(0.09), .clear],
+                colors: [theme.color.opacity(isLight ? 0.05 : 0.09), .clear],
                 center: .bottomLeading,
                 startRadius: 30,
                 endRadius: 450
@@ -173,6 +195,7 @@ struct DreamCASTThemeBackground: View {
         }
         .ignoresSafeArea()
         .animation(.easeInOut(duration: 0.35), value: themeRaw)
+        .animation(.easeInOut(duration: 0.25), value: appearanceRaw)
         .accessibilityHidden(true)
     }
 }
