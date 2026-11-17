@@ -16,6 +16,8 @@
     struct AppearanceSettingsView: View {
         @AppStorage(AppAppearance.storageKey)
         private var appearanceRaw = AppAppearance.defaultValue.rawValue
+        @AppStorage(DreamCASTAccentTheme.storageKey)
+        private var accentRaw = DreamCASTAccentTheme.defaultValue.rawValue
 
         var body: some View {
             List {
@@ -27,10 +29,43 @@
                     }
                     .pickerStyle(.inline)
                     .labelsHidden()
+                } header: {
+                    Text("Display Mode")
                 } footer: {
-                    Text("Follow the device appearance, or keep DreamCAST TV always in Dark or Light Mode.")
+                    Text("Follow your device, or use Dark or Light Mode.")
+                }
+
+                Section {
+                    ForEach(DreamCASTAccentTheme.allCases) { theme in
+                        Button {
+                            accentRaw = theme.rawValue
+                        } label: {
+                            HStack(spacing: 14) {
+                                Circle()
+                                    .fill(theme.color)
+                                    .frame(width: 30, height: 30)
+                                    .overlay(Circle().strokeBorder(.white.opacity(0.25)))
+                                Text(theme.title)
+                                    .foregroundStyle(.primary)
+                                Spacer()
+                                if accentRaw == theme.rawValue {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(theme.color)
+                                        .accessibilityHidden(true)
+                                }
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(accentRaw == theme.rawValue ? [.isSelected] : [])
+                    }
+                } header: {
+                    Text("Color Theme")
+                } footer: {
+                    Text("Choose an accent for buttons and controls. Changes save right away.")
                 }
             }
+            .tint(DreamCASTAccentTheme.resolve(accentRaw).color)
             .platformNavigationTitle("Appearance")
         }
     }
