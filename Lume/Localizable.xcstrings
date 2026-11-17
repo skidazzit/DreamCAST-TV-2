@@ -21760,6 +21760,7 @@
       }
     },
     "e.g. http://example.com:8080" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -38730,9 +38731,6 @@
         }
       }
     },
-    "Live channel: %@" : {
-
-    },
     "Live Stream Format" : {
       "localizations" : {
         "ar" : {
@@ -48687,6 +48685,9 @@
         }
       }
     },
+    "No servers are set up. Contact app support." : {
+
+    },
     "No subtitles found for this title." : {
       "localizations" : {
         "ar" : {
@@ -49833,6 +49834,9 @@
         }
       }
     },
+    "Now playing: %@" : {
+
+    },
     "Off" : {
       "localizations" : {
         "ar" : {
@@ -50918,9 +50922,6 @@
         }
       }
     },
-    "Open live channel full screen" : {
-
-    },
     "Open MDBList" : {
       "localizations" : {
         "ar" : {
@@ -51152,6 +51153,9 @@
           }
         }
       }
+    },
+    "Open video full screen" : {
+
     },
     "OpenSubtitles" : {
       "localizations" : {
@@ -56413,6 +56417,9 @@
           }
         }
       }
+    },
+    "PLAYING" : {
+
     },
     "Playing %@" : {
       "comment" : "VoiceOver label for the in-player stream-information caption. The argument is the programme or series name currently playing.",
@@ -67718,6 +67725,9 @@
         }
       }
     },
+    "Select a provider" : {
+
+    },
     "Select a row to lift it, then move up or down and select again to place — the first few lead the Home shelf." : {
       "localizations" : {
         "ar" : {
@@ -68658,6 +68668,9 @@
           }
         }
       }
+    },
+    "Server Provider" : {
+
     },
     "Server URL" : {
       "localizations" : {
@@ -78091,7 +78104,7 @@
         }
       }
     },
-    "Stop live playback" : {
+    "Stop playback" : {
 
     },
     "Stop Recording" : {
