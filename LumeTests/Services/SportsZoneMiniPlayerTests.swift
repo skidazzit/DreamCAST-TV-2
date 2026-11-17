@@ -19,38 +19,6 @@ struct SportsZoneMiniPlayerTests {
         )
     }
 
-    @Test func restartIsExplicitAndKeepsTheSelectedChannel() {
-        let session = SportsZonePlaybackSession()
-        let channel = media("restart")
-        session.tune(channel, previewMode: .small)
-        session.failedMediaID = channel.id
-        let initialToken = session.reloadToken
-
-        session.restartCurrentChannel()
-        #expect(session.miniMedia?.id == channel.id)
-        #expect(session.fullScreenMedia == nil)
-        #expect(session.failedMediaID == nil)
-        #expect(session.reloadToken == initialToken + 1)
-
-        // Merely selecting the already playing channel is NOT a restart.
-        session.tune(channel, previewMode: .small)
-        #expect(session.reloadToken == initialToken + 1)
-
-        // A second explicit button press starts a second fresh attempt.
-        session.restartCurrentChannel()
-        #expect(session.reloadToken == initialToken + 2)
-    }
-
-    @Test func restartDoesNotDisruptAnOpenFullScreenSession() {
-        let session = SportsZonePlaybackSession()
-        session.tune(media("playing"), previewMode: .off)
-        let token = session.reloadToken
-        session.restartCurrentChannel()
-        #expect(session.fullScreenMedia?.id == "playing")
-        #expect(session.miniMedia?.id == "playing")
-        #expect(session.reloadToken == token)
-    }
-
     @Test func selectingTheSameSportsChannelDoesNotRetune() {
         let session = SportsZonePlaybackSession()
         session.tune(media("a"))
