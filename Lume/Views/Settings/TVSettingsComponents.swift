@@ -316,10 +316,20 @@
         private struct FocusedCard: View {
             let configuration: ButtonStyleConfiguration
             @Environment(\.isFocused) private var isFocused
+            @AppStorage(DreamCASTAccentTheme.storageKey) private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+            @AppStorage(DreamCASTVisualSettings.liquidGlassKey) private var liquidGlass = DreamCASTVisualSettings.defaultLiquidGlass
+            @AppStorage(DreamCASTVisualSettings.transparencyKey) private var transparency = DreamCASTVisualSettings.defaultTransparency
 
             var body: some View {
                 configuration.label
                     .foregroundStyle(.white)
+                    .background {
+                        if liquidGlass && !isFocused {
+                            Color.clear
+                                .glassEffectCompat(.regular, in: RoundedRectangle(cornerRadius: 16))
+                                .opacity(transparency)
+                        }
+                    }
                     .background {
                         RoundedRectangle(cornerRadius: 16)
                             .fill(isFocused
