@@ -166,6 +166,10 @@ final class SportsZonePlaybackSession {
 struct SportsZoneMiniPlayer: View {
     let session: SportsZonePlaybackSession
 
+    #if os(iOS)
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    #endif
+
     @AppStorage(PlayerSettings.tvGuidePreviewModeKey)
     private var modeRaw = PlayerSettings.tvGuidePreviewModeDefault.rawValue
 
@@ -262,7 +266,8 @@ struct SportsZoneMiniPlayer: View {
     private func phonePlayer(_ media: PlayableMedia) -> some View {
         VStack(spacing: 0) {
             surface(media)
-                .frame(height: embeddedMode == .large ? 192 : (embeddedMode == .infoOnly ? 98 : 152))
+                .frame(height: verticalSizeClass == .compact ? 88
+                       : (embeddedMode == .large ? 192 : (embeddedMode == .infoOnly ? 98 : 152)))
                 .overlay(alignment: .bottom) {
                     HStack(alignment: .bottom, spacing: 8) {
                         Text(media.isLive ? "LIVE" : "PLAYING")
