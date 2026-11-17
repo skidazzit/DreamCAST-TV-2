@@ -140,6 +140,9 @@ enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
             Color(red: 0.84, green: 0.89, blue: 0.95)
         ]
     }
+    var selectionAccent: Color {
+        self == .white ? Color(red: 0.24, green: 0.33, blue: 0.45) : color
+    }
     var gradient: LinearGradient {
         LinearGradient(colors: gradientColors, startPoint: .topLeading, endPoint: .bottomTrailing)
     }
@@ -162,6 +165,25 @@ enum DreamCASTVisualSettings {
     static var liquidGlass: Bool {
         guard UserDefaults.standard.object(forKey: liquidGlassKey) != nil else { return defaultLiquidGlass }
         return UserDefaults.standard.bool(forKey: liquidGlassKey)
+    }
+}
+
+/// Shared tinted settings rows and sections that follow the selected theme.
+struct DreamCASTThemePanel: View {
+    @AppStorage(DreamCASTAccentTheme.storageKey)
+    private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+    @AppStorage(AppAppearance.storageKey)
+    private var appearanceRaw = AppAppearance.defaultValue.rawValue
+    @Environment(\.colorScheme) private var deviceScheme
+
+    var body: some View {
+        let theme = DreamCASTAccentTheme.resolve(themeRaw)
+        let mode = AppAppearance.resolve(appearanceRaw)
+        let light = theme == .white || mode == .light || (mode == .system && deviceScheme == .light)
+        Rectangle()
+            .fill(light ? Color.white.opacity(0.75)
+                        : theme.gradientColors[1].opacity(0.94))
+            .overlay(theme.selectionAccent.opacity(light ? 0.055 : 0.08))
     }
 }
 
