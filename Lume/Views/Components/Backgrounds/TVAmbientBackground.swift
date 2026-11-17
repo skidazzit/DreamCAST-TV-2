@@ -150,6 +150,13 @@ struct DreamCASTMobileChip: View {
     var selected = false
     let action: () -> Void
 
+    init(title: String, symbol: String? = nil, selected: Bool = false, action: @escaping () -> Void) {
+        self.title = title
+        self.symbol = symbol
+        self.selected = selected
+        self.action = action
+    }
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 7) {
