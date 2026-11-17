@@ -169,7 +169,7 @@ struct DreamCASTMobileChip: View {
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
             }
-            .foregroundStyle(AppAppearance.resolve(appearanceRaw) == .light || DreamCASTAccentTheme.resolve(themeRaw) == .white ? Color.black : Color.white)
+            .foregroundStyle(AppAppearance.resolve(appearanceRaw) == .light ? Color.black : Color.white)
             .padding(.horizontal, 14)
             .frame(minHeight: 43)
             .background {
