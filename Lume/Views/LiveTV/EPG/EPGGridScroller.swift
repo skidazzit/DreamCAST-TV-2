@@ -197,7 +197,7 @@ struct EPGGridScroller: View {
         // The channel cards are inset like the tvOS column beside its rail,
         // rather than running into the window edge.
         .padding(.leading, metrics.channelColumnGap)
-        .background(.background)
+        .background { DreamCASTThemeBackground() }
         #endif
         .sheet(item: $selection) { selection in
             EPGProgramDetailView(
