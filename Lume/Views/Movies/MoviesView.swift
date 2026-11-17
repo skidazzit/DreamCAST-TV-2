@@ -160,6 +160,9 @@ struct MoviesView: View {
                     #endif
                 }
             }
+            #if os(iOS)
+            .background { DreamCASTThemeBackground() }
+            #endif
             .platformNavigationTitle("Movies")
             .profileMenuToolbar()
             .libraryToolbar(config: LibraryToolbarConfiguration(
