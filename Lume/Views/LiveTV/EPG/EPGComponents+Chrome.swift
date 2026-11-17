@@ -28,6 +28,11 @@ struct EPGChannelCell: View {
     let metrics: EPGMetrics
     var highlight = EPGChannelCellHighlight.none
     var selected = false
+    @AppStorage(DreamCASTAccentTheme.storageKey) private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+
+    private var activeAccent: Color {
+        DreamCASTAccentTheme.resolve(themeRaw).selectionAccent
+    }
 
     private var isHub: Bool {
         highlight == .hub
@@ -40,19 +45,19 @@ struct EPGChannelCell: View {
             #if os(iOS)
                 if selected {
                     EPGSelectedChannelName(name: row.name, font: metrics.channelNameFont)
-                        .foregroundStyle(isHub ? EPGColors.cardText : .primary)
+                        .foregroundStyle(isHub && !selected ? EPGColors.cardText : .primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
                     Text(row.name)
                         .font(metrics.channelNameFont)
-                        .foregroundStyle(isHub ? EPGColors.cardText : .primary)
+                        .foregroundStyle(isHub && !selected ? EPGColors.cardText : .primary)
                         .lineLimit(metrics.channelNameLineLimit)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             #else
                 Text(row.name)
                     .font(metrics.channelNameFont)
-                    .foregroundStyle(isHub ? EPGColors.cardText : .primary)
+                    .foregroundStyle(isHub && !selected ? EPGColors.cardText : .primary)
                     .lineLimit(metrics.channelNameLineLimit)
                     .frame(maxWidth: .infinity, alignment: .leading)
             #endif
@@ -71,6 +76,11 @@ struct EPGChannelCell: View {
     }
 
     private var fill: Color {
+        #if os(iOS)
+        // The selected channel must not revert to the old black focus card.
+        if selected { return activeAccent.opacity(0.23) }
+        if isHub { return activeAccent.opacity(0.16) }
+        #endif
         switch highlight {
         case .hub: EPGColors.cardFill
         case .row: .primary.opacity(0.15)
@@ -79,6 +89,9 @@ struct EPGChannelCell: View {
     }
 
     private var border: Color {
+        #if os(iOS)
+        if selected || isHub { return activeAccent.opacity(0.85) }
+        #endif
         switch highlight {
         case .hub: EPGColors.cardBorder
         case .row: .primary.opacity(0.24)
