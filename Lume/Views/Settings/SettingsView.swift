@@ -35,6 +35,12 @@ struct SettingsView: View {
     #endif
 
     #if os(tvOS)
+        @AppStorage(DreamCASTAccentTheme.storageKey) private var accentThemeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+        @AppStorage(DreamCASTVisualSettings.liquidGlassKey)
+        private var dashboardLiquidGlass = DreamCASTVisualSettings.defaultLiquidGlass
+        @AppStorage(DreamCASTVisualSettings.transparencyKey)
+        private var dashboardTransparency = DreamCASTVisualSettings.defaultTransparency
+
         /// Legacy single-engine key, kept in sync with the primary engine so a
         /// downgrade still finds the user's preferred engine, and read as the
         /// migration seed for the priority list. See `PlayerEnginePriority`.
@@ -832,12 +838,6 @@ struct SettingsView: View {
             }
             .buttonStyle(TVDashboardCardStyle())
         }
-
-        @AppStorage(DreamCASTAccentTheme.storageKey) private var accentThemeRaw = DreamCASTAccentTheme.defaultValue.rawValue
-        @AppStorage(DreamCASTVisualSettings.liquidGlassKey)
-        private var dashboardLiquidGlass = DreamCASTVisualSettings.defaultLiquidGlass
-        @AppStorage(DreamCASTVisualSettings.transparencyKey)
-        private var dashboardTransparency = DreamCASTVisualSettings.defaultTransparency
 
         private var tvDashboardAppearance: some View {
             VStack(alignment: .leading, spacing: 26) {
