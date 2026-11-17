@@ -16,8 +16,29 @@ set -eu
 ENV_FILE="${SRCROOT}/.env"
 PLIST="${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
 
+# Finder may hide the extension on a TextEdit document named ".env.txt".
+# Prefer the exact .env file and only accept .env.txt if that file is absent.
+# Never show the contents of either file in build logs.
+if [ ! -f "$ENV_FILE" ] && [ -f "${SRCROOT}/.env.txt" ]; then
+    ENV_FILE="${SRCROOT}/.env.txt"
+    echo "warning: using .env.txt (Finder may have hidden .txt); rename it to .env for standard builds"
+fi
+
 if [ ! -f "$ENV_FILE" ]; then
-    echo "warning: .env not found at $ENV_FILE — secrets not injected"
+    echo "warning: .env not found at ${SRCROOT}/.env — secrets not injected"
+    echo "warning: In Terminal run: ls -la \"${SRCROOT}\"/.env*"
+    exit 0
+fi
+
+if [ ! -r "$ENV_FILE" ]; then
+    echo "warning: cannot read $ENV_FILE — check file permissions"
+    exit 0
+fi
+
+# TextEdit can save Rich Text even when the name looks like .env. The loader
+# requires KEY=value lines, not an RTF document.
+if LC_ALL=C head -c 5 "$ENV_FILE" | grep -qF '{\\rtf'; then
+    echo "warning: $ENV_FILE is Rich Text (RTF); save as plain text .env"
     exit 0
 fi
 
