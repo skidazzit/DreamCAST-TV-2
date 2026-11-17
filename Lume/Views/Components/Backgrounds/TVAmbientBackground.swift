@@ -229,7 +229,6 @@ private struct DreamCASTMobilePageTheme: ViewModifier {
             .scrollContentBackground(.hidden)
             .background { DreamCASTMobileWallpaper() }
             .toolbarBackground(.hidden, for: .navigationBar)
-            .preferredColorScheme(.dark)
     }
 }
 
