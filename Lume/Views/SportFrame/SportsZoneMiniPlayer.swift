@@ -231,6 +231,14 @@ struct SportsZoneMiniPlayer: View {
                 }
                 .buttonStyle(.borderedProminent)
                 Button {
+                    session.restartCurrentChannel()
+                } label: {
+                    TVFixedButtonLabel(title: "Restart", systemName: "arrow.clockwise")
+                }
+                .buttonStyle(.bordered)
+                .disabled(session.guidePreview.isSuspended)
+                .accessibilityLabel("Restart channel")
+                Button {
                     session.close()
                 } label: {
                     TVFixedButtonLabel(title: "Stop", systemName: "stop.fill")
@@ -330,7 +338,7 @@ struct TVPersistentMiniPlayer: View {
     @FocusState private var focusedAction: MiniPlayerAction?
 
     private enum MiniPlayerAction: Hashable {
-        case fullScreen, stop
+        case fullScreen, restart, stop
     }
 
     private var canShowVideo: Bool {
@@ -404,6 +412,21 @@ struct TVPersistentMiniPlayer: View {
                         .focusEffectDisabled()
                         .accessibilityLabel("Open live channel full screen")
                         .focused($focusedAction, equals: .fullScreen)
+
+                        Button {
+                            session.restartCurrentChannel()
+                        } label: {
+                            miniPlayerActionLabel(
+                                "Restart",
+                                symbol: "arrow.clockwise",
+                                focused: focusedAction == .restart
+                            )
+                        }
+                        .buttonStyle(.borderless)
+                        .focusEffectDisabled()
+                        .disabled(session.guidePreview.isSuspended)
+                        .accessibilityLabel("Restart channel")
+                        .focused($focusedAction, equals: .restart)
 
                         Button {
                             session.close()
