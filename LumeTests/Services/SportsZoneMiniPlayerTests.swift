@@ -55,6 +55,29 @@ struct SportsZoneMiniPlayerTests {
         #expect(session.fullScreenMedia == nil)
     }
 
+    @Test func fullScreenRequestWaitsForMiniPlayerDecoderRatherThanReloading() {
+        let session = SportsZonePlaybackSession()
+        session.tune(media("a"), previewMode: .small)
+        let originalToken = session.reloadToken
+
+        // No running preview has been registered yet. Full screen must not
+        // open its own second stream while the existing preview is buffering.
+        session.openFullScreen()
+        #expect(session.fullScreenMedia == nil)
+        #expect(session.pendingFullScreenRequest)
+        #expect(session.reloadToken == originalToken)
+
+        // Navigating away from Live TV does not affect the pending session.
+        session.tune(media("a"), previewMode: .small)
+        #expect(session.pendingFullScreenRequest)
+        #expect(session.reloadToken == originalToken)
+
+        // An explicit Stop cancels the pending handoff.
+        session.close()
+        #expect(!session.pendingFullScreenRequest)
+        #expect(session.fullScreenMedia == nil)
+    }
+
     @Test func selectingTheSameSportsChannelDoesNotRetune() {
         let session = SportsZonePlaybackSession()
         session.tune(media("a"))
