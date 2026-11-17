@@ -153,7 +153,7 @@ struct MoviesView: View {
                         genres = await GenreDerivation.movieGenres(in: modelContext.container, scope: scope, restriction: restriction)
                     }
                     #if os(iOS)
-                    .task(id: "(scope.token)-(categories.count)-(playlists.map(\.syncStatusRaw).joined(separator: "|"))") {
+                    .task(id: "\(scope.token)-\(categories.count)-\(playlists.map(\.syncStatusRaw).joined(separator: "|"))") {
                         loadFeaturedMovie()
                     }
                     #endif
