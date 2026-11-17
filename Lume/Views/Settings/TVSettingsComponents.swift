@@ -327,7 +327,7 @@
                         if liquidGlass && !isFocused {
                             Color.clear
                                 .glassEffectCompat(.regular, in: RoundedRectangle(cornerRadius: 16))
-                                .opacity(transparency)
+                                .opacity(1 - transparency)
                         }
                     }
                     .background {
