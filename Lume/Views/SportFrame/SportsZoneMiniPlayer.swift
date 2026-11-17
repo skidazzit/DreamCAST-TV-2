@@ -181,38 +181,58 @@ struct SportsZoneMiniPlayer: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
     }
     #else
-    /// Match iOS Live TV: title/controls above a wide, non-floating preview.
+    /// Fixed embedded player: tvOS neon-glass treatment with native iPhone
+    /// controls. Only the decoration changes; the video decoder keeps its
+    /// existing stable position and full-screen handoff lifecycle.
     private func phonePlayer(_ media: PlayableMedia) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 10) {
-                Text("NOW PLAYING")
-                    .font(.caption2.bold())
-                    .foregroundStyle(.secondary)
-                Text(media.title)
-                    .font(.subheadline.weight(.semibold))
-                    .lineLimit(1)
-                Spacer(minLength: 4)
-                Button {
-                    session.openFullScreen()
-                } label: {
-                    Image(systemName: "arrow.up.left.and.arrow.down.right")
-                }
-                .accessibilityLabel("Open live channel full screen")
-                Button {
-                    session.close()
-                } label: {
-                    Image(systemName: "stop.fill")
-                }
-                .accessibilityLabel("Stop live playback")
-            }
-            // Keep enough of the active page visible on smaller phones.
-            // The root reserves this exact space instead of covering rows.
+        VStack(spacing: 0) {
             surface(media)
-                .frame(height: mode == .large ? 184 : (mode == .infoOnly ? 86 : 124))
+                .frame(height: mode == .large ? 192 : (mode == .infoOnly ? 98 : 152))
+                .overlay(alignment: .bottom) {
+                    HStack(alignment: .bottom, spacing: 8) {
+                        Text("LIVE")
+                            .font(.caption2.bold())
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 6)
+                            .background(.red.opacity(0.9), in: Capsule())
+                        Text(media.title)
+                            .font(.subheadline.bold())
+                            .lineLimit(1)
+                            .foregroundStyle(.white)
+                        Spacer(minLength: 4)
+                        Button { session.openFullScreen() } label: {
+                            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                                .frame(width: 35, height: 35)
+                        }
+                        .accessibilityLabel("Open live channel full screen")
+                        .dreamCASTGlass(radius: 11)
+                        Button { session.close() } label: {
+                            Image(systemName: "stop.fill")
+                                .frame(width: 35, height: 35)
+                        }
+                        .accessibilityLabel("Stop live playback")
+                        .dreamCASTGlass(radius: 11)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.white)
+                    .padding(10)
+                    .background {
+                        LinearGradient(
+                            colors: [.clear, .black.opacity(0.86)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 21))
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 22)
+                        .strokeBorder(DreamCASTMobileTheme.iceBlue.opacity(0.94), lineWidth: 1.6)
+                }
+                .shadow(color: DreamCASTMobileTheme.electricBlue.opacity(0.32), radius: 12)
         }
         .padding(.horizontal, 16)
-        .padding(.top, 10)
-        .padding(.bottom, 10)
+        .padding(.vertical, 7)
     }
     #endif
 
