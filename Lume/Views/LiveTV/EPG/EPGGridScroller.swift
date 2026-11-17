@@ -144,16 +144,31 @@ struct EPGGridScroller: View {
             // the highlighted row and grid position.
             selectedBeforeDeparture = false
             preferredX = nil
-            virtualFocus = rows.isEmpty ? nil : .channel(rowIndex: 0)
-            requestScroll(to: CGPoint(x: scrollTarget(forNow: now), y: 0), animated: false)
+            let restoredRow = preview.controller?.preferredStreamID.flatMap { id in
+                rows.firstIndex(where: { $0.id == id })
+            }
+            virtualFocus = rows.isEmpty ? nil : .channel(rowIndex: restoredRow ?? 0)
+            requestScroll(
+                to: CGPoint(
+                    x: scrollTarget(forNow: now),
+                    y: restoredRow.map(metrics.rowOriginY) ?? 0
+                ),
+                animated: false
+            )
         }
         .onChange(of: preview.controller?.preferredStreamID, initial: true) { _, id in
             // Give the restored last-watched row its guide highlight without
             // stealing actual remote focus from the Live TV tab or category
             // rail. The existing focus entry still handles remote movement.
-            guard virtualFocus == nil, let id,
+            guard let id,
                   let index = rows.firstIndex(where: { $0.id == id }) else { return }
             virtualFocus = .channel(rowIndex: index)
+            // The stream may be restored after the guide's first layout.
+            // Move the virtual highlight and scroll, not actual remote focus.
+            requestScroll(
+                to: CGPoint(x: scrollTarget(forNow: now), y: metrics.rowOriginY(index)),
+                animated: false
+            )
         }
         #else
         // The channel cards are inset like the tvOS column beside its rail,
