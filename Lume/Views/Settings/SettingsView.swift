@@ -209,6 +209,46 @@ struct SettingsView: View {
         private var standardBody: some View {
             NavigationStack(path: $path) {
                 List {
+                    #if os(iOS)
+                    Section {
+                        ScrollView(.horizontal) {
+                            HStack(spacing: 10) {
+                                ForEach(
+                                    [SettingsCategory.home, .player, .liveTV, .epg,
+                                     .library, .appearance, .storage, .playlists],
+                                    id: \.self
+                                ) { category in
+                                    NavigationLink {
+                                        SettingsCategoryDestination(category: category)
+                                            .dreamCASTPageTheme()
+                                    } label: {
+                                        VStack(spacing: 8) {
+                                            Image(systemName: category.systemImage)
+                                                .font(.title3)
+                                                .foregroundStyle(DreamCASTMobileTheme.iceBlue)
+                                            Text(category.title)
+                                                .font(.caption.weight(.semibold))
+                                                .lineLimit(2)
+                                                .multilineTextAlignment(.center)
+                                        }
+                                        .foregroundStyle(.white)
+                                        .frame(width: 95, height: 74)
+                                        .dreamCASTGlass(radius: 15)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 8)
+                        }
+                        .scrollIndicators(.hidden)
+                        .listRowInsets(EdgeInsets(top: 6, leading: 10, bottom: 6, trailing: 10))
+                        .listRowBackground(Color.clear)
+                    } header: {
+                        Text("Quick Settings")
+                            .foregroundStyle(DreamCASTMobileTheme.iceBlue)
+                    }
+                    #endif
                     ForEach(SettingsCategory.grouped(hasConnectedServices: hasConnectedServices), id: \.group) { entry in
                         Section {
                             ForEach(entry.categories) { category in
@@ -236,6 +276,7 @@ struct SettingsView: View {
                 #endif
                 #if os(iOS)
                 .scrollContentBackground(.hidden)
+                .listRowSeparatorTint(DreamCASTMobileTheme.iceBlue.opacity(0.2))
                 .background { DreamCASTMobileWallpaper() }
                 #endif
                 .platformNavigationTitle("Settings")
