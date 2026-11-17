@@ -205,6 +205,10 @@ struct LoginView: View {
                 #if os(macOS)
                 .formStyle(.grouped)
                 #endif
+                #if os(iOS)
+                .scrollContentBackground(.hidden)
+                .background { DreamCASTMobileWallpaper() }
+                #endif
                 .navigationTitle("Add Playlist")
                 .toolbar {
                     // Only offer Cancel when presented modally (the Settings
