@@ -509,9 +509,11 @@ struct SportFrameMobile: View {
                     .foregroundStyle(.secondary)
             }
 
-            Text(SportsDBAccess.hasPremiumKey
-                 ? "A Premium key is saved. The status above checks whether v2 access works."
-                 : "Using the public Free API. Add a Premium key to unlock Premium access.")
+            Text(SportsDBAccess.isUsingBundledKey
+                 ? "Premium key loaded from the build's .env file. To change it, edit .env and rebuild. A key saved below takes priority."
+                 : SportsDBAccess.hasPremiumKey
+                    ? "A Premium key is saved on this device. The status above checks whether v2 access works."
+                    : "Using the public Free API. Add a Premium key to unlock Premium access.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -533,9 +535,12 @@ struct SportFrameMobile: View {
                 Button("Remove Key") {
                     SportsDBAccess.remove()
                     premiumKey = ""
-                    keyStatus = "Premium key removed. Using Free API."
+                    keyStatus = SportsDBAccess.isUsingBundledKey
+                        ? "Saved key removed. The .env build key remains active."
+                        : "Premium key removed. Using Free API."
                     apiCheckID += 1
                 }
+                .disabled(!SportsDBAccess.hasSavedKey)
             }
             .buttonStyle(.bordered)
             Button {
