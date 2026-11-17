@@ -152,7 +152,7 @@ struct SportFrameMobile: View {
                     .padding(.vertical, 16)
                 }
                 .background { DreamCASTMobileWallpaper() }
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
                 .navigationTitle("SportsZone")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -246,7 +246,7 @@ struct SportFrameMobile: View {
         Button(action: action) {
             Text(title)
                 .font(.subheadline.weight(selected ? .bold : .medium))
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
                 .frame(maxWidth: .infinity)
                 .frame(height: 39)
                 .background {
