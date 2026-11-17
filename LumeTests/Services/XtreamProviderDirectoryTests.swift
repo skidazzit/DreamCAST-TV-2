@@ -27,10 +27,31 @@ struct XtreamProviderDirectoryTests {
             XtreamProvider(id: item.0, name: item.1, serverURL: "https://server\(index).example.test", enabled: true, previousURLs: [])
         }
         #expect(XtreamProviderEnvelope(schemaVersion: 1, revision: 2, providers: providers).isValid)
-        #expect(!XtreamProviderEnvelope(schemaVersion: 2, revision: 2, providers: providers).isValid)
+        #expect(!XtreamProviderEnvelope(schemaVersion: 3, revision: 2, providers: providers).isValid)
         #expect(!XtreamProviderEnvelope(schemaVersion: 1, revision: 2, providers: Array(providers.dropLast())).isValid)
         let conflict = XtreamProvider(id: providers[0].id, name: providers[0].name, serverURL: providers[1].serverURL,
                                      enabled: true, previousURLs: [])
         #expect(!XtreamProviderEnvelope(schemaVersion: 1, revision: 2, providers: [conflict] + Array(providers.dropFirst())).isValid)
     }
+    @Test func `dynamic directory accepts new providers and a fully empty list`() {
+        let provider = XtreamProvider(id: "CUSTOM_NEW", name: "New Provider", serverURL: "https://new.example.test",
+                                      enabled: true, previousURLs: [])
+        let directory = XtreamProviderEnvelope(schemaVersion: 2, revision: 3, providers: [provider])
+        #expect(directory.isValid)
+        #expect(directory.allProviders.map(\.id) == ["CUSTOM_NEW"])
+        #expect(XtreamProviderEnvelope(schemaVersion: 2, revision: 4, providers: []).isValid)
+    }
+
+    @Test func `deleted providers remain available for resolution but not selection`() {
+        let retired = XtreamProvider(id: "CUSTOM_OLD", name: "Old Provider", serverURL: "https://old.example.test",
+                                    enabled: false, previousURLs: [])
+        let directory = XtreamProviderEnvelope(schemaVersion: 2, revision: 4, providers: [], retiredProviders: [retired])
+        #expect(directory.isValid)
+        #expect(directory.allProviders.map(\.id) == ["CUSTOM_OLD"])
+        #expect(directory.allProviders.filter(\.enabled).isEmpty)
+        let reused = XtreamProvider(id: "CUSTOM_NEW", name: "New Provider", serverURL: retired.serverURL,
+                                   enabled: true, previousURLs: [])
+        #expect(!XtreamProviderEnvelope(schemaVersion: 2, revision: 5, providers: [reused], retiredProviders: [retired]).isValid)
+    }
+
 }
