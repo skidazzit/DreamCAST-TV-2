@@ -127,6 +127,8 @@ struct MainTabView: View {
                 tabView(selection: selection, tabs: tabs)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .background { DreamCASTMobileWallpaper() }
+            .preferredColorScheme(.dark)
         #else
             tabView(selection: selection, tabs: tabs)
         #endif
