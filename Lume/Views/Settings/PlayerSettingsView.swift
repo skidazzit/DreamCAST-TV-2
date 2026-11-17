@@ -137,6 +137,9 @@
 
                 advancedSection
             }
+            #if os(iOS)
+            .dreamCASTPageTheme()
+            #endif
             .platformNavigationTitle("Player")
             .paywall(isPresented: $showPaywall, highlight: .playbackControls)
         }
@@ -269,6 +272,9 @@
                     Text("AVPlayer has no configurable options.")
                 }
             }
+            #if os(iOS)
+            .dreamCASTPageTheme()
+            #endif
             .platformNavigationTitle("Engines")
             .navigationDestination(item: $optionsEngine) { kind in
                 switch kind {
