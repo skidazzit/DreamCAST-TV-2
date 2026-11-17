@@ -39,13 +39,35 @@ nonisolated struct XtreamProviderEnvelope: Codable, Sendable {
     let schemaVersion: Int
     let revision: Int
     let providers: [XtreamProvider]
+    var retiredProviders: [XtreamProvider]? = nil
+
+    /// Deleted providers remain resolvable for saved playlists, but never selectable.
+    var allProviders: [XtreamProvider] {
+        providers + (retiredProviders ?? []).map { provider in
+            XtreamProvider(id: provider.id, name: provider.name, serverURL: provider.serverURL,
+                           enabled: false, previousURLs: provider.previousURLs)
+        }
+    }
 
     var isValid: Bool {
-        guard schemaVersion == 1, revision >= 0,
-              providers.count == XtreamProvider.catalog.count,
-              Set(providers.map(\.id)) == Set(XtreamProvider.catalog.map { $0.0 }) else { return false }
+        guard [1, 2].contains(schemaVersion), revision >= 0,
+              providers.count <= 100, (retiredProviders?.count ?? 0) <= 1000 else { return false }
+        if schemaVersion == 1 {
+            guard providers.count == XtreamProvider.catalog.count,
+                  Set(providers.map(\.id)) == Set(XtreamProvider.catalog.map { $0.0 }),
+                  (retiredProviders ?? []).isEmpty else { return false }
+        }
+        let all = allProviders
+        guard Set(all.map(\.id)).count == all.count else { return false }
         var owners: [String: String] = [:]
+        var names: Set<String> = []
         for provider in providers {
+            guard names.insert(provider.name.lowercased()).inserted else { return false }
+        }
+        for provider in all {
+            guard provider.id.range(of: "^[A-Z][A-Z0-9_]{0,63}$", options: .regularExpression) != nil,
+                  !provider.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  provider.name.count <= 80 else { return false }
             for address in [provider.serverURL] + provider.previousURLs {
                 guard let normalized = XtreamProvider.normalizedAddress(address) else { return false }
                 if let owner = owners[normalized], owner != provider.id { return false }
@@ -70,12 +92,9 @@ nonisolated enum XtreamProviderDirectory {
     static var providers: [XtreamProvider] {
         let snapshot = state.withLock { $0 }
         guard let snapshot else { return XtreamProvider.bundled }
-        // Names and order are fixed by the app; the website only changes addresses.
-        return XtreamProvider.catalog.compactMap { id, name in
-            guard let provider = snapshot.providers.first(where: { $0.id == id }) else { return nil }
-            return XtreamProvider(id: id, name: name, serverURL: provider.serverURL,
-                                  enabled: provider.enabled, previousURLs: provider.previousURLs)
-        }
+        // The dashboard controls the full list, its names and display order.
+        // A valid empty list must not bring the bundled defaults back.
+        return snapshot.allProviders
     }
 
     static func accept(_ envelope: XtreamProviderEnvelope) {
@@ -162,7 +181,10 @@ actor XtreamProviderRefresh {
     private nonisolated static func download() async -> XtreamProviderEnvelope? {
         let address = (Bundle.main.object(forInfoDictionaryKey: "XtreamProviderDirectoryURL") as? String)
             ?? "https://dreamcast-server-manager.inquisitivemagpie.chatgpt.site/api/providers"
-        guard let url = URL(string: address), url.scheme == "https" else { return nil }
+        guard var components = URLComponents(string: address), components.scheme == "https" else { return nil }
+        components.queryItems = (components.queryItems ?? []).filter { $0.name != "version" }
+            + [URLQueryItem(name: "version", value: "2")]
+        guard let url = components.url else { return nil }
         let configuration = URLSessionConfiguration.ephemeral
         configuration.timeoutIntervalForRequest = 5
         configuration.timeoutIntervalForResource = 8
@@ -172,7 +194,7 @@ actor XtreamProviderRefresh {
             let (data, response) = try await session.data(from: url)
             guard let response = response as? HTTPURLResponse, response.statusCode == 200,
                   response.url?.scheme == "https", response.url?.host == url.host,
-                  data.count <= 131072 else { return nil }
+                  data.count <= 1048576 else { return nil }
             let envelope = try JSONDecoder().decode(XtreamProviderEnvelope.self, from: data)
             return envelope.isValid ? envelope : nil
         } catch { return nil }

@@ -6,7 +6,7 @@ Sign in with the owner ChatGPT account. Change an address and select **Publish c
 
 Updated apps check on launch, foreground, and before Xtream catalog sync; checks are limited to one per minute. A valid directory is cached on the device. Network errors, invalid data, and older revisions keep the last good copy. `.env` addresses remain offline defaults for a fresh installation.
 
-Provider IDs and names remain fixed. New playlists save the stable ID. Existing playlists match their original address against current, bundled and historical addresses. Disabling a provider hides it from the add-playlist list; existing playlists still resolve its current address.
+Provider IDs stay fixed. The dashboard can add or delete providers; apps request the version 2 directory and follow its names and order. Deletions hide providers from new-playlist choices while retaining their last address for saved playlists. The version 1 feed keeps older builds compatible with the original four providers. New playlists save the stable ID. Existing playlists match their original address against current, bundled and historical addresses. Disabling a provider hides it from the add-playlist list; existing playlists still resolve its current address.
 
 API, live, movie, episode, catch-up and saved XMLTV URLs use the current provider base. Direct links on external CDN hosts stay unchanged. A stream already playing is not interrupted; the next request uses the new address.
 
