@@ -19,6 +19,9 @@ struct ChannelsList: View {
     /// Seeds Multi-View with this channel, gated on Lume Pro by the host.
     let onStartMultiView: (LiveStream) -> Void
     let onPlay: (LiveStream) -> Void
+    /// The third tap may open a channel full-screen, but only after its
+    /// second tap has already sent it to the persistent mini-player.
+    var onPlayFullScreen: ((LiveStream) -> Void)? = nil
     @Environment(\.modelContext) private var modelContext
     @Environment(\.contentRestriction) private var restriction
     @Query private var streams: [LiveStream]
@@ -40,18 +43,24 @@ struct ChannelsList: View {
     @State private var visibleCount = LiveChannelQuery.pageSize
     /// Drives the "Clear Recently Watched" confirmation alert.
     @State private var confirmingClear = false
+    #if os(iOS)
+    @State private var selectedChannelID: String?
+    @State private var channelTapStage = 0
+    #endif
 
     init(
         scope: LiveChannelScope,
         catalogScope: CatalogScope,
         sort: ContentSortOption,
         onStartMultiView: @escaping (LiveStream) -> Void,
-        onPlay: @escaping (LiveStream) -> Void
+        onPlay: @escaping (LiveStream) -> Void,
+        onPlayFullScreen: ((LiveStream) -> Void)? = nil
     ) {
         self.scope = scope
         self.catalogScope = catalogScope
         self.onStartMultiView = onStartMultiView
         self.onPlay = onPlay
+        self.onPlayFullScreen = onPlayFullScreen
         _streams = Query(LiveChannelQuery.descriptor(for: scope, sort: sort))
     }
 
@@ -113,7 +122,11 @@ struct ChannelsList: View {
                     } else {
                         ForEach(visible) { stream in
                             Button {
-                                onPlay(stream)
+                                #if os(iOS)
+                                    handleTap(stream)
+                                #else
+                                    onPlay(stream)
+                                #endif
                             } label: {
                                 LiveStreamCardView(
                                     stream: stream,
@@ -121,6 +134,22 @@ struct ChannelsList: View {
                                 )
                                 .padding(.horizontal)
                                 .contentShape(Rectangle())
+                                #if os(iOS)
+                                .background {
+                                    if selectedChannelID == stream.id {
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .fill(Color.cyan.opacity(0.12))
+                                    }
+                                }
+                                .overlay {
+                                    if selectedChannelID == stream.id {
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .strokeBorder(
+                                                Color.cyan.opacity(0.95), lineWidth: 1.5
+                                            )
+                                    }
+                                }
+                                #endif
                             }
                             .buttonStyle(.plain)
                             .liveChannelMenu(
@@ -156,6 +185,25 @@ struct ChannelsList: View {
             Text("This clears the list of channels you've recently watched. Your favorites and the channels themselves aren't affected.")
         }
     }
+
+    #if os(iOS)
+    /// First touch selects; second touch plays in the fixed mini-player;
+    /// only a further deliberate tap may open full screen.
+    private func handleTap(_ stream: LiveStream) {
+        if selectedChannelID != stream.id {
+            selectedChannelID = stream.id
+            channelTapStage = 1
+            return
+        }
+        if channelTapStage < 2 {
+            channelTapStage = 2
+            onPlay(stream)
+        } else if let onPlayFullScreen {
+            channelTapStage = 3
+            onPlayFullScreen(stream)
+        }
+    }
+    #endif
 
     private func loadEPG(for channels: [LiveStream], generation: String) async {
         let channelIds = Array(Set(channels.compactMap(\.epgChannelId).filter { !$0.isEmpty }))
