@@ -213,6 +213,14 @@ struct MainTabView: View {
                 FullScreenPlayerView(media: media)
             }
         #endif
+            .task {
+                // First-run restores may happen before the IPTV catalogs exist.
+                // Apply matching favorites and watch progress once rows appear.
+                try? DreamCASTLocalSettingsBackup.applyPendingViewingState(in: modelContext)
+            }
+            .onChange(of: playlists.map { "\($0.id)|\($0.syncStatusRaw)" }) { _, _ in
+                try? DreamCASTLocalSettingsBackup.applyPendingViewingState(in: modelContext)
+            }
             .task(id: playlists.count) {
                 // On launch (and whenever a playlist is added) sync the active
                 // playlist if it is due, plus any playlist that has never synced.
@@ -266,6 +274,9 @@ struct MainTabView: View {
             }
             .onChange(of: autoSyncQueue.isBusy, initial: true) { _, busy in
                 EPGSyncService.shared.setAutoSyncQueued(busy)
+                if !busy {
+                    try? DreamCASTLocalSettingsBackup.applyPendingViewingState(in: modelContext)
+                }
             }
             .onDisappear {
                 // The queue goes with this view (deleting the last playlist
