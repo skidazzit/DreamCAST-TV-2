@@ -33,6 +33,9 @@ struct SearchView: View {
     @State private var selectedFilter: ContentFilter = .all
     @State private var results: [SearchResult] = []
     @State private var playingMedia: PlayableMedia?
+    #if os(iOS)
+    @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
+    #endif
 
     /// Max matches fetched per content type. Keeps the result set bounded so the
     /// list stays responsive even when a playlist holds tens of thousands of items.
@@ -233,7 +236,13 @@ struct SearchView: View {
         // holds the same id over there.
         guard let media = PlayableMedia.from(stream: stream, ownedByOneOf: playlists) else { return }
         if ExternalPlayback.open(media) { return }
-        #if os(macOS)
+        #if os(iOS)
+            if let sharedPlayback {
+                sharedPlayback.tune(media, previewMode: .small)
+            } else {
+                playingMedia = media
+            }
+        #elseif os(macOS)
             MacPlayerWindowRouter.shared.play(media, using: openWindow)
         #else
             playingMedia = media
