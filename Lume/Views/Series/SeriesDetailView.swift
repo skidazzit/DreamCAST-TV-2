@@ -26,6 +26,9 @@ struct SeriesDetailView: View {
         @Environment(\.openWindow) private var openWindow
     #endif
     @Query private var playlists: [Playlist]
+    #if os(iOS)
+    @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
+    #endif
 
     @State private var selectedSeason: Int = 1
     /// The series' distinct season numbers, cached so the body (season menu,
@@ -540,7 +543,13 @@ private extension SeriesDetailView {
         guard let playlist = seriesPlaylist,
               let media = PlayableMedia.from(episode: episode, playlist: playlist) else { return }
         if ExternalPlayback.open(media) { return }
-        #if os(macOS)
+        #if os(iOS)
+            if let sharedPlayback {
+                sharedPlayback.tune(media, previewMode: .small)
+            } else {
+                playingMedia = media
+            }
+        #elseif os(macOS)
             MacPlayerWindowRouter.shared.play(media, using: openWindow)
         #else
             playingMedia = media
