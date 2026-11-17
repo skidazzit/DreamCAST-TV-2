@@ -290,7 +290,9 @@ struct MainTabView: View {
             .onOpenURL { url in
                 handleDeepLink(url)
             }
-        #if !os(macOS)
+        #if !os(macOS) && !os(iOS)
+            // On iPhone the shared root session is the ONLY media presenter.
+            // Other platforms retain their existing independent deep-link UI.
             .fullScreenCover(item: $linkedMedia) { media in
                 FullScreenPlayerView(media: media)
             }
