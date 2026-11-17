@@ -49,19 +49,19 @@ struct EPGChannelCell: View {
             #if os(iOS)
                 if selected {
                     EPGSelectedChannelName(name: row.name, font: metrics.channelNameFont)
-                        .foregroundStyle(isHub && !selected ? EPGColors.cardText : .primary)
+                        .foregroundStyle(isHub && !selected ? EPGColors.cardText : Color.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
                     Text(row.name)
                         .font(metrics.channelNameFont)
-                        .foregroundStyle(isHub && !selected ? EPGColors.cardText : .primary)
+                        .foregroundStyle(isHub && !selected ? EPGColors.cardText : Color.primary)
                         .lineLimit(metrics.channelNameLineLimit)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             #else
                 Text(row.name)
                     .font(metrics.channelNameFont)
-                    .foregroundStyle(isHub && !selected ? EPGColors.cardText : .primary)
+                    .foregroundStyle(isHub && !selected ? EPGColors.cardText : Color.primary)
                     .lineLimit(metrics.channelNameLineLimit)
                     .frame(maxWidth: .infinity, alignment: .leading)
             #endif
@@ -85,7 +85,7 @@ struct EPGChannelCell: View {
         if selected { return activeAccent.opacity(max(0.10, 0.30 * (1 - surfaceTransparency))) }
         if isHub { return activeAccent.opacity(max(0.08, 0.20 * (1 - surfaceTransparency))) }
         #endif
-        switch highlight {
+        return switch highlight {
         case .hub: EPGColors.cardFill
         case .row: .primary.opacity(0.15)
         case .none: .primary.opacity(0.05)
@@ -96,7 +96,7 @@ struct EPGChannelCell: View {
         #if os(iOS)
         if selected || isHub { return activeAccent.opacity(0.85) }
         #endif
-        switch highlight {
+        return switch highlight {
         case .hub: EPGColors.cardBorder
         case .row: .primary.opacity(0.24)
         case .none: .primary.opacity(0.08)
