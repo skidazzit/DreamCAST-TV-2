@@ -298,12 +298,12 @@ struct MainTabView: View {
             #if os(iOS)
             .task {
                 // Apply saved user state after an existing catalog is opened.
-                try? DreamCASTLocalSettingsBackup.applyPendingViewingState(in: modelContext)
+                _ = try? DreamCASTLocalSettingsBackup.applyPendingViewingState(in: modelContext)
             }
             .onChange(of: playlists.map { "\($0.id)|\($0.syncStatusRaw)" }) { _, _ in
                 // Sync imports content after restore. Retry saved favorites and
                 // watch state when a playlist's sync phase changes.
-                try? DreamCASTLocalSettingsBackup.applyPendingViewingState(in: modelContext)
+                _ = try? DreamCASTLocalSettingsBackup.applyPendingViewingState(in: modelContext)
             }
             #endif
             .task(id: playlists.count) {
