@@ -162,7 +162,9 @@ struct LiveTVSectionGroupSection<Row: View>: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .background(.bar)
+            .padding(.horizontal, 10)
+            .dreamCASTGlass(radius: 16)
+            .padding(.horizontal, 12)
             .sheet(isPresented: $showingPicker) {
                 CategoryPickerSheet(groups: groups, selectedSection: $selectedSection)
             }
