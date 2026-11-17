@@ -637,17 +637,14 @@ struct MainTabView: View {
         }
     }
 
-    /// Live deep links use the exact same session as the guide and SportsZone.
-    /// Only VOD opens a separate cover from the app root.
+    /// Every iOS source — live, movies, series, widgets and casts — enters
+    /// the same app-root media session. VOD starts in the fixed video area,
+    /// while live playback links preserve their previous full-screen action.
     private func openLinkedMedia(_ media: PlayableMedia) {
         #if os(iOS)
+            sharedLivePlayback.tune(media, previewMode: .small)
             if media.isLive {
-                if sharedLivePlayback.miniMedia?.id != media.id {
-                    sharedLivePlayback.tune(media, previewMode: .small)
-                }
                 sharedLivePlayback.openFullScreen()
-            } else {
-                linkedMedia = media
             }
         #else
             linkedMedia = media
