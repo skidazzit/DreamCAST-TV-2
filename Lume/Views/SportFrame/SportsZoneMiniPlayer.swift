@@ -283,6 +283,12 @@ struct SportsZoneMiniPlayer: View {
                         }
                         .accessibilityLabel("Open video full screen")
                         .dreamCASTGlass(radius: 11)
+                        Button { session.restartCurrentChannel() } label: {
+                            Image(systemName: "arrow.clockwise")
+                                .frame(width: 35, height: 35)
+                        }
+                        .accessibilityLabel(media.isLive ? "Restart channel" : "Restart stream")
+                        .dreamCASTGlass(radius: 11)
                         Button { session.close() } label: {
                             Image(systemName: "stop.fill")
                                 .frame(width: 35, height: 35)
