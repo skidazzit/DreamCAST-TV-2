@@ -29,6 +29,10 @@ struct EPGChannelCell: View {
     var highlight = EPGChannelCellHighlight.none
     var selected = false
     @AppStorage(DreamCASTAccentTheme.storageKey) private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+    #if os(iOS)
+    @AppStorage(DreamCASTVisualSettings.transparencyKey)
+    private var surfaceTransparency = DreamCASTVisualSettings.defaultTransparency
+    #endif
 
     private var activeAccent: Color {
         DreamCASTAccentTheme.resolve(themeRaw).selectionAccent
@@ -78,8 +82,8 @@ struct EPGChannelCell: View {
     private var fill: Color {
         #if os(iOS)
         // The selected channel must not revert to the old black focus card.
-        if selected { return activeAccent.opacity(0.23) }
-        if isHub { return activeAccent.opacity(0.16) }
+        if selected { return activeAccent.opacity(max(0.10, 0.30 * (1 - surfaceTransparency))) }
+        if isHub { return activeAccent.opacity(max(0.08, 0.20 * (1 - surfaceTransparency))) }
         #endif
         switch highlight {
         case .hub: EPGColors.cardFill
