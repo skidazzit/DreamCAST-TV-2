@@ -113,6 +113,19 @@ final class SportsZonePlaybackSession {
         #endif
     }
 
+    /// An explicit restart replaces only the current mini-player decoder.
+    /// Keep automatic full-screen return and tab navigation untouched.
+    func restartCurrentChannel() {
+        guard miniMedia != nil, fullScreenMedia == nil,
+              !isAwaitingFullScreenDismissal,
+              !guidePreview.isSuspended,
+              handle.owner == .preview || handle.owner == .released else { return }
+        handle.stopPreview()
+        failedMediaID = nil
+        userStopped = false
+        reloadToken += 1
+    }
+
     func close() {
         guard fullScreenMedia == nil else { return }
         userStopped = true
@@ -218,6 +231,14 @@ struct SportsZoneMiniPlayer: View {
                 }
                 .buttonStyle(.borderedProminent)
                 Button {
+                    session.restartCurrentChannel()
+                } label: {
+                    TVFixedButtonLabel(title: "Restart", systemName: "arrow.clockwise")
+                }
+                .buttonStyle(.bordered)
+                .disabled(session.guidePreview.isSuspended)
+                .accessibilityLabel("Restart channel")
+                Button {
                     session.close()
                 } label: {
                     TVFixedButtonLabel(title: "Stop", systemName: "stop.fill")
@@ -317,7 +338,7 @@ struct TVPersistentMiniPlayer: View {
     @FocusState private var focusedAction: MiniPlayerAction?
 
     private enum MiniPlayerAction: Hashable {
-        case fullScreen, stop
+        case fullScreen, restart, stop
     }
 
     private var canShowVideo: Bool {
@@ -391,6 +412,21 @@ struct TVPersistentMiniPlayer: View {
                         .focusEffectDisabled()
                         .accessibilityLabel("Open live channel full screen")
                         .focused($focusedAction, equals: .fullScreen)
+
+                        Button {
+                            session.restartCurrentChannel()
+                        } label: {
+                            miniPlayerActionLabel(
+                                "Restart",
+                                symbol: "arrow.clockwise",
+                                focused: focusedAction == .restart
+                            )
+                        }
+                        .buttonStyle(.borderless)
+                        .focusEffectDisabled()
+                        .disabled(session.guidePreview.isSuspended)
+                        .accessibilityLabel("Restart channel")
+                        .focused($focusedAction, equals: .restart)
 
                         Button {
                             session.close()
