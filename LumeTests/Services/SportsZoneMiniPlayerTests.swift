@@ -78,6 +78,58 @@ struct SportsZoneMiniPlayerTests {
         #expect(session.fullScreenMedia == nil)
     }
 
+    @Test func startedDecoderIsBorrowedAndReturnedWithoutReload() {
+        let session = SportsZonePlaybackSession()
+        let selected = media("same")
+        session.tune(selected, previewMode: .small)
+        let tokenBeforeHandoff = session.reloadToken
+
+        let coordinator = AVPlayerCoordinator(isEmbedded: true)
+        session.handle.register(
+            media: selected, resolved: selected, coordinator: .av(coordinator)
+        )
+        session.handle.markStarted()
+        let generationBeforeReturn = session.handle.returnGeneration
+
+        session.openFullScreen()
+        #expect(session.fullScreenMedia?.id == selected.id)
+        #expect(session.handle.owner == .fullScreen)
+        #expect(session.handle.coordinator?.avCoordinator === coordinator)
+        #expect(session.reloadToken == tokenBeforeHandoff)
+
+        // Full-screen closes first; the owner then returns to the embedded
+        // host without starting another decoder or changing the player ID.
+        #expect(session.handle.returnToPreview(mediaID: selected.id))
+        session.fullScreenMedia = nil
+        session.returnedFromFullScreen()
+
+        #expect(session.handle.owner == .preview)
+        #expect(session.handle.coordinator?.avCoordinator === coordinator)
+        #expect(session.handle.returnGeneration == generationBeforeReturn + 1)
+        #expect(session.reloadToken == tokenBeforeHandoff)
+    }
+
+    @Test func waitingFullScreenRequestBorrowsDecoderOnceStarted() {
+        let session = SportsZonePlaybackSession()
+        let selected = media("wait")
+        session.tune(selected, previewMode: .small)
+        session.openFullScreen()
+        #expect(session.pendingFullScreenRequest)
+        #expect(session.fullScreenMedia == nil)
+
+        let coordinator = AVPlayerCoordinator(isEmbedded: true)
+        session.handle.register(
+            media: selected, resolved: selected, coordinator: .av(coordinator)
+        )
+        session.handle.markStarted()
+        session.previewDidStart()
+
+        #expect(!session.pendingFullScreenRequest)
+        #expect(session.fullScreenMedia?.id == selected.id)
+        #expect(session.handle.owner == .fullScreen)
+        #expect(session.handle.coordinator?.avCoordinator === coordinator)
+    }
+
     @Test func selectingTheSameSportsChannelDoesNotRetune() {
         let session = SportsZonePlaybackSession()
         session.tune(media("a"))
