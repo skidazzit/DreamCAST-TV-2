@@ -38,6 +38,7 @@
                 } footer: {
                     Text("Follow your device, or use Dark or Light Mode.")
                 }
+                .listRowBackground(DreamCASTThemePanel())
 
                 Section {
                     ForEach(DreamCASTAccentTheme.allCases) { theme in
@@ -68,6 +69,7 @@
                 } footer: {
                     Text("Choose matching accent colors and gradient backgrounds. Changes save right away.")
                 }
+                .listRowBackground(DreamCASTThemePanel())
                 Section("Surface Style") {
                     Toggle("Liquid Glass", isOn: $liquidGlass)
                     VStack(alignment: .leading, spacing: 8) {
@@ -84,8 +86,11 @@
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+                .listRowBackground(DreamCASTThemePanel())
             }
-            .tint(DreamCASTAccentTheme.resolve(accentRaw).color)
+            .scrollContentBackground(.hidden)
+            .background { DreamCASTThemeBackground() }
+            .tint(DreamCASTAccentTheme.resolve(accentRaw).selectionAccent)
             .platformNavigationTitle("Appearance")
         }
     }
