@@ -27,19 +27,19 @@ fi
 if [ ! -f "$ENV_FILE" ]; then
     echo "warning: .env not found at ${SRCROOT}/.env — secrets not injected"
     echo "warning: In Terminal run: ls -la \"${SRCROOT}\"/.env*"
-    exit 0
+    ENV_FILE="/dev/null"
 fi
 
 if [ ! -r "$ENV_FILE" ]; then
     echo "warning: cannot read $ENV_FILE — check file permissions"
-    exit 0
+    ENV_FILE="/dev/null"
 fi
 
 # TextEdit can save Rich Text even when the name looks like .env. The loader
 # requires KEY=value lines, not an RTF document.
 if LC_ALL=C head -c 5 "$ENV_FILE" | grep -qF '{\rtf'; then
     echo "warning: $ENV_FILE is Rich Text (RTF); save as plain text .env"
-    exit 0
+    ENV_FILE="/dev/null"
 fi
 
 if [ ! -f "$PLIST" ]; then
@@ -146,3 +146,19 @@ if [ -n "$LUME_CLOUD_URL" ]; then
     set_plist LumeCloudServerURL "$LUME_CLOUD_URL"
     echo "Injected LUME_CLOUD_URL into Info.plist"
 fi
+
+# Provider mappings use the checked-in template only when a key is absent.
+# An explicitly blank override hides a provider. Always write the key so an
+# incremental build cannot retain an address removed from the configuration.
+for provider in IPTVEDITOR DREAMCAST KLEPTO STRONG; do
+    env_key="XTREAM_PROVIDER_${provider}_URL"
+    if grep -qE "^[[:space:]]*${env_key}[[:space:]]*=" "$ENV_FILE"; then
+        address="$(read_env "$env_key")"
+    else
+        original_env_file="$ENV_FILE"
+        ENV_FILE="${SRCROOT}/.env.example"
+        address="$(read_env "$env_key")"
+        ENV_FILE="$original_env_file"
+    fi
+    set_plist "XtreamProvider${provider}URL" "$address"
+done

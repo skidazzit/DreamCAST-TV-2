@@ -26,13 +26,7 @@ import SwiftUI
                 TextField("e.g. My IPTV", text: $name)
                     .textContentType(.name)
 
-                TextField("e.g. http://example.com:8080", text: $serverURL)
-                #if os(iOS)
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(.URL)
-                #endif
-                    .autocorrectionDisabled()
-                    .textContentType(.URL)
+                XtreamProviderPicker(serverURL: $serverURL)
 
                 TextField("Username", text: $username)
                 #if os(iOS)
