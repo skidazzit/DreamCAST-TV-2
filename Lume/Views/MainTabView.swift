@@ -209,7 +209,7 @@ struct MainTabView: View {
                     .background {
                         if selection.wrappedValue == tab {
                             RoundedRectangle(cornerRadius: 15)
-                                .fill(DreamCASTMobileTheme.electricBlue.opacity(0.75))
+                                .fill(DreamCASTVisualSettings.theme.color.opacity(0.75))
                         }
                     }
                     .dreamCASTGlass(highlighted: selection.wrappedValue == tab, radius: 15)
