@@ -369,8 +369,8 @@ struct EPGGridScroller: View {
         /// Left from the channel hub leaves the guide towards the rail; from
         /// a programme it navigates back towards the column.
         private var exitsLeft: Bool {
-            guard case .cell = virtualFocus else { return true }
-            return false
+            // Only the channel-name hub accepts guide focus.
+            true
         }
 
         /// Up from the top row (channel hub or cell) leaves the guide upwards
@@ -393,12 +393,12 @@ struct EPGGridScroller: View {
 
         private func moveVirtualFocus(_ direction: MoveCommandDirection) {
             guard let focus = virtualFocus, rows.indices.contains(focus.rowIndex) else { return }
-            switch focus {
-            case let .channel(rowIndex):
-                moveFromChannel(rowIndex: rowIndex, direction: direction)
-            case let .cell(rowIndex, cellID):
-                moveFromCell(rowIndex: rowIndex, cellID: cellID, direction: direction)
+            // A past saved programme-cell focus returns to its channel.
+            // Up/Down browse channel names; Right cannot enter the timeline.
+            if case .cell = focus {
+                virtualFocus = .channel(rowIndex: focus.rowIndex)
             }
+            moveFromChannel(rowIndex: focus.rowIndex, direction: direction)
         }
 
         private func moveFromChannel(rowIndex: Int, direction: MoveCommandDirection) {
@@ -407,7 +407,8 @@ struct EPGGridScroller: View {
                 // Filtered by decideMove: the engine exits to the rail.
                 break
             case .right:
-                landVirtualFocus(onRow: rowIndex)
+                // The timeline is read-only; remain on the channel name.
+                break
             case .up:
                 // Row 0 exits upward to the tab bar (handled by the strip's
                 // up-exit, so this never runs there); deeper rows move up one.
@@ -569,20 +570,10 @@ struct EPGGridScroller: View {
         }
 
         private func activateVirtualFocus() {
-            switch virtualFocus {
-            case let .channel(rowIndex) where rows.indices.contains(rowIndex):
-                selectGuideChannel(rowIndex: rowIndex)
-            case let .cell(rowIndex, cellID) where rows.indices.contains(rowIndex):
-                guard let cell = rows[rowIndex].cells.first(where: { $0.id == cellID }) else { return }
-                if !cell.isGap, cell.isPast(at: now),
-                   PlayableMedia.isCatchupAvailable(stream: rows[rowIndex].stream, start: cell.start, now: now) {
-                    onPlayCatchup(rows[rowIndex].stream, cell)
-                } else {
-                    selectGuideChannel(rowIndex: rowIndex)
-                }
-            default:
-                break
-            }
+            guard let rowIndex = virtualFocus?.rowIndex, rows.indices.contains(rowIndex) else { return }
+            // Select always operates on the channel. Programme cells cannot
+            // open a different time or start catch-up through guide navigation.
+            selectGuideChannel(rowIndex: rowIndex)
         }
 
         /// First Select plays in the mini-player; second Select opens full-screen.
