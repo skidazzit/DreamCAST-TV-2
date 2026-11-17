@@ -185,7 +185,7 @@ struct MainTabView: View {
             (.settings, "Settings", "gearshape")
         ].filter { entry in
             switch entry.0 {
-            case .liveTV, .movies, .series: tabs.showsTab(tab)
+            case .liveTV, .movies, .series: tabs.showsTab(entry.0)
             default: true
             }
         }
