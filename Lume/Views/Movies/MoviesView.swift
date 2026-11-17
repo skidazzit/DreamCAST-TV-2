@@ -106,12 +106,20 @@ struct MoviesView: View {
                                         genre: featuredMovie.genre,
                                         releaseDate: featuredMovie.releaseDate,
                                         contentRating: featuredMovie.contentRating,
+                                        extraInfo: featuredMovie.durationSecs.map { seconds in
+                                            let hours = seconds / 3600
+                                            let minutes = (seconds % 3600) / 60
+                                            return hours > 0 ? "\(hours)h \(minutes)m" : "\(minutes)m"
+                                        },
                                         summary: featuredMovie.plot,
-                                        isFavorite: featuredMovie.isFavorite,
+                                        isWatchlisted: featuredMovie.addedToWatchlistDate != nil,
                                         primaryTitle: "Play",
                                         onPrimary: { playFeatured(featuredMovie) },
                                         onInfo: { navigationPath.wrappedValue.append(featuredMovie) },
-                                        onFavorite: { MediaFavorites.toggle(featuredMovie, in: modelContext) }
+                                        onWatchlist: {
+                                            featuredMovie.addedToWatchlistDate = featuredMovie.addedToWatchlistDate == nil ? .now : nil
+                                            try? modelContext.save()
+                                        }
                                     )
                                 }
                                 #endif
