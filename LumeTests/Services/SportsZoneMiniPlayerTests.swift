@@ -18,6 +18,43 @@ struct SportsZoneMiniPlayerTests {
         )
     }
 
+    private func movieMedia(_ id: String) -> PlayableMedia {
+        PlayableMedia(
+            id: id,
+            url: URL(string: "https://example.org/vod/\(id).mp4")!,
+            title: "Movie \(id)",
+            subtitle: nil,
+            posterURL: nil,
+            kind: .vod,
+            startTime: 120,
+            contentRef: .movie(id)
+        )
+    }
+
+    @Test func reselectingMoviePreservesSharedPlayerSession() {
+        let session = SportsZonePlaybackSession()
+        session.tune(movieMedia("m"), previewMode: .small)
+        let originalToken = session.reloadToken
+        session.tune(movieMedia("m"), previewMode: .small)
+
+        #expect(session.miniMedia?.kind == .vod)
+        #expect(session.miniMedia?.id == "m")
+        #expect(session.miniMedia?.startTime == 120)
+        #expect(session.reloadToken == originalToken)
+        #expect(session.fullScreenMedia == nil)
+    }
+
+    @Test func selectingEpisodeUsesSameSessionRatherThanIndependentPlayer() {
+        let session = SportsZonePlaybackSession()
+        session.tune(media("live"))
+        let originalToken = session.reloadToken
+        session.tune(movieMedia("episode-1"), previewMode: .small)
+
+        #expect(session.miniMedia?.id == "episode-1")
+        #expect(session.reloadToken == originalToken + 1)
+        #expect(session.fullScreenMedia == nil)
+    }
+
     @Test func selectingTheSameSportsChannelDoesNotRetune() {
         let session = SportsZonePlaybackSession()
         session.tune(media("a"))
