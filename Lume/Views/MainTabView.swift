@@ -11,6 +11,12 @@ import SwiftUI
 struct MainTabView: View {
     #if os(iOS)
     @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.colorScheme) private var deviceScheme
+    @AppStorage(AppAppearance.storageKey) private var displayModeRaw = AppAppearance.defaultValue.rawValue
+    private var isLightDisplay: Bool {
+        let mode = AppAppearance.resolve(displayModeRaw)
+        return mode == .light || (mode == .system && deviceScheme == .light)
+    }
     #endif
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
@@ -212,7 +218,7 @@ struct MainTabView: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.75)
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(selection.wrappedValue == tab || !isLightDisplay ? Color.white : Color.black)
                     .frame(maxWidth: .infinity, minHeight: verticalSizeClass == .compact ? 35 : 55)
                     .background {
                         if selection.wrappedValue == tab {
