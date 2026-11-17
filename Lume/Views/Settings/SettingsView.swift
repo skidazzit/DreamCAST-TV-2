@@ -858,8 +858,9 @@ struct SettingsView: View {
                         } label: {
                             VStack(alignment: .leading, spacing: 12) {
                                 RoundedRectangle(cornerRadius: 10)
-                                    .fill(theme.color)
-                                    .frame(height: 30)
+                                    .fill(theme.gradient)
+                                    .frame(height: 42)
+                                    .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(theme.color.opacity(0.5)))
                                 HStack {
                                     Text(theme.title)
                                         .font(.system(size: 18, weight: .medium))
@@ -879,7 +880,7 @@ struct SettingsView: View {
                         .accessibilityAddTraits(accentThemeRaw == theme.rawValue ? [.isSelected] : [])
                     }
                 }
-                Text("Choose a color for system buttons and controls. Changes save automatically.")
+                Text("Choose matching accent colors and gradient backgrounds. Changes save automatically.")
                     .font(.system(size: 18))
                     .foregroundStyle(.white.opacity(0.65))
 
