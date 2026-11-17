@@ -118,14 +118,16 @@ struct MainTabView: View {
     ) -> some View {
         #if os(iOS)
             VStack(spacing: 0) {
+                DreamCASTMobilePageHeading(title: mobileTitle(for: selection.wrappedValue))
                 if sharedLivePlayback.miniMedia != nil {
+                    // This host never moves between page views. Keep the same
+                    // decoder while the custom dock changes the content below.
                     SportsZoneMiniPlayer(session: sharedLivePlayback)
                         .frame(maxWidth: .infinity)
-                        .background(.regularMaterial)
-                    Divider()
                 }
-                tabView(selection: selection, tabs: tabs)
+                dreamCASTMobileContent(selection: selection, tabs: tabs)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                dreamCASTMobileDock(selection: selection, tabs: tabs)
             }
             .background { DreamCASTMobileWallpaper() }
             .preferredColorScheme(.dark)
@@ -133,6 +135,94 @@ struct MainTabView: View {
             tabView(selection: selection, tabs: tabs)
         #endif
     }
+
+    #if os(iOS)
+    private func mobileTitle(for tab: AppTab) -> String {
+        switch tab {
+        case .liveTV: "Live TV"
+        case .sports: "SportsZone"
+        case .movies: "Movies"
+        case .series: "Series"
+        case .search: "Search"
+        case .settings: "Settings"
+        default: "DreamCAST TV"
+        }
+    }
+
+    /// Portrait iOS navigation follows the six-tab tvOS design. Unlike the
+    /// stock iPhone TabView, the sixth tab never disappears into a More menu.
+    @ViewBuilder
+    private func dreamCASTMobileContent(
+        selection: Binding<AppTab>, tabs: Set<PlaylistTab>
+    ) -> some View {
+        switch selection.wrappedValue {
+        case .liveTV:
+            if tabs.showsTab(.liveTV) { LiveTVView() }
+        case .sports:
+            SportFrameMobile()
+        case .movies:
+            if tabs.showsTab(.movies) { MoviesView() }
+        case .series:
+            if tabs.showsTab(.series) { SeriesView() }
+        case .search:
+            SearchView().castMiniControllerInset()
+        case .settings:
+            SettingsView()
+        default:
+            LiveTVView()
+        }
+    }
+
+    private func dreamCASTMobileDock(
+        selection: Binding<AppTab>, tabs: Set<PlaylistTab>
+    ) -> some View {
+        let available: [(AppTab, String, String)] = [
+            (.liveTV, "Live TV", "tv"),
+            (.sports, "SportsZone", "trophy"),
+            (.movies, "Movies", "film"),
+            (.series, "Series", "square.stack"),
+            (.search, "Search", "magnifyingglass"),
+            (.settings, "Settings", "gearshape")
+        ].filter { tab, _, _ in
+            switch tab {
+            case .liveTV, .movies, .series: tabs.showsTab(tab)
+            default: true
+            }
+        }
+        return HStack(spacing: 3) {
+            ForEach(available, id: \.0) { tab, title, symbol in
+                Button {
+                    selection.wrappedValue = tab
+                } label: {
+                    VStack(spacing: 4) {
+                        Image(systemName: symbol)
+                            .font(.system(size: 19, weight: .semibold))
+                        Text(title)
+                            .font(.system(size: 9.5, weight: .semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, minHeight: 55)
+                    .background {
+                        if selection.wrappedValue == tab {
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(DreamCASTMobileTheme.electricBlue.opacity(0.75))
+                        }
+                    }
+                    .dreamCASTGlass(highlighted: selection.wrappedValue == tab, radius: 15)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(title)
+                .accessibilityAddTraits(selection.wrappedValue == tab ? [.isSelected] : [])
+            }
+        }
+        .padding(5)
+        .dreamCASTGlass(radius: 22)
+        .padding(.horizontal, 10)
+        .padding(.bottom, 4)
+    }
+    #endif
 
     var body: some View {
         @Bindable var router = router
