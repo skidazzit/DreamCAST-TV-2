@@ -181,15 +181,27 @@ struct DreamCASTThemePanel: View {
     @AppStorage(AppAppearance.storageKey)
     private var appearanceRaw = AppAppearance.defaultValue.rawValue
     @Environment(\.colorScheme) private var deviceScheme
+    @AppStorage(DreamCASTVisualSettings.transparencyKey)
+    private var transparency = DreamCASTVisualSettings.defaultTransparency
+    @AppStorage(DreamCASTVisualSettings.liquidGlassKey)
+    private var liquidGlass = DreamCASTVisualSettings.defaultLiquidGlass
 
     var body: some View {
         let theme = DreamCASTAccentTheme.resolve(themeRaw)
         let mode = AppAppearance.resolve(appearanceRaw)
         let light = mode == .light || (mode == .system && deviceScheme == .light)
+        let opacity = max(0.10, 1 - transparency)
         Rectangle()
-            .fill(light ? Color.white.opacity(0.75)
-                        : theme.gradientColors[1].opacity(0.94))
-            .overlay(theme.selectionAccent.opacity(light ? 0.055 : 0.08))
+            .fill(light ? Color.white.opacity(opacity)
+                        : theme.gradientColors[1].opacity(opacity))
+            .background {
+                if liquidGlass {
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .opacity(opacity * 0.45)
+                }
+            }
+            .overlay(theme.selectionAccent.opacity(light ? 0.04 : 0.07))
     }
 }
 
