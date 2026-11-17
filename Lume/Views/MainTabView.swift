@@ -245,15 +245,32 @@ struct MainTabView: View {
                 let deferred = playlistSwitch?.consumeDeferredDueSync() == true
                 enqueueDueSyncs(deferred ? [] : playlists.members(of: catalogScope))
                 #if os(tvOS)
-                    // A new library must not keep playing the previous library's
-                    // live stream or expose its channel across profiles.
-                    sharedLivePlayback.close()
+                    // The initial library can appear after startup playback.
+                    // Do not stop a permitted channel simply because its
+                    // catalog scope finished loading. A real switch to a
+                    // library without that channel still ends its session.
+                    if let playing = sharedLivePlayback.miniMedia {
+                        let stillVisible: Bool = {
+                            guard case let .live(id) = playing.contentRef,
+                                  let stream = PlayerContentLookup.liveStream(id, in: modelContext),
+                                  !stream.isHidden,
+                                  !contentRestriction.hides(categoryID: stream.categoryId),
+                                  let owner = playlists.owner(ofContentID: stream.id)
+                            else { return false }
+                            return catalogScope.members(for: .liveTV).contains(owner.id)
+                        }()
+                        if !stillVisible { sharedLivePlayback.close() }
+                    }
                 #endif
             }
             .onChange(of: profileManager?.activeProfileIsChild) { _, _ in
                 #if os(tvOS)
-                    // Child and adult profiles may allow different channels.
-                    sharedLivePlayback.close()
+                    // Only terminate an actual session when profile access
+                    // changes. Closing an empty player would set userStopped
+                    // during initial profile loading and block auto-resume.
+                    if sharedLivePlayback.miniMedia != nil {
+                        sharedLivePlayback.close()
+                    }
                 #endif
             }
             .onChange(of: contentRestriction.visibilityToken) {
