@@ -166,6 +166,10 @@ struct PlaylistDetailView: View {
             #if os(macOS)
             .formStyle(.grouped)
             #endif
+            #if os(iOS)
+            .scrollContentBackground(.hidden)
+            .dreamCASTPageTheme()
+            #endif
             .navigationTitle(playlist.name)
             #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
