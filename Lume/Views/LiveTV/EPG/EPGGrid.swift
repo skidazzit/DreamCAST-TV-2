@@ -1,24 +1,17 @@
 //
 //  EPGGrid.swift
-//  Lume
+//  DreamCAST TV
 //
-//  The guide's single 2D-scrollable programme surface: it owns the scroll
-//  position, executes the scroller's programmatic scroll requests, and
-//  publishes the measured geometry back to the shared sync. Split from
-//  `EPGGridScroller` to keep each file within the lint length budget.
+//  The Guide is a read-only window onto the current EPG time.
+//  Only the channel-name column scrolls vertically. No swipes or remote
+//  focus moves in programme cells can move the time ruler.
 //
 
 import SwiftUI
 
-/// The single scrollable surface. Owns its scroll position, executes the
-/// scroller's scroll requests and publishes the measured geometry to the
-/// shared sync. Its programme rows live in a separate child so parent updates
-/// never rebuild them wholesale.
-///
-/// `Equatable` (wrapped in `.equatable()` by the scroller): the scroller's
-/// body re-runs on virtual-focus changes, and without the gate each press
-/// would re-evaluate this whole subtree. The comparison covers everything the
-/// subtree renders or reacts to.
+/// A fixed, clipped programme surface. The channel rail sends vertical
+/// scroll requests and the clock keeps the displayed time parked near now.
+/// The same offset is published to the ruler and frozen channel names.
 struct EPGGrid: View, Equatable {
     let rows: [EPGChannelRow]
     let timeline: EPGTimeline
@@ -27,7 +20,6 @@ struct EPGGrid: View, Equatable {
     let sync: EPGScrollSync
     let dataVersion: Int
     let nowTarget: CGFloat
-    /// Vertical offset of the saved channel when the guide opens.
     let initialRowOffset: CGFloat
     let scrollRequest: EPGScrollRequest?
     let virtualFocus: EPGVirtualFocus?
@@ -45,26 +37,12 @@ struct EPGGrid: View, Equatable {
             && lhs.timeline == rhs.timeline
     }
 
-    @State private var position = ScrollPosition()
-    /// Coalesces geometry callbacks so SwiftUI state is changed after layout.
-    @State private var geometryDelivery = EPGGeometryDelivery()
-    @State private var didInitialScroll = false
-    /// The initial scroll, kept until the grid has actually reached it. The
-    /// first `scrollTo` runs while the container is still a few points wide,
-    /// and OS 26 replays it after layout. OS 18 drops it, along with any
-    /// replay issued from inside the layout pass, and leaves the grid at the
-    /// window's start, hours before now, while the ruler mirrors now.
-    @State private var pendingInitialScroll: CGPoint?
-    @State private var initialScrollReplays = 0
-    /// A combined horizontal+vertical ScrollView centers content that is shorter
-    /// than the viewport. The frozen channel column pins its cells to the top, so
-    /// without this the two panes drift apart when a category has only a few
-    /// channels. Pinning the rows to at least the viewport height (top-aligned)
-    /// keeps them level on every platform.
-    @State private var viewportHeight: CGFloat = 0
+    @State private var parkedOffset = CGPoint.zero
+    @State private var viewport = CGSize.zero
+    @State private var didMount = false
 
     var body: some View {
-        ScrollView([.horizontal, .vertical]) {
+        GeometryReader { geometry in
             EPGRows(
                 rows: rows,
                 timeline: timeline,
@@ -78,178 +56,103 @@ struct EPGGrid: View, Equatable {
                 onShowDetails: onShowDetails
             )
             .equatable()
-            .frame(minHeight: viewportHeight, alignment: .topLeading)
-        }
-        .background {
-            GeometryReader { geo in
-                Color.clear
-                    .onAppear {
-                        if abs(viewportHeight - geo.size.height) > 1 {
-                            viewportHeight = geo.size.height
-                        }
-                    }
-                    .onChange(of: geo.size.height) { _, height in
-                        // Skip subpoint jitter: writing minHeight during layout
-                        // can change the measured height and feed back forever.
-                        guard abs(viewportHeight - height) > 1 else { return }
-                        DispatchQueue.main.async { viewportHeight = height }
-                    }
-            }
-        }
-        .scrollPosition($position)
-        .onScrollGeometryChange(for: EPGMeasuredGeometry.self) {
-            // Round away tiny geometry jitter before SwiftUI compares values.
-            // Only meaningful changes reach the view update callback.
-            EPGMeasuredGeometry(offset: $0.contentOffset, size: $0.containerSize)
-        } action: { _, new in
-            // This fires during SwiftUI's layout pass. Never write @State or
-            // observed realization windows here: doing so causes a geometry
-            // feedback loop and repeated updates in the same frame.
-            geometryDelivery.enqueue(new.rect) { geometry in
-                applyMeasuredGeometry(geometry)
-            }
-        }
-        .onAppear {
-            guard !didInitialScroll else { return }
-            didInitialScroll = true
-            // Seed the realization windows and the pane mirror around the
-            // initial scroll target so the first build already realizes the
-            // right cells; the estimated viewports are corrected by the first
-            // geometry event.
-            sync.window = EPGRealizeWindow.around(
-                offset: nowTarget,
-                viewport: 2400,
-                blockLength: 30 * metrics.pointsPerMinute
+            // The content stays in one render layer. No ScrollView lives in
+            // this pane: only channel-name gestures / focus move the rows.
+            .offset(x: -parkedOffset.x, y: -parkedOffset.y)
+            .frame(
+                width: geometry.size.width,
+                height: geometry.size.height,
+                alignment: .topLeading
             )
-            sync.rowWindow = EPGRealizeWindow.around(
-                offset: initialRowOffset,
-                viewport: 1400,
-                blockLength: 2 * (metrics.rowHeight + metrics.rowSpacing)
-            )
-            var transaction = Transaction()
-            transaction.disablesAnimations = true
-            withTransaction(transaction) {
-                sync.mirror = CGPoint(x: nowTarget, y: initialRowOffset)
+            .clipped()
+            .allowsHitTesting(false)
+            .onAppear {
+                updateViewport(geometry.size)
+                guard !didMount else { return }
+                didMount = true
+                park(x: currentTimeOffset(), y: initialRowOffset, animated: false)
             }
-            #if !os(tvOS)
-                pendingInitialScroll = CGPoint(x: nowTarget, y: initialRowOffset)
-            #endif
-            position.scrollTo(point: CGPoint(x: nowTarget, y: initialRowOffset))
+            .onChange(of: geometry.size) { _, size in
+                updateViewport(size)
+            }
         }
-        .onChange(of: initialRowOffset) { _, newY in
-            guard didInitialScroll else { return }
-            // A saved channel can resolve after the first guide layout.
-            // Keep the "now" time position and replace any pending initial
-            // scroll so its retry cannot jump back to the top row.
-            let x = sync.viewport.width > 0 ? sync.offset.x : nowTarget
-            let target = CGPoint(x: x, y: newY)
-            #if !os(tvOS)
-                pendingInitialScroll = target
-                initialScrollReplays = 0
-            #endif
-            position.scrollTo(point: target)
+        .onChange(of: initialRowOffset) { _, rowOffset in
+            guard didMount else { return }
+            park(x: currentTimeOffset(), y: rowOffset, animated: false)
         }
         .onChange(of: scrollRequest) { _, request in
             guard let request else { return }
-            pendingInitialScroll = nil
-            if request.animated {
-                withAnimation(.easeOut(duration: 0.25)) {
-                    position.scrollTo(point: request.point)
+            // Ignore requests to pan time. Only channel-rail Y survives.
+            park(x: currentTimeOffset(), y: request.point.y, animated: request.animated)
+        }
+        .task {
+            // Keep "now" in the same part of the ruler during long viewing
+            // sessions. This never changes the current channel or playback.
+            while !Task.isCancelled {
+                do {
+                    try await Task.sleep(for: .seconds(60))
+                } catch {
+                    break
                 }
-            } else {
-                position.scrollTo(point: request.point)
+                guard !Task.isCancelled, didMount else { break }
+                park(x: currentTimeOffset(), y: parkedOffset.y, animated: false)
             }
         }
     }
 
-    /// Applies the most recent measurement on the next run loop, outside the
-    /// scroll view's geometry/layout callback.
-    private func applyMeasuredGeometry(_ geometry: CGRect) {
-        #if !os(tvOS)
-            replayInitialScrollIfDropped(at: geometry)
-        #endif
-        let clamped = CGPoint(x: max(0, geometry.origin.x), y: max(0, geometry.origin.y))
-        sync.offset = clamped
-        sync.viewport = geometry.size
-        #if !os(tvOS)
-            sync.mirror = clamped
-        #endif
-        let window = EPGRealizeWindow.around(
-            offset: clamped.x,
-            viewport: geometry.width,
-            blockLength: 30 * metrics.pointsPerMinute
+    /// Parks the current time a few minutes inside the leading edge.
+    /// Unlike half-hour snapping, this keeps the NOW indicator steady.
+    private func currentTimeOffset() -> CGFloat {
+        timeline.x(
+            for: Date().addingTimeInterval(-Double(metrics.nowLeadInMinutes) * 60)
         )
-        if sync.window != window { sync.window = window }
-        let rowWindow = EPGRealizeWindow.around(
-            offset: clamped.y,
-            viewport: geometry.height,
-            blockLength: 2 * (metrics.rowHeight + metrics.rowSpacing)
+    }
+
+    private func updateViewport(_ size: CGSize) {
+        guard size.width > 0, size.height > 0,
+              abs(size.width - viewport.width) > 1
+              || abs(size.height - viewport.height) > 1 else { return }
+        viewport = size
+        park(
+            x: didMount ? currentTimeOffset() : nowTarget,
+            y: didMount ? parkedOffset.y : initialRowOffset,
+            animated: false
         )
-        if sync.rowWindow != rowWindow { sync.rowWindow = rowWindow }
     }
 
-    /// Re-issues a dropped initial scroll once the grid has a real size,
-    /// a turn later and outside the layout pass. It gives up after a few
-    /// tries so it can never fight a drag on touch platforms.
-    private func replayInitialScrollIfDropped(at geometry: CGRect) {
-        guard let pending = pendingInitialScroll, geometry.width > 0, geometry.height > 0 else { return }
-        let reached = abs(geometry.origin.x - pending.x) <= 1 && abs(geometry.origin.y - pending.y) <= 1
-        guard !reached, initialScrollReplays < 3 else {
-            pendingInitialScroll = nil
-            return
+    private func park(x: CGFloat, y: CGFloat, animated: Bool) {
+        guard viewport.width > 0, viewport.height > 0 else { return }
+        let contentHeight = metrics.contentHeight(rowCount: rows.count)
+        let next = CGPoint(
+            x: max(0, min(x, max(0, timeline.totalWidth - viewport.width))),
+            y: max(0, min(y, max(0, contentHeight - viewport.height)))
+        )
+        // The grid, ruler and channel-name column must always use the
+        // same offset. Publication is quantized by realization windows.
+        let publish = {
+            parkedOffset = next
+            sync.offset = next
+            sync.viewport = viewport
+            sync.mirror = next
+            let window = EPGRealizeWindow.around(
+                offset: next.x,
+                viewport: viewport.width,
+                blockLength: 30 * metrics.pointsPerMinute
+            )
+            if sync.window != window { sync.window = window }
+            let rowWindow = EPGRealizeWindow.around(
+                offset: next.y,
+                viewport: viewport.height,
+                blockLength: 2 * (metrics.rowHeight + metrics.rowSpacing)
+            )
+            if sync.rowWindow != rowWindow { sync.rowWindow = rowWindow }
         }
-        initialScrollReplays += 1
-        Task { @MainActor in
-            guard pendingInitialScroll == pending else { return }
-            // The binding still holds the dropped target, and writing the
-            // same point again is no change to SwiftUI, so it doesn't scroll.
-            // Clear it first.
-            position = ScrollPosition()
-            await Task.yield()
-            guard pendingInitialScroll == pending else { return }
-            position.scrollTo(point: pending)
+        if animated {
+            withAnimation(.easeOut(duration: 0.25), publish)
+        } else {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction, publish)
         }
-    }
-}
-
-/// Stores layout measurements without publishing observable changes. A burst
-/// of geometry updates produces one state write on the next main-queue turn.
-@MainActor
-private final class EPGGeometryDelivery {
-    private var latest: CGRect?
-    private var isScheduled = false
-
-    func enqueue(_ geometry: CGRect, apply: @escaping @MainActor (CGRect) -> Void) {
-        latest = geometry
-        guard !isScheduled else { return }
-        isScheduled = true
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            self.isScheduled = false
-            guard let latest = self.latest else { return }
-            self.latest = nil
-            apply(latest)
-        }
-    }
-}
-
-/// Quantized scroll geometry. Stable values suppress subpoint feedback cycles
-/// without changing where the programme grid actually scrolls.
-private struct EPGMeasuredGeometry: Equatable {
-    let offsetX: CGFloat
-    let offsetY: CGFloat
-    let width: CGFloat
-    let height: CGFloat
-
-    init(offset: CGPoint, size: CGSize) {
-        // Four-point position steps are below a guide cell's focus movement.
-        offsetX = (offset.x / 4).rounded() * 4
-        offsetY = (offset.y / 4).rounded() * 4
-        width = size.width.rounded()
-        height = size.height.rounded()
-    }
-
-    var rect: CGRect {
-        CGRect(x: offsetX, y: offsetY, width: width, height: height)
     }
 }
