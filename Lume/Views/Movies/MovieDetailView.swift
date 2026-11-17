@@ -71,7 +71,11 @@ struct MovieDetailView: View {
                         .transition(.opacity)
                 }
             }
+            #if os(iOS)
+            .background { DreamCASTMobileWallpaper() }
+            #else
             .background(backgroundColor)
+            #endif
             .paywall(isPresented: $showDownloadPaywall, highlight: .downloads)
             #if os(iOS)
                 .toolbar(.hidden, for: .tabBar)
