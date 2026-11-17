@@ -260,27 +260,32 @@ struct DreamCASTMobilePageHeading: View {
     let title: String
 
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
-            Image(systemName: "play.tv.fill")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundStyle(DreamCASTMobileTheme.iceBlue)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 3) {
-                    Text("DreamCAST").foregroundStyle(.white)
-                    Text("TV 2").foregroundStyle(DreamCASTMobileTheme.iceBlue)
-                }
-                .font(.subheadline.weight(.heavy))
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 0) {
+                // The user-supplied DreamCAST TV crescent/play wordmark is
+                // shared by every iPhone tab. Its transparent PNG ships in
+                // DreamCASTHeaderLogo.imageset; no SF Symbol or fake wordmark.
+                Image("DreamCASTHeaderLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 176, height: 90, alignment: .leading)
+                    .accessibilityHidden(true)
+
                 Text(title)
                     .font(.title3.weight(.bold))
                     .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .padding(.leading, 65)
+                    .padding(.top, -3)
             }
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 18)
-        .padding(.vertical, 8)
+        .padding(.top, 4)
+        .padding(.bottom, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
+        .accessibilityLabel("DreamCAST TV, \(title)")
     }
 }
 
