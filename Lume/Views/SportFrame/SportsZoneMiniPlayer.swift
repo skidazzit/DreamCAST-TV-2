@@ -132,6 +132,20 @@ final class SportsZonePlaybackSession {
         reloadToken += 1
     }
 
+    /// Explicitly restart the selected stream in the embedded player.
+    /// Ordinary tab changes and full-screen handoffs never call this.
+    func restartCurrentChannel() {
+        guard miniMedia != nil, fullScreenMedia == nil,
+              !isAwaitingFullScreenDismissal,
+              handle.owner == .preview || handle.owner == .released else { return }
+        pendingFullScreenRequest = false
+        pendingReturnMedia = nil
+        handle.stopPreview()
+        failedMediaID = nil
+        userStopped = false
+        reloadToken += 1
+    }
+
     func close() {
         guard fullScreenMedia == nil else { return }
         userStopped = true
