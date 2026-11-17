@@ -30,6 +30,7 @@ struct MoviesView: View {
     #if os(iOS)
     @State private var featuredMovie: Movie?
     @State private var featuredPlayback: PlayableMedia?
+    @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
     #endif
 
     @AppStorage(SortStorageKey.movieCategories) private var categorySortRaw: String = CategorySortOption.playlist.rawValue
@@ -224,7 +225,12 @@ struct MoviesView: View {
             return
         }
         if ExternalPlayback.open(media) { return }
-        featuredPlayback = media
+        if let sharedPlayback {
+            sharedPlayback.tune(media, previewMode: .small)
+        } else {
+            // Standalone previews without the app root retain their player.
+            featuredPlayback = media
+        }
     }
     #endif
 
