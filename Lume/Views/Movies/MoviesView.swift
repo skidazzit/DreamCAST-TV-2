@@ -27,6 +27,10 @@ struct MoviesView: View {
     @State private var showingSync = false
     @State private var showingSettings = false
     @State private var genres: [String] = []
+    #if os(iOS)
+    @State private var featuredMovie: Movie?
+    @State private var featuredPlayback: PlayableMedia?
+    #endif
 
     @AppStorage(SortStorageKey.movieCategories) private var categorySortRaw: String = CategorySortOption.playlist.rawValue
     @AppStorage(SortStorageKey.movieContent) private var contentSortRaw: String = ContentSortOption.playlist.rawValue
@@ -92,6 +96,25 @@ struct MoviesView: View {
                                 }
                                 .scrollIndicators(.hidden)
                                 #endif
+                                #if os(iOS)
+                                if let featuredMovie {
+                                    DreamCASTMobileFeaturedHero(
+                                        title: featuredMovie.name,
+                                        badge: "Featured Movie",
+                                        artworkURL: TMDBClient.backdropURL(featuredMovie.backdropPath),
+                                        fallbackURL: URL(string: featuredMovie.streamIcon ?? ""),
+                                        genre: featuredMovie.genre,
+                                        releaseDate: featuredMovie.releaseDate,
+                                        contentRating: featuredMovie.contentRating,
+                                        summary: featuredMovie.plot,
+                                        isFavorite: featuredMovie.isFavorite,
+                                        primaryTitle: "Play",
+                                        onPrimary: { playFeatured(featuredMovie) },
+                                        onInfo: { navigationPath.wrappedValue.append(featuredMovie) },
+                                        onFavorite: { MediaFavorites.toggle(featuredMovie, in: modelContext) }
+                                    )
+                                }
+                                #endif
                             MovieCollectionRow(kind: .recentlyWatched, scope: scope, animationNamespace: animationNamespace)
                                 .id("recent")
                             MovieCollectionRow(kind: .favorites, scope: scope, animationNamespace: animationNamespace)
@@ -121,6 +144,11 @@ struct MoviesView: View {
                     .task(id: scope.token) {
                         genres = await GenreDerivation.movieGenres(in: modelContext.container, scope: scope, restriction: restriction)
                     }
+                    #if os(iOS)
+                    .task(id: "(scope.token)-(categories.count)-(playlists.map(\.syncStatusRaw).joined(separator: "|"))") {
+                        loadFeaturedMovie()
+                    }
+                    #endif
                 }
             }
             .platformNavigationTitle("Movies")
@@ -151,8 +179,46 @@ struct MoviesView: View {
         }
         #if os(iOS)
         .dreamCASTPageTheme()
+        .fullScreenCover(item: $featuredPlayback) { media in
+            FullScreenPlayerView(media: media)
+        }
         #endif
     }
+
+    #if os(iOS)
+    /// A bounded, indexed recent-title query. Never create a live query for
+    /// an entire IPTV movie catalog just to render one featured card.
+    private func loadFeaturedMovie() {
+        var descriptor = FetchDescriptor<Movie>(
+            predicate: #Predicate<Movie> { $0.isAdult == 0 },
+            sortBy: [SortDescriptor(\Movie.added, order: .reverse)]
+        )
+        descriptor.fetchLimit = 300
+        let visibleCategories = Set(categories.map(\.id))
+        let members = Set(playlists.members(of: scope, for: .movies).map(\.id))
+        let candidates = ((try? modelContext.fetch(descriptor)) ?? []).filter { movie in
+            guard let owner = playlists.owner(ofContentID: movie.id),
+                  members.contains(owner.id) else { return false }
+            if let category = movie.categoryId, !visibleCategories.contains(category) {
+                return false
+            }
+            return !restriction.hides(categoryID: movie.categoryId)
+        }
+        featuredMovie = candidates.first(where: { $0.backdropPath != nil })
+            ?? candidates.first(where: { $0.streamIcon != nil })
+            ?? candidates.first
+    }
+
+    private func playFeatured(_ movie: Movie) {
+        guard let playlist = playlists.owner(ofContentID: movie.id),
+              let media = PlayableMedia.from(movie: movie, playlist: playlist) else {
+            navigationPath.wrappedValue.append(movie)
+            return
+        }
+        if ExternalPlayback.open(media) { return }
+        featuredPlayback = media
+    }
+    #endif
 
     /// Drives the stack from the shared `DeepLinkRouter` so an `onOpenURL` push
     /// lands here; falls back to a local path in previews where no router exists.
