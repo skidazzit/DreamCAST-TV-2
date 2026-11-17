@@ -120,7 +120,7 @@ struct DreamCASTMobileGlass: ViewModifier {
         return content
             .background {
                 shape.fill(LinearGradient(
-                    colors: theme.gradientColors.map { $0.opacity(liquidGlass ? transparency * 0.46 : transparency) },
+                    colors: theme.gradientColors.map { $0.opacity(liquidGlass ? (1 - transparency) * 0.46 : (1 - transparency)) },
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 ))
@@ -129,7 +129,7 @@ struct DreamCASTMobileGlass: ViewModifier {
                 if liquidGlass {
                     Color.clear
                         .glassEffectCompat(.regular, in: shape)
-                        .opacity(transparency * 0.75)
+                        .opacity(1 - transparency)
                 }
             }
             .overlay {
