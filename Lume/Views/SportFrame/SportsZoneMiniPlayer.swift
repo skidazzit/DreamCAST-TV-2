@@ -114,9 +114,13 @@ struct SportsZoneMiniPlayer: View {
         GuidePreviewMode(storedValue: modeRaw)
     }
 
-    /// IPTV guide preferences should not hide a playing movie or episode.
-    /// All media uses the same root-owned player and preview decoder.
+    /// A manual iPhone channel tap always plays in the fixed embedded
+    /// player, even when automatic guide preview is set to Off or Info Only.
+    /// That preference still controls automatic guide restore behavior.
     private var embeddedMode: GuidePreviewMode {
+        #if os(iOS)
+        if mode == .off || mode == .infoOnly { return .small }
+        #endif
         if session.miniMedia?.isLive == false { return .small }
         return mode
     }
