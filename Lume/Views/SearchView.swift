@@ -134,6 +134,10 @@ struct SearchView: View {
                     }
                 }
             }
+            #if os(iOS)
+            .scrollContentBackground(.hidden)
+            .background { DreamCASTMobileWallpaper() }
+            #endif
             .searchField(text: $searchText)
             .navigationDestination(for: Movie.self) { movie in
                 MovieDetailView(movie: movie, animationNamespace: animationNamespace)
