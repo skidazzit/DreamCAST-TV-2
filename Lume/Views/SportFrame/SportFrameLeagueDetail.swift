@@ -464,7 +464,7 @@ struct SportFrameLeagueDetail: View {
             }
             .padding(16)
         }
-        .background(Color(red: 0.025, green: 0.055, blue: 0.11).ignoresSafeArea())
+        .background { DreamCASTMobileWallpaper() }
         .foregroundStyle(.white)
         .navigationTitle(leagueName)
         .navigationBarTitleDisplayMode(.inline)
