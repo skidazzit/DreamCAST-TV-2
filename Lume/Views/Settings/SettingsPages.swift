@@ -18,6 +18,10 @@
         private var appearanceRaw = AppAppearance.defaultValue.rawValue
         @AppStorage(DreamCASTAccentTheme.storageKey)
         private var accentRaw = DreamCASTAccentTheme.defaultValue.rawValue
+        @AppStorage(DreamCASTVisualSettings.liquidGlassKey)
+        private var liquidGlass = DreamCASTVisualSettings.defaultLiquidGlass
+        @AppStorage(DreamCASTVisualSettings.transparencyKey)
+        private var transparency = DreamCASTVisualSettings.defaultTransparency
 
         var body: some View {
             List {
@@ -63,6 +67,22 @@
                     Text("Color Theme")
                 } footer: {
                     Text("Choose matching accent colors and gradient backgrounds. Changes save right away.")
+                }
+                Section("Surface Style") {
+                    Toggle("Liquid Glass", isOn: $liquidGlass)
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Transparency")
+                            Spacer()
+                            Text("\(Int(transparency * 100))%")
+                                .foregroundStyle(.secondary)
+                        }
+                        Slider(value: $transparency, in: 0.2 ... 1.0, step: 0.05)
+                            .accessibilityLabel("Surface transparency")
+                    }
+                    Text("Glass and opacity apply to shared cards, dock buttons and highlights.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
             .tint(DreamCASTAccentTheme.resolve(accentRaw).color)
