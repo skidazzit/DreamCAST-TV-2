@@ -131,7 +131,13 @@ enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
     }
     /// In Light Mode, retain the chosen hue with pale backgrounds.
     func backgroundColors(light: Bool) -> [Color] {
-        if self == .white { return gradientColors }
+        if self == .white {
+            return light ? gradientColors : [
+                Color(red: 0.16, green: 0.19, blue: 0.24),
+                Color(red: 0.26, green: 0.30, blue: 0.36),
+                Color(red: 0.10, green: 0.13, blue: 0.17)
+            ]
+        }
         if !light { return gradientColors }
         return [
             Color.white.opacity(0.94),
@@ -176,7 +182,7 @@ struct DreamCASTThemeBackground: View {
     var body: some View {
         let theme = DreamCASTAccentTheme.resolve(themeRaw)
         let mode = AppAppearance.resolve(appearanceRaw)
-        let isLight = theme == .white || mode == .light || (mode == .system && systemColorScheme == .light)
+        let isLight = mode == .light || (mode == .system && systemColorScheme == .light)
         ZStack {
             LinearGradient(colors: theme.backgroundColors(light: isLight),
                            startPoint: .topLeading, endPoint: .bottomTrailing)
