@@ -77,7 +77,7 @@ enum AppAppearance: String, CaseIterable, Identifiable {
 }
 
 
-\n/// Accent presets. This is separate from light/dark appearance so users can
+/// Accent presets. This is separate from light/dark appearance so users can
 /// keep their preferred contrast while changing the app's interactive tint.
 enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
     case dreamcast, ocean, violet, emerald, sunset, ruby, grey, charcoal
