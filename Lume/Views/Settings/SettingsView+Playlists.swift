@@ -61,6 +61,10 @@ private extension [Playlist] {
                 }
                 autoSyncSection
             }
+            #if os(iOS)
+            .scrollContentBackground(.hidden)
+            .dreamCASTPageTheme()
+            #endif
             .platformNavigationTitle("Playlists")
             .paywall(isPresented: $showPaywall, highlight: .multiplePlaylists)
             .sheet(isPresented: $showingAddPlaylist) {
