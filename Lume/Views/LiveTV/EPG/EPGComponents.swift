@@ -23,7 +23,7 @@ import SwiftUI
 /// mode: a dark card with light text.
 enum EPGColors {
     /// Tint for the currently-airing programme in the player's channel list.
-    static let live = Color.blue
+    static var live: Color { DreamCASTVisualSettings.theme.selectionAccent }
     /// Dark text, and the light-mode card.
     static let ink = Color(.sRGB, red: 11 / 255, green: 13 / 255, blue: 18 / 255)
     static let inkSecondary = Color(.sRGB, red: 58 / 255, green: 64 / 255, blue: 76 / 255)
@@ -559,7 +559,7 @@ struct EPGNowIndicator: View {
 
     var body: some View {
         Rectangle()
-            .fill(LiveTVPalette.accent.opacity(0.85))
+            .fill(DreamCASTVisualSettings.theme.selectionAccent.opacity(0.85))
             .frame(width: Self.width, height: height)
     }
 }
