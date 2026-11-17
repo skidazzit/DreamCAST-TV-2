@@ -171,7 +171,11 @@ struct LiveTVView: View {
                         categoryGroups: categoryGroups
                     ) { groups in
                         layout(for: groups)
-                            .task(id: catalogScope.token) { seedSelection(from: groups.allSections) }
+                            // Switching List -> Guide must also locate
+                            // and highlight the already playing live channel.
+                            .task(id: "\(catalogScope.token)|\(layoutModeRaw)") {
+                                seedSelection(from: groups.allSections)
+                            }
                     }
                 }
             }
