@@ -33,7 +33,9 @@ final class SportsZonePlaybackSession {
         failedMediaID = nil
         reloadToken += 1
         miniMedia = media
-        if media.isLive { LiveChannelHistory.record(media) }
+        // The next cold start must know whether Live TV or VOD played last.
+        // LiveChannelHistory keeps its channel recall unchanged for VOD.
+        LiveChannelHistory.record(media)
 
         // Match the Live TV setting: "Off" means no inline preview.
         // Open the stream full screen rather than playing it off-screen.
