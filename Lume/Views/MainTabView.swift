@@ -183,8 +183,8 @@ struct MainTabView: View {
             (.series, "Series", "square.stack"),
             (.search, "Search", "magnifyingglass"),
             (.settings, "Settings", "gearshape")
-        ].filter { tab, _, _ in
-            switch tab {
+        ].filter { entry in
+            switch entry.0 {
             case .liveTV, .movies, .series: tabs.showsTab(tab)
             default: true
             }
