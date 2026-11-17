@@ -148,6 +148,7 @@ struct MoviesView: View {
                         }
                             .padding(.vertical)
                         }
+                        .background { DreamCASTThemeBackground() }
                     }
                     .browseActivity()
                     .task(id: scope.token) {
