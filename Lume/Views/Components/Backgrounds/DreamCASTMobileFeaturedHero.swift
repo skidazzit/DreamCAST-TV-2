@@ -11,12 +11,13 @@ struct DreamCASTMobileFeaturedHero: View {
     let genre: String?
     let releaseDate: String?
     let contentRating: String?
+    let extraInfo: String?
     let summary: String?
-    let isFavorite: Bool
+    let isWatchlisted: Bool
     let primaryTitle: String
     let onPrimary: () -> Void
     let onInfo: () -> Void
-    let onFavorite: () -> Void
+    let onWatchlist: () -> Void
 
     private var metadata: [String] {
         var labels: [String] = []
@@ -28,6 +29,9 @@ struct DreamCASTMobileFeaturedHero: View {
         }
         if let genre, !genre.isEmpty {
             labels.append(String(genre.prefix(38)))
+        }
+        if let extraInfo, !extraInfo.isEmpty {
+            labels.append(extraInfo)
         }
         return labels
     }
@@ -124,7 +128,7 @@ struct DreamCASTMobileFeaturedHero: View {
             }
             HStack(spacing: 9) {
                 Button(action: onPrimary) {
-                    Label(primaryTitle, systemImage: "play.fill")
+                    Label(primaryTitle, systemImage: primaryTitle == "Episodes" ? "list.bullet" : "play.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
@@ -137,13 +141,16 @@ struct DreamCASTMobileFeaturedHero: View {
                 .buttonStyle(.bordered)
                 .tint(.white)
 
-                Button(action: onFavorite) {
-                    Image(systemName: isFavorite ? "checkmark.bookmark.fill" : "bookmark")
-                        .contentTransition(.symbolEffect(.replace))
+                Button(action: onWatchlist) {
+                    Label(
+                        isWatchlisted ? "Saved" : "Watchlist",
+                        systemImage: isWatchlisted ? "bookmark.fill" : "bookmark"
+                    )
+                    .contentTransition(.symbolEffect(.replace))
                 }
                 .buttonStyle(.bordered)
                 .tint(.white)
-                .accessibilityLabel(isFavorite ? "Remove from favorites" : "Add to favorites")
+                .accessibilityLabel(isWatchlisted ? "Remove from watchlist" : "Add to watchlist")
             }
             .font(.caption.weight(.semibold))
             .lineLimit(1)
