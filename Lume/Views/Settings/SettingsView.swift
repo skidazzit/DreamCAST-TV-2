@@ -222,16 +222,18 @@ struct SettingsView: View {
                                         SettingsCategoryDestination(category: category)
                                             .dreamCASTPageTheme()
                                     } label: {
-                                        VStack(spacing: 8) {
+                                        // Use the same neutral icon, label, glass and
+                                        // outline treatment as the bottom tab dock.
+                                        VStack(spacing: 4) {
                                             Image(systemName: category.systemImage)
-                                                .font(.title3)
-                                                .foregroundStyle(DreamCASTMobileTheme.iceBlue)
+                                                .font(.system(size: 19, weight: .semibold))
                                             Text(category.title)
-                                                .font(.caption.weight(.semibold))
+                                                .font(.system(size: 11, weight: .semibold))
                                                 .lineLimit(2)
+                                                .minimumScaleFactor(0.8)
                                                 .multilineTextAlignment(.center)
                                         }
-                                        .foregroundStyle(.white)
+                                        .foregroundStyle(.primary)
                                         .frame(width: 95, height: 74)
                                         .dreamCASTGlass(radius: 15)
                                     }
