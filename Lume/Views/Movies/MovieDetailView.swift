@@ -27,6 +27,9 @@ struct MovieDetailView: View {
         @Environment(\.openWindow) private var openWindow
     #endif
     @Query private var playlists: [Playlist]
+    #if os(iOS)
+    @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
+    #endif
 
     @State private var playingMedia: PlayableMedia?
     @State private var similar: [HomeMediaItem] = []
@@ -380,7 +383,13 @@ struct MovieDetailView: View {
         guard let playlist = moviePlaylist,
               let media = PlayableMedia.from(movie: movie, playlist: playlist) else { return }
         if ExternalPlayback.open(media) { return }
-        #if os(macOS)
+        #if os(iOS)
+            if let sharedPlayback {
+                sharedPlayback.tune(media, previewMode: .small)
+            } else {
+                playingMedia = media
+            }
+        #elseif os(macOS)
             MacPlayerWindowRouter.shared.play(media, using: openWindow)
         #else
             playingMedia = media
