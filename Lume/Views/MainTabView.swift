@@ -130,7 +130,7 @@ struct MainTabView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 dreamCASTMobileDock(selection: selection, tabs: tabs)
             }
-            .background { DreamCASTMobileWallpaper() }
+            .background { DreamCASTThemeBackground() }
             .preferredColorScheme(.dark)
         #else
             tabView(selection: selection, tabs: tabs)
