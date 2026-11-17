@@ -42,6 +42,7 @@ struct MainTabView: View {
     @State private var showingExitConfirmation = false
     @State private var startupTabApplied = false
     @AppStorage("dreamcast.tv.startupTab") private var startupTabRaw = "liveTV"
+    @AppStorage("dreamcast.tv.autoResumeLastChannel") private var autoResumeLastChannel = true
     @AppStorage("dreamcast.tv.confirmExit") private var confirmExit = true
     @AppStorage(LiveTVLayoutMode.storageKey) private var tvLiveLayoutRaw = LiveTVLayoutMode.defaultMode.rawValue
     private var usesLiveList: Bool { LiveTVLayoutMode(storedValue: tvLiveLayoutRaw) == .list }
@@ -825,6 +826,10 @@ struct MainTabView: View {
     /// after cached or freshly synced rows are available, without opening
     /// full screen or replacing any playback the viewer already started.
     private func restoreLastLiveChannelOnLaunch() {
+        #if os(tvOS)
+        // Honor the existing Live TV auto-resume preference.
+        guard autoResumeLastChannel else { return }
+        #endif
         guard !restoredLastLiveOnLaunch,
               LiveChannelHistory.shouldResumeLiveOnLaunch(),
               sharedLivePlayback.miniMedia == nil,
