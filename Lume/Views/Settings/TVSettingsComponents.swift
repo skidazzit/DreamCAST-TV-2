@@ -111,7 +111,7 @@
             .background {
                 RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius, style: .continuous)
                     .fill(rowFocused ? TVNeonTheme.electricBlue.opacity(0.55)
-                                     : Color.white.opacity(0.05))
+                                     : DreamCASTDisplayColors.surface)
             }
             .overlay {
                 RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius, style: .continuous)
