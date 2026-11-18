@@ -124,8 +124,10 @@ nonisolated enum LiveTVEngineSelection: String, CaseIterable {
     /// to FullScreenPlayerView, which made both transitions go black and reload.
     /// In Automatic mode, start with KSPlayer then AVPlayer so normal playback
     /// can transfer the *running* engine without reconnecting the stream.
-    /// Keep all other engines as a fallback when neither can play the content.
-    /// Honor an explicit Live TV engine choice, even if it cannot be adopted.
+    /// Keep all other engines as fallback when neither can play the content.
+    /// The shared player favors seamless handoff even when an unsupported
+    /// decoder was selected for standalone playback. A compatible explicit
+    /// AVPlayer choice remains first.
     static func seamlessHandoffPriority(
         isLive: Bool,
         defaults: UserDefaults = .standard
@@ -139,11 +141,6 @@ nonisolated enum LiveTVEngineSelection: String, CaseIterable {
             ? selected(defaults.string(forKey: storageKey) ?? "automatic").engine
             : nil
         let existing = isLive ? priority(defaults: defaults) : global
-        // A deliberate non-handoff-compatible choice still takes precedence.
-        if let chosenLiveEngine,
-           chosenLiveEngine != .ksPlayer && chosenLiveEngine != .avPlayer {
-            return existing
-        }
         let supported: [PlayerEngineKind] = chosenLiveEngine == .avPlayer
             ? [.avPlayer, .ksPlayer] : [.ksPlayer, .avPlayer]
         let first = supported.filter(\.isAvailable)
