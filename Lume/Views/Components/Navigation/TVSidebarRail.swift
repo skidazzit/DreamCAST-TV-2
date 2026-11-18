@@ -184,8 +184,9 @@
             .frame(maxHeight: .infinity, alignment: .top)
             .background {
                 if liquidGlass {
-                    panelShape.fill(.ultraThinMaterial)
-                        .opacity(0.65 * (1 - transparency))
+                    Color.clear
+                        .glassEffectCompat(.regular, in: panelShape)
+                        .opacity(0.82)
                 }
             }
             .background(panelShape.fill(TVNeonTheme.glass))
