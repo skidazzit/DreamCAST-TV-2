@@ -442,14 +442,16 @@
     /// slightly stronger resting fill for the primary action.
     struct TVSettingsActionButtonStyle: ButtonStyle {
         var prominent: Bool = false
+        var whiteText: Bool = false
 
         func makeBody(configuration: Configuration) -> some View {
-            StyleBody(configuration: configuration, prominent: prominent)
+            StyleBody(configuration: configuration, prominent: prominent, whiteText: whiteText)
         }
 
         struct StyleBody: View {
             let configuration: ButtonStyleConfiguration
             let prominent: Bool
+            let whiteText: Bool
             @Environment(\.isFocused) private var isFocused
             @Environment(\.isEnabled) private var isEnabled
             @Environment(\.colorScheme) private var systemScheme
@@ -463,7 +465,7 @@
                     : TVNeonTheme.glassBottom.opacity(max(0.15, 1 - transparency))
                 return configuration.label
                     .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(isFocused ? Color.white : (light ? Color.black : Color.white))
+                    .foregroundStyle(whiteText || isFocused ? Color.white : (light ? Color.black : Color.white))
                     .opacity(isEnabled ? 1 : 0.4)
                     .padding(.horizontal, 40)
                     .padding(.vertical, 16)
