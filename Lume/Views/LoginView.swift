@@ -255,7 +255,7 @@ struct LoginView: View {
                                     systemImage: "square.and.arrow.down"
                                 )
                             }
-                            .buttonStyle(TVSettingsActionButtonStyle(prominent: false))
+                            .buttonStyle(TVSettingsActionButtonStyle(prominent: false, whiteText: true))
                             if showFirstRunRestore {
                                 TVLocalBackupSettingsPane(isFirstRun: true)
                                     .padding(.vertical, 16)
@@ -318,14 +318,14 @@ struct LoginView: View {
                                 Label("Add Playlist", systemImage: "plus")
                             }
                         }
-                        .buttonStyle(TVSettingsActionButtonStyle(prominent: true))
+                        .buttonStyle(TVSettingsActionButtonStyle(prominent: true, whiteText: true))
                         .disabled(!isFormValid || isLoading)
 
                         // Only offer Cancel when presented modally (the Settings
                         // cover); on first launch there is nothing to cancel to.
                         if isModal {
                             Button("Cancel") { dismiss() }
-                                .buttonStyle(TVSettingsActionButtonStyle())
+                                .buttonStyle(TVSettingsActionButtonStyle(whiteText: true))
                                 .disabled(isLoading)
                         }
 
@@ -335,7 +335,7 @@ struct LoginView: View {
                             } label: {
                                 Label("Send Diagnostics", systemImage: "stethoscope")
                             }
-                            .buttonStyle(TVSettingsActionButtonStyle())
+                            .buttonStyle(TVSettingsActionButtonStyle(whiteText: true))
                             .disabled(isLoading)
                         }
                     }
