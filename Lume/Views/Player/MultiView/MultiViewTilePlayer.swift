@@ -102,8 +102,15 @@ struct MultiViewTilePlayer: View {
         self.role = role
         self.onFailure = onFailure
         let defaults = UserDefaults.standard
+        #if os(tvOS)
+        let guideOrder = LiveTVEngineSelection.seamlessHandoffPriority(
+            isLive: media.isLive, defaults: defaults
+        )
+        #else
+        let guideOrder = LiveTVEngineSelection.priority(defaults: defaults)
+        #endif
         enginePriority = role.isGuidePreview
-            ? LiveTVEngineSelection.priority(defaults: defaults)
+            ? guideOrder
             : PlayerEnginePriority.resolve(
                 priorityRaw: defaults.string(forKey: PlayerSettings.enginePriorityKey) ?? "",
                 legacyEngineRaw: defaults.string(forKey: PlayerSettings.engineKey)
