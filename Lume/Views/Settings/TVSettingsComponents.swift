@@ -470,8 +470,11 @@
                     .padding(.vertical, 16)
                     .background {
                         if liquidGlass && !isFocused {
-                            RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius)
-                                .fill(.ultraThinMaterial)
+                            Color.clear
+                                .glassEffectCompat(
+                                    .regular,
+                                    in: RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius)
+                                )
                                 .opacity(0.85)
                         }
                     }
