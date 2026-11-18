@@ -145,6 +145,11 @@ enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
             Color(red: 0.84, green: 0.89, blue: 0.95)
         ]
     }
+    /// Contrast-safe highlight, shared with the iOS palette.
+    var selectionAccent: Color {
+        self == .white ? Color(red: 0.24, green: 0.33, blue: 0.45) : color
+    }
+
     var gradient: LinearGradient {
         LinearGradient(colors: gradientColors, startPoint: .topLeading, endPoint: .bottomTrailing)
     }
