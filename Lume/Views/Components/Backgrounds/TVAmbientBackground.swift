@@ -15,11 +15,17 @@
     /// DreamCAST TV 2 visual tokens, matched to the approved dark/neon reference.
     /// Names here keep every tvOS tab using the same colors and outlines.
     enum TVNeonTheme {
-        static var midnight: Color { DreamCASTVisualSettings.theme.gradientColors[2] }
-        static var electricBlue: Color { DreamCASTVisualSettings.theme.color }
-        static var iceBlue: Color { DreamCASTVisualSettings.theme.color.opacity(0.88) }
-        static var glassTop: Color { DreamCASTVisualSettings.theme.gradientColors[1] }
-        static var glassBottom: Color { DreamCASTVisualSettings.theme.gradientColors[0] }
+        static var midnight: Color {
+            DreamCASTVisualSettings.theme.backgroundColors(light: DreamCASTDisplayColors.isLight)[2]
+        }
+        static var electricBlue: Color { DreamCASTVisualSettings.theme.selectionAccent }
+        static var iceBlue: Color { DreamCASTVisualSettings.theme.selectionAccent.opacity(0.88) }
+        static var glassTop: Color {
+            DreamCASTVisualSettings.theme.backgroundColors(light: DreamCASTDisplayColors.isLight)[1]
+        }
+        static var glassBottom: Color {
+            DreamCASTVisualSettings.theme.backgroundColors(light: DreamCASTDisplayColors.isLight)[0]
+        }
 
         static var glass: LinearGradient {
             let a = DreamCASTVisualSettings.transparency
@@ -58,6 +64,13 @@
 
         @AppStorage(DreamCASTAccentTheme.storageKey) private var selectedThemeRaw = DreamCASTAccentTheme.defaultValue.rawValue
         @AppStorage(DreamCASTVisualSettings.transparencyKey) private var transparency = DreamCASTVisualSettings.defaultTransparency
+        @AppStorage(AppAppearance.storageKey) private var displayModeRaw = AppAppearance.defaultValue.rawValue
+        @Environment(\.colorScheme) private var systemScheme
+
+        private var lightBackground: Bool {
+            let mode = AppAppearance.resolve(displayModeRaw)
+            return mode == .light || (mode == .system && systemScheme == .light)
+        }
 
         private var tint: Color {
             DreamCASTAccentTheme.resolve(selectedThemeRaw).color
@@ -95,7 +108,9 @@
                             endPoint: .bottom
                         )
                     }
-                    .overlay(Self.darkening)
+                    .overlay {
+                        if !lightBackground { Self.darkening }
+                    }
                     .overlay {
                         // Subtle corner light streaks from the approved mockup.
                         // Simple paths keep the background cheap during playback.
