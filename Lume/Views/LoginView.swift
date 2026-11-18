@@ -236,10 +236,10 @@ struct LoginView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Add Playlist")
                             .font(.system(size: 40, weight: .bold))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(.white)
                         Text("Connect to your IPTV provider")
                             .font(.system(size: TVSettingsMetrics.secondaryFontSize))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.white.opacity(0.80))
                     }
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
 
@@ -270,23 +270,24 @@ struct LoginView: View {
                         }
                     }
                     .pickerStyle(.segmented)
+                    .environment(\.colorScheme, .dark)
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
 
                     VStack(spacing: 24) {
-                        TVSettingsField(title: "Name", placeholder: "e.g. My IPTV", text: $name, contentType: .name)
+                        TVSettingsField(title: "Name", placeholder: "e.g. My IPTV", text: $name, contentType: .name, whiteText: true)
                         switch sourceType {
                         case .xtream:
                             XtreamProviderPicker(serverURL: $serverURL)
-                            TVSettingsField(title: "Username", placeholder: "Username", text: $username, contentType: .username)
-                            TVSettingsField(title: "Password", placeholder: "Password", text: $password, isSecure: true, contentType: .password)
+                            TVSettingsField(title: "Username", placeholder: "Username", text: $username, contentType: .username, whiteText: true)
+                            TVSettingsField(title: "Password", placeholder: "Password", text: $password, isSecure: true, contentType: .password, whiteText: true)
                         case .m3u:
-                            TVSettingsField(title: "Playlist URL", placeholder: "e.g. http://example.com/playlist.m3u", text: $m3uURL, contentType: .URL)
-                            TVSettingsField(title: "EPG URL (optional)", placeholder: "e.g. http://example.com/guide.xml", text: $epgURL, contentType: .URL)
+                            TVSettingsField(title: "Playlist URL", placeholder: "e.g. http://example.com/playlist.m3u", text: $m3uURL, contentType: .URL, whiteText: true)
+                            TVSettingsField(title: "EPG URL (optional)", placeholder: "e.g. http://example.com/guide.xml", text: $epgURL, contentType: .URL, whiteText: true)
                         case .stalker:
-                            TVSettingsField(title: "Portal URL", placeholder: "e.g. http://example.com:8080/c/", text: $portalURL, contentType: .URL)
-                            TVSettingsField(title: "MAC Address", placeholder: "00:1A:79:xx:xx:xx", text: $macAddress, contentType: nil)
-                            TVSettingsField(title: "Username (optional)", placeholder: "Username", text: $username, contentType: .username)
-                            TVSettingsField(title: "Password (optional)", placeholder: "Password", text: $password, isSecure: true, contentType: .password)
+                            TVSettingsField(title: "Portal URL", placeholder: "e.g. http://example.com:8080/c/", text: $portalURL, contentType: .URL, whiteText: true)
+                            TVSettingsField(title: "MAC Address", placeholder: "00:1A:79:xx:xx:xx", text: $macAddress, contentType: nil, whiteText: true)
+                            TVSettingsField(title: "Username (optional)", placeholder: "Username", text: $username, contentType: .username, whiteText: true)
+                            TVSettingsField(title: "Password (optional)", placeholder: "Password", text: $password, isSecure: true, contentType: .password, whiteText: true)
                         case .mediaServer:
                             MediaServerLoginFields(serverURL: $mediaServerURL, username: $username, password: $password)
                         }
@@ -294,7 +295,7 @@ struct LoginView: View {
 
                     Text(stalkerHint)
                         .font(.system(size: TVSettingsMetrics.secondaryFontSize))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.80))
                         .padding(.horizontal, TVSettingsMetrics.rowHPadding)
 
                     if let xtreamHint {
