@@ -347,8 +347,9 @@ struct EPGProgramBlock: View {
             #if os(tvOS)
             .background {
                 if liquidGlass {
-                    shape.fill(.ultraThinMaterial)
-                        .opacity(0.65 * (1 - surfaceTransparency))
+                    Color.clear
+                        .glassEffectCompat(.regular, in: shape)
+                        .opacity(0.82)
                 }
             }
             #endif
