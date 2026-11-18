@@ -110,8 +110,7 @@
             .frame(maxWidth: .infinity, alignment: .leading)
             .background {
                 RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius, style: .continuous)
-                    .fill(rowFocused ? TVNeonTheme.electricBlue.opacity(0.55)
-                                     : DreamCASTDisplayColors.surface)
+                    .fill(rowFocused ? TVNeonTheme.glassTop : TVNeonTheme.glassBottom)
             }
             .overlay {
                 RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius, style: .continuous)
@@ -342,7 +341,7 @@
                 let mode = AppAppearance.resolve(displayModeRaw)
                 let light = mode == .light || (mode == .system && scheme == .light)
                 return configuration.label
-                    .foregroundStyle(isFocused ? Color.white : (light ? Color.black : Color.white))
+                    .foregroundStyle(Color.white)
                     .background {
                         if liquidGlass && !isFocused {
                             Color.clear
@@ -399,8 +398,7 @@
             var body: some View {
                 let mode = AppAppearance.resolve(displayModeRaw)
                 let light = mode == .light || (mode == .system && scheme == .light)
-                let foreground: Color = isDestructive && !isFocused ? .red
-                    : (isFocused ? .white : (light ? .black : .white))
+                let foreground: Color = isDestructive && !isFocused ? .red : .white
                 let fill: AnyShapeStyle = isFocused
                     ? (isDestructive ? AnyShapeStyle(Color.red)
                                      : AnyShapeStyle(TVNeonTheme.selection))
@@ -461,11 +459,10 @@
             var body: some View {
                 let mode = AppAppearance.resolve(appearanceRaw)
                 let light = mode == .light || (mode == .system && systemScheme == .light)
-                let restFill = light ? Color.white.opacity(max(0.15, 1 - transparency))
-                    : TVNeonTheme.glassBottom.opacity(max(0.15, 1 - transparency))
+                let restFill = TVNeonTheme.glassBottom.opacity(max(0.65, 1 - transparency * 0.35))
                 return configuration.label
                     .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(whiteText || isFocused ? Color.white : (light ? Color.black : Color.white))
+                    .foregroundStyle(Color.white)
                     .opacity(isEnabled ? 1 : 0.4)
                     .padding(.horizontal, 40)
                     .padding(.vertical, 16)
