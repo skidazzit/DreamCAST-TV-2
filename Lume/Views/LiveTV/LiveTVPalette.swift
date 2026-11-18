@@ -8,8 +8,11 @@
 import SwiftUI
 
 nonisolated enum LiveTVPalette {
-    /// `#5AA9FF`. Explicit because `Color.accentColor` resolves to white on tvOS.
-    static let accent = Color(.sRGB, red: 90 / 255, green: 169 / 255, blue: 1, opacity: 1)
+    /// Live TV accents always follow the saved appearance palette.
+    /// Avoid a fixed blue; callers retain the same fallback behavior.
+    static var accent: Color {
+        DreamCASTVisualSettings.theme.selectionAccent
+    }
 
     /// The glow colour for a logo tint from `ChannelLogoTintCache`; the accent
     /// when the logo has no tint, or the tint is near-black or grey.
