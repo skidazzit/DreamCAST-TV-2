@@ -56,7 +56,13 @@ import SwiftData
                 if isEditing {
                     VStack(spacing: 18) {
                         TVSettingsField(title: "Name", placeholder: "Name", text: $editName, contentType: .name)
-                        TVSettingsField(title: serverURLFieldTitle, placeholder: serverURLFieldTitle, text: $editServerURL, contentType: .URL)
+                        if playlist.sourceType == .xtream {
+                            // Xtream endpoints are managed by the provider directory.
+                            // Only the assigned provider can be selected here.
+                            XtreamProviderPicker(serverURL: $editServerURL)
+                        } else {
+                            TVSettingsField(title: serverURLFieldTitle, placeholder: serverURLFieldTitle, text: $editServerURL, contentType: .URL)
+                        }
                         if isM3U {
                             TVSettingsField(title: "EPG URL (optional)", placeholder: "EPG URL", text: $editEPGURL, contentType: .URL)
                         } else if isStalker {
@@ -82,10 +88,22 @@ import SwiftData
                 } else {
                     VStack(spacing: 2) {
                         TVSettingsValueRow("Name", value: playlist.name)
-                        TVSettingsValueRow(serverURLFieldTitle) {
-                            Text(playlist.displayURL)
+                        if playlist.sourceType == .xtream {
+                            TVSettingsValueRow("Provider") {
+                                Text(
+                                    XtreamProviderDirectory.provider(
+                                        id: playlist.xtreamProviderID,
+                                        address: playlist.serverURL
+                                    )?.name ?? "Provider unavailable"
+                                )
                                 .lineLimit(1)
-                                .truncationMode(.middle)
+                            }
+                        } else {
+                            TVSettingsValueRow(serverURLFieldTitle) {
+                                Text(playlist.displayURL)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                            }
                         }
                         if isM3U {
                             TVSettingsValueRow("EPG URL") {
