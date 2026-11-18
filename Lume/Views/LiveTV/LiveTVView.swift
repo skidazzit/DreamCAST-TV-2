@@ -303,7 +303,7 @@ struct LiveTVView: View {
                     .pickerStyle(.segmented)
                     .frame(width: 115)
                     .accessibilityLabel("Live TV layout")
-                }
+
                     // Keep the library actions in this same row instead of
                     // duplicating them in the navigation toolbar.
                     HStack(spacing: 2) {
