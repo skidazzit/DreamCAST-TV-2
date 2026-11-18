@@ -411,12 +411,12 @@ struct TVPersistentMiniPlayer: View {
                         .allowsHitTesting(false)
 
                         HStack(spacing: 10) {
-                            Text("LIVE")
+                            Text(media.isLive ? "LIVE" : "PLAYING")
                                 .font(.system(size: 15, weight: .bold))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 9)
                                 .padding(.vertical, 5)
-                                .background(Color.red.opacity(0.88), in: Capsule())
+                                .background(media.isLive ? Color.red.opacity(0.88) : TVNeonTheme.electricBlue.opacity(0.88), in: Capsule())
 
                             Text(media.title)
                                 .font(.system(size: 19, weight: .semibold))
