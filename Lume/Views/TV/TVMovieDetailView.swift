@@ -20,7 +20,7 @@
         @Environment(\.modelContext) private var modelContext
         @Query private var playlists: [Playlist]
 
-        @State private var playingMedia: PlayableMedia?
+        @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
         @State private var similar: [HomeMediaItem] = []
         @State private var collectionMovies: [HomeMediaItem] = []
         @State private var otherSources: [OtherSources.Source] = []
@@ -60,9 +60,6 @@
             }
             .background(Color.black)
             .ignoresSafeArea()
-            .fullScreenCover(item: $playingMedia) { media in
-                FullScreenPlayerView(media: media)
-            }
             .alert("YouTube Unavailable", isPresented: $showYouTubeUnavailable) {
                 Button("OK", role: .cancel) {}
             } message: {
@@ -363,7 +360,9 @@
             guard let playlist = moviePlaylist,
                   let media = PlayableMedia.from(movie: movie, playlist: playlist) else { return }
             if ExternalPlayback.open(media) { return }
-            playingMedia = media
+            // Match iOS: use the persistent mini-player first, then adopt its
+            // decoder when Full Screen is requested. No second player cover.
+            sharedPlayback?.tune(media, previewMode: .small)
         }
 
         private func toggleFavorite() {
