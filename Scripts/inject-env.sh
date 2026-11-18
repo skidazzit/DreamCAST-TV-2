@@ -16,8 +16,29 @@ set -eu
 ENV_FILE="${SRCROOT}/.env"
 PLIST="${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
 
+# Finder may hide the extension on a TextEdit document named ".env.txt".
+# Prefer the exact .env file and only accept .env.txt if that file is absent.
+# Never show the contents of either file in build logs.
+if [ ! -f "$ENV_FILE" ] && [ -f "${SRCROOT}/.env.txt" ]; then
+    ENV_FILE="${SRCROOT}/.env.txt"
+    echo "warning: using .env.txt (Finder may have hidden .txt); rename it to .env for standard builds"
+fi
+
 if [ ! -f "$ENV_FILE" ]; then
-    echo "warning: .env not found at $ENV_FILE — secrets not injected"
+    echo "warning: .env not found at ${SRCROOT}/.env — secrets not injected"
+    echo "warning: In Terminal run: ls -la \"${SRCROOT}\"/.env*"
+    ENV_FILE="/dev/null"
+fi
+
+if [ ! -r "$ENV_FILE" ]; then
+    echo "warning: cannot read $ENV_FILE — check file permissions"
+    ENV_FILE="/dev/null"
+fi
+
+# TextEdit can save Rich Text even when the name looks like .env. The loader
+# requires KEY=value lines, not an RTF document.
+if LC_ALL=C head -c 5 "$ENV_FILE" | grep -qF '{\rtf'; then
+    echo "warning: $ENV_FILE is Rich Text (RTF); save as plain text .env"
     ENV_FILE="/dev/null"
 fi
 
@@ -50,6 +71,14 @@ if [ -n "$TMDB_ACCESS_TOKEN" ]; then
     echo "Injected TMDB_ACCESS_TOKEN into Info.plist"
 else
     echo "warning: TMDB_ACCESS_TOKEN not set in .env — Trending will be hidden"
+fi
+
+# TheSportsDB Premium API key for SportsZone. The app uses its existing
+# Keychain key first, then this build-time default, then demo/free key 123.
+THESPORTSDB_API_KEY="$(read_env THESPORTSDB_API_KEY)"
+if [ -n "$THESPORTSDB_API_KEY" ]; then
+    set_plist TheSportsDBAPIKey "$THESPORTSDB_API_KEY"
+    echo "Injected TheSportsDB API key into Info.plist"
 fi
 
 MDBLIST_API_KEY="$(read_env MDBLIST_API_KEY)"
