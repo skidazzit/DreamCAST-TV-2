@@ -61,6 +61,8 @@ struct EPGGridScroller: View {
         @State private var surfaceFocused = false
         /// The channel or programme the surface highlights and acts on.
         @State var virtualFocus: EPGVirtualFocus?
+        @AppStorage(DreamCASTAccentTheme.storageKey)
+        private var highlightThemeRaw = DreamCASTAccentTheme.defaultValue.rawValue
         /// The x a run of vertical cell moves keeps aiming at, so rows with
         /// different programme boundaries don't make focus drift sideways.
         @State var preferredX: CGFloat?
@@ -116,6 +118,27 @@ struct EPGGridScroller: View {
             // came from. The focus section wrapping the whole body wins the
             // directional entry contest against the rail's mode switch.
             #if os(tvOS)
+            // A single band follows the selected channel across every visible
+            // programme tile. It is visual only; remote focus stays unchanged.
+            .overlay(alignment: .topLeading) {
+                GeometryReader { geometry in
+                    if let rowIndex = virtualFocus?.rowIndex,
+                       rows.indices.contains(rowIndex) {
+                        let tint = DreamCASTAccentTheme.resolve(highlightThemeRaw).selectionAccent
+                        RoundedRectangle(cornerRadius: metrics.blockCornerRadius)
+                            .fill(tint.opacity(0.14))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: metrics.blockCornerRadius)
+                                    .strokeBorder(tint.opacity(0.8), lineWidth: 1.5)
+                            }
+                            .frame(width: geometry.size.width, height: metrics.rowHeight)
+                            .offset(y: metrics.rowOriginY(rowIndex) - sync.mirror.y)
+                    }
+                }
+                .allowsHitTesting(false)
+                .clipped()
+                .accessibilityHidden(true)
+            }
             .overlay(alignment: .leading) { focusSurface }
             .focusSection()
             #endif
