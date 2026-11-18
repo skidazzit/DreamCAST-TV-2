@@ -549,9 +549,12 @@ struct FullScreenPlayerView: View {
         #endif
     }
 
+    /// Return an unchanged adopted stream (Live TV, movie, or episode) before
+    /// the full-screen engine is dismantled. AVPlayer would otherwise tear down
+    /// VOD on Back while the shared mini-player still expects that decoder.
     func returnAdoptedLiveToGuide() {
         #if os(tvOS)
-            guard activeMedia.isLive, let adoption, adoption.mediaID == activeMedia.id,
+            guard let adoption, adoption.mediaID == activeMedia.id,
                   adoption.engineAttempt == engineAttempt, adoption.coordinator.engine == engine else { return }
             _ = adoption.handle.returnToPreview(mediaID: activeMedia.id)
         #endif
