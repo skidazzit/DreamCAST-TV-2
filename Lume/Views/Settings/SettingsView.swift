@@ -895,10 +895,32 @@ struct SettingsView: View {
                 HStack(spacing: 20) {
                     Text("Transparency")
                         .font(.system(size: 22))
-                    Slider(value: $dashboardTransparency, in: 0 ... 0.85, step: 0.05)
-                    Text("\(Int(dashboardTransparency * 100))%")
-                        .font(.system(size: 20, weight: .semibold))
-                        .frame(width: 70, alignment: .trailing)
+                    Spacer(minLength: 30)
+                    Button {
+                        dashboardTransparency = max(0, (dashboardTransparency * 20 - 1).rounded() / 20)
+                    } label: {
+                        Image(systemName: "minus.circle.fill")
+                            .font(.system(size: 27))
+                            .frame(width: 58, height: 54)
+                    }
+                    .buttonStyle(TVDashboardCardStyle())
+                    .disabled(dashboardTransparency <= 0)
+                    .accessibilityLabel("Decrease transparency")
+                    Text("\(Int((dashboardTransparency * 100).rounded()))%")
+                        .font(.system(size: 22, weight: .semibold))
+                        .monospacedDigit()
+                        .frame(width: 85)
+                        .accessibilityLabel("Transparency \(Int((dashboardTransparency * 100).rounded())) percent")
+                    Button {
+                        dashboardTransparency = min(0.85, (dashboardTransparency * 20 + 1).rounded() / 20)
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 27))
+                            .frame(width: 58, height: 54)
+                    }
+                    .buttonStyle(TVDashboardCardStyle())
+                    .disabled(dashboardTransparency >= 0.85)
+                    .accessibilityLabel("Increase transparency")
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
