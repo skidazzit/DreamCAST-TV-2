@@ -183,6 +183,7 @@
         @Binding var text: String
         var isSecure: Bool = false
         var contentType: UITextContentType?
+        var whiteText = false
 
         var body: some View {
             VStack(alignment: .leading, spacing: 8) {
@@ -190,7 +191,7 @@
                     .textCase(.uppercase)
                     .font(.system(size: TVSettingsMetrics.labelFontSize, weight: .semibold))
                     .tracking(1.4)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(whiteText ? Color.white : Color.secondary)
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
 
                 Group {
@@ -201,7 +202,7 @@
                     }
                 }
                 .font(.system(size: TVSettingsMetrics.rowFontSize))
-                .foregroundStyle(.primary)
+                .foregroundStyle(whiteText ? Color.white : Color.primary)
                 .textContentType(contentType)
                 .autocorrectionDisabled()
                 .padding(.horizontal, 16)
