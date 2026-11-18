@@ -244,7 +244,7 @@ struct EPGGridScroller: View {
     /// grid's leading edge.
     func scrollTarget(forNow date: Date) -> CGFloat {
         #if os(tvOS)
-            timeline.halfHourParkingX(forNow: date, leadIn: metrics.nowLeadInMinutes)
+            timeline.halfHourParkingX(forNow: date, leadIn: max(45, metrics.nowLeadInMinutes))
         #else
             timeline.x(for: date.addingTimeInterval(-Double(metrics.nowLeadInMinutes) * 60))
         #endif
