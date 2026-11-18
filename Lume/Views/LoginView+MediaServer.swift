@@ -68,9 +68,9 @@ import SwiftUI
         @Binding var password: String
 
         var body: some View {
-            TVSettingsField(title: "Server URL", placeholder: "e.g. http://192.168.1.10:8096", text: $serverURL, contentType: .URL)
-            TVSettingsField(title: "Username (optional)", placeholder: "Username", text: $username, contentType: .username)
-            TVSettingsField(title: "Password (optional)", placeholder: "Password", text: $password, isSecure: true, contentType: .password)
+            TVSettingsField(title: "Server URL", placeholder: "e.g. http://192.168.1.10:8096", text: $serverURL, contentType: .URL, whiteText: true)
+            TVSettingsField(title: "Username (optional)", placeholder: "Username", text: $username, contentType: .username, whiteText: true)
+            TVSettingsField(title: "Password (optional)", placeholder: "Password", text: $password, isSecure: true, contentType: .password, whiteText: true)
         }
     }
 #endif
