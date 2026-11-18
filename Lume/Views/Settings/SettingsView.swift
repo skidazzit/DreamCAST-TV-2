@@ -35,6 +35,7 @@ struct SettingsView: View {
     #endif
 
     #if os(tvOS)
+        @AppStorage(AppAppearance.storageKey) private var tvAppearanceRaw = AppAppearance.defaultValue.rawValue
         @AppStorage(DreamCASTAccentTheme.storageKey) private var accentThemeRaw = DreamCASTAccentTheme.defaultValue.rawValue
         @AppStorage(DreamCASTVisualSettings.liquidGlassKey)
         private var dashboardLiquidGlass = DreamCASTVisualSettings.defaultLiquidGlass
@@ -851,6 +852,34 @@ struct SettingsView: View {
                 // Content Management action. Do not create duplicate settings.
                 tvLibraryDetail
 
+                Text("Display Mode")
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundStyle(.primary)
+                HStack(spacing: 16) {
+                    ForEach(AppAppearance.allCases) { mode in
+                        Button {
+                            tvAppearanceRaw = mode.rawValue
+                        } label: {
+                            HStack(spacing: 12) {
+                                Text(mode.title)
+                                    .font(.system(size: 22, weight: .medium))
+                                Spacer(minLength: 4)
+                                if tvAppearanceRaw == mode.rawValue {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(DreamCASTAccentTheme.resolve(accentThemeRaw).selectionAccent)
+                                }
+                            }
+                            .padding(18)
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(TVDashboardCardStyle())
+                        .accessibilityAddTraits(tvAppearanceRaw == mode.rawValue ? [.isSelected] : [])
+                    }
+                }
+                Text("System follows the Apple TV appearance. Light and Dark override it.")
+                    .font(.system(size: 18))
+                    .foregroundStyle(.secondary)
+
                 Text("Color Theme")
                     .font(.system(size: 26, weight: .bold))
                     .foregroundStyle(.white)
@@ -943,9 +972,9 @@ struct SettingsView: View {
                 dashboardMoreRow("Home Sections & Top Shelf", icon: "square.grid.2x2") {
                     dashboardOpenLegacy(.home)
                 }
-                Text("DreamCAST TV uses a dark interface on Apple TV.")
+                Text("Your color theme and display mode apply to menus, backgrounds and controls.")
                     .font(.system(size: 18))
-                    .foregroundStyle(.white.opacity(0.6))
+                    .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
