@@ -28,7 +28,7 @@
         static var glassBottom: Color { darkStops[0] }
 
         static var glass: LinearGradient {
-            let opacity = max(0.65, 1 - DreamCASTVisualSettings.transparency * 0.35)
+            let opacity = max(0.28, 0.96 - DreamCASTVisualSettings.transparency * 0.75)
             return LinearGradient(
                 colors: [glassTop.opacity(opacity), glassBottom.opacity(opacity)],
                 startPoint: .topLeading, endPoint: .bottomTrailing
