@@ -76,7 +76,7 @@
                 .textCase(.uppercase)
                 .font(.system(size: TVSettingsMetrics.labelFontSize, weight: .semibold))
                 .tracking(1.4)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(DreamCASTDisplayColors.secondary)
                 .padding(.horizontal, TVSettingsMetrics.rowHPadding)
                 .padding(.bottom, 4)
         }
@@ -102,9 +102,10 @@
                 Text(label)
                 Spacer(minLength: 16)
                 value
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(DreamCASTDisplayColors.secondary)
             }
             .font(.system(size: TVSettingsMetrics.rowFontSize))
+            .foregroundStyle(DreamCASTDisplayColors.foreground)
             .padding(.horizontal, TVSettingsMetrics.rowHPadding)
             .padding(.vertical, TVSettingsMetrics.rowVPadding + 2)
             .frame(maxWidth: .infinity, alignment: .leading)
