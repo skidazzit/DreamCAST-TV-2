@@ -29,9 +29,9 @@
         static let detailMaxWidth: CGFloat = 860
         /// Width of a secondary column sitting beside a `contentMaxWidth` one.
         static let sideColumnWidth: CGFloat = 560
-        static var background: Color { DreamCASTDisplayColors.isLight
-            ? Color(red: 0.92, green: 0.95, blue: 0.98)
-            : DreamCASTVisualSettings.theme.gradientColors[2]
+        static var background: Color {
+            // Legacy settings panes use the same dark theme canvas for white text.
+            DreamCASTVisualSettings.theme.backgroundColors(light: false)[2]
         }
     }
 
