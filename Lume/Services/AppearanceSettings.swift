@@ -139,11 +139,47 @@ enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
             ]
         }
         if !light { return gradientColors }
-        return [
-            Color.white.opacity(0.94),
-            Color(red: 0.91, green: 0.94, blue: 0.98),
-            Color(red: 0.84, green: 0.89, blue: 0.95)
-        ]
+        // Each accent needs its own pale wallpaper, not the same generic blue.
+        switch self {
+        case .dreamcast:
+            return [Color(red: 0.93, green: 0.97, blue: 1.00),
+                    Color(red: 0.79, green: 0.88, blue: 0.98),
+                    Color(red: 0.70, green: 0.81, blue: 0.94)]
+        case .lightBlue:
+            return [Color(red: 0.92, green: 0.98, blue: 1.00),
+                    Color(red: 0.72, green: 0.91, blue: 1.00),
+                    Color(red: 0.65, green: 0.84, blue: 0.96)]
+        case .ocean:
+            return [Color(red: 0.89, green: 0.99, blue: 0.98),
+                    Color(red: 0.68, green: 0.90, blue: 0.91),
+                    Color(red: 0.59, green: 0.83, blue: 0.87)]
+        case .violet:
+            return [Color(red: 0.97, green: 0.94, blue: 1.00),
+                    Color(red: 0.86, green: 0.79, blue: 0.98),
+                    Color(red: 0.78, green: 0.73, blue: 0.93)]
+        case .emerald:
+            return [Color(red: 0.91, green: 0.99, blue: 0.96),
+                    Color(red: 0.72, green: 0.92, blue: 0.83),
+                    Color(red: 0.65, green: 0.85, blue: 0.76)]
+        case .sunset:
+            return [Color(red: 1.00, green: 0.96, blue: 0.90),
+                    Color(red: 1.00, green: 0.85, blue: 0.75),
+                    Color(red: 0.96, green: 0.78, blue: 0.68)]
+        case .ruby:
+            return [Color(red: 1.00, green: 0.94, blue: 0.95),
+                    Color(red: 0.97, green: 0.80, blue: 0.84),
+                    Color(red: 0.93, green: 0.73, blue: 0.79)]
+        case .grey:
+            return [Color(red: 0.96, green: 0.97, blue: 0.98),
+                    Color(red: 0.85, green: 0.87, blue: 0.89),
+                    Color(red: 0.75, green: 0.78, blue: 0.82)]
+        case .charcoal:
+            return [Color(red: 0.92, green: 0.93, blue: 0.94),
+                    Color(red: 0.77, green: 0.79, blue: 0.82),
+                    Color(red: 0.65, green: 0.68, blue: 0.72)]
+        case .white:
+            return gradientColors
+        }
     }
     /// Contrast-safe highlight, shared with the iOS palette.
     var selectionAccent: Color {
