@@ -46,7 +46,7 @@ struct PlayerSettingsTests {
         #expect(Set(vod) == Set(normal))
     }
 
-    @Test func `explicit Live TV decoder choice is not overwritten`() throws {
+    @Test func `shared playback prioritizes handoff while preserving fallback choices`() throws {
         let suite = "DreamCAST-SeamlessExplicit-\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
@@ -62,11 +62,13 @@ struct PlayerSettingsTests {
         )
 
         defaults.set("vlcKit", forKey: LiveTVEngineSelection.storageKey)
-        #expect(
-            LiveTVEngineSelection.seamlessHandoffPriority(
-                isLive: true, defaults: defaults
-            ).first == .vlcKit
+        let fallbacks = LiveTVEngineSelection.seamlessHandoffPriority(
+            isLive: true, defaults: defaults
         )
+        #expect(fallbacks.first == .ksPlayer)
+        #expect(fallbacks.contains(.vlcKit))
+        #expect(fallbacks.contains(.lumeEngine))
+        #expect(fallbacks.count == Set(fallbacks).count)
     }
 
     @Test func `engine kind all cases`() {
