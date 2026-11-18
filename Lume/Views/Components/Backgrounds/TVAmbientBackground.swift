@@ -14,29 +14,32 @@
 
     /// DreamCAST TV 2 visual tokens, matched to the approved dark/neon reference.
     /// Names here keep every tvOS tab using the same colors and outlines.
+    /// All panels stay dark enough for white tvOS text in either display mode.
+    /// The wallpaper alone switches between the pale and dark theme gradients.
     enum TVNeonTheme {
-        static var midnight: Color {
-            DreamCASTVisualSettings.theme.backgroundColors(light: DreamCASTDisplayColors.isLight)[2]
+        static var accent: Color { DreamCASTVisualSettings.theme.selectionAccent }
+        static var darkStops: [Color] {
+            DreamCASTVisualSettings.theme.backgroundColors(light: false)
         }
-        static var electricBlue: Color { DreamCASTVisualSettings.theme.selectionAccent }
-        static var iceBlue: Color { DreamCASTVisualSettings.theme.selectionAccent.opacity(0.88) }
-        static var glassTop: Color {
-            DreamCASTVisualSettings.theme.backgroundColors(light: DreamCASTDisplayColors.isLight)[1]
-        }
-        static var glassBottom: Color {
-            DreamCASTVisualSettings.theme.backgroundColors(light: DreamCASTDisplayColors.isLight)[0]
-        }
+        static var midnight: Color { darkStops[2] }
+        static var electricBlue: Color { accent }
+        static var iceBlue: Color { accent }
+        static var glassTop: Color { darkStops[1] }
+        static var glassBottom: Color { darkStops[0] }
 
         static var glass: LinearGradient {
-            let a = DreamCASTVisualSettings.transparency
+            let opacity = max(0.65, 1 - DreamCASTVisualSettings.transparency * 0.35)
             return LinearGradient(
-                colors: [glassTop.opacity(1 - a), glassBottom.opacity(1 - a)],
+                colors: [glassTop.opacity(opacity), glassBottom.opacity(opacity)],
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
         }
         static var selection: LinearGradient {
-            LinearGradient(colors: [electricBlue, DreamCASTVisualSettings.theme.gradientColors[1]],
-                           startPoint: .top, endPoint: .bottom)
+            // Dark theme-colored selection preserves contrast with white labels.
+            LinearGradient(
+                colors: [darkStops[1], darkStops[0]],
+                startPoint: .topLeading, endPoint: .bottomTrailing
+            )
         }
     }
 
