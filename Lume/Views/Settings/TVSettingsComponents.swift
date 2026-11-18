@@ -201,8 +201,20 @@
                     }
                 }
                 .font(.system(size: TVSettingsMetrics.rowFontSize))
+                .foregroundStyle(.primary)
                 .textContentType(contentType)
                 .autocorrectionDisabled()
+                .padding(.horizontal, 16)
+                .padding(.vertical, 9)
+                .background {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(DreamCASTDisplayColors.surface)
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14)
+                        .strokeBorder(DreamCASTVisualSettings.theme.selectionAccent.opacity(0.36),
+                                      lineWidth: 1)
+                }
             }
         }
     }
