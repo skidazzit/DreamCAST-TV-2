@@ -177,6 +177,7 @@
             .frame(width: Self.width, alignment: .leading)
             .frame(maxHeight: .infinity, alignment: .top)
             .background(panelShape.fill(TVNeonTheme.glass))
+            .foregroundStyle(.white)
             .overlay(panelShape.strokeBorder(TVNeonTheme.iceBlue.opacity(0.36), lineWidth: 1))
             .shadow(color: .black.opacity(0.42), radius: 20, y: 10)
             .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { panelFrame = $0 }
@@ -425,8 +426,8 @@
         }
 
         private func rowFill(isFocused: Bool, isSelected: Bool) -> Color {
-            if isFocused { return Color(red: 0.06, green: 0.39, blue: 0.87) }
-            if isSelected { return Color(red: 0.08, green: 0.25, blue: 0.51) }
+            if isFocused { return TVNeonTheme.glassTop }
+            if isSelected { return TVNeonTheme.glassTop.opacity(0.9) }
             return .clear
         }
 
