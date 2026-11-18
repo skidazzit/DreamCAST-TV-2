@@ -381,9 +381,13 @@ struct SettingsView: View {
                             tvDashboardDetail
                                 .frame(maxWidth: .infinity, maxHeight: .infinity,
                                        alignment: .topLeading)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 20)
+                                .background(TVNeonTheme.glass, in: RoundedRectangle(cornerRadius: 24))
                                 .focused($detailFocused)
                             tvDashboardRightColumn(width: rightWidth)
                                 .frame(width: rightWidth)
+                                .foregroundStyle(.white)
                         }
                         .frame(width: geometry.size.width,
                                height: geometry.size.height, alignment: .topLeading)
@@ -846,7 +850,7 @@ struct SettingsView: View {
                     .font(.system(size: 43, weight: .bold, design: .rounded))
                 Text("Choose a color theme, display mode, and glass surface style.")
                     .font(.system(size: 20))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.76))
 
                 // Reuse the existing playlist-aware bindings and PIN-gated
                 // Content Management action. Do not create duplicate settings.
@@ -854,7 +858,7 @@ struct SettingsView: View {
 
                 Text("Display Mode")
                     .font(.system(size: 26, weight: .bold))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
                 HStack(spacing: 16) {
                     ForEach(AppAppearance.allCases) { mode in
                         Button {
@@ -878,11 +882,11 @@ struct SettingsView: View {
                 }
                 Text("System follows the Apple TV appearance. Light and Dark override it.")
                     .font(.system(size: 18))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.76))
 
                 Text("Color Theme")
                     .font(.system(size: 26, weight: .bold))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
 
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 180), spacing: 14)], spacing: 14) {
                     ForEach(DreamCASTAccentTheme.allCases) { theme in
@@ -915,7 +919,7 @@ struct SettingsView: View {
                 }
                 Text("Choose matching accent colors and gradient backgrounds. Changes save automatically.")
                     .font(.system(size: 18))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.76))
 
                 Text("Surface Style")
                     .font(.system(size: 26, weight: .bold))
@@ -955,7 +959,7 @@ struct SettingsView: View {
                 .padding(.vertical, 10)
                 Text("Adjust dock cards, menu surfaces, and selected controls.")
                     .font(.system(size: 18))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.76))
 
                 Text("Display & Layout")
                     .font(.system(size: 26, weight: .bold))
@@ -974,9 +978,10 @@ struct SettingsView: View {
                 }
                 Text("Your color theme and display mode apply to menus, backgrounds and controls.")
                     .font(.system(size: 18))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.76))
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
+            .foregroundStyle(.white)
         }
 
         /// Opens Playlists the way activating its rail row does, then drills
