@@ -301,6 +301,18 @@ struct EPGProgramBlock: View {
     /// Off outside a scroll view — a context-menu preview — where there is
     /// no scrolled edge to stick to.
     var sticksToLeadingEdge = true
+    #if os(tvOS)
+    @AppStorage(DreamCASTAccentTheme.storageKey)
+    private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+    @AppStorage(DreamCASTVisualSettings.transparencyKey)
+    private var surfaceTransparency = DreamCASTVisualSettings.defaultTransparency
+    @AppStorage(DreamCASTVisualSettings.liquidGlassKey)
+    private var liquidGlass = DreamCASTVisualSettings.defaultLiquidGlass
+
+    private var palette: DreamCASTAccentTheme {
+        DreamCASTAccentTheme.resolve(themeRaw)
+    }
+    #endif
 
     private var isLive: Bool {
         cell.isLive(at: now)
@@ -332,6 +344,14 @@ struct EPGProgramBlock: View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         labels
             .frame(width: max(0, cell.width - metrics.blockGap), height: height, alignment: .leading)
+            #if os(tvOS)
+            .background {
+                if liquidGlass {
+                    shape.fill(.ultraThinMaterial)
+                        .opacity(0.65 * (1 - surfaceTransparency))
+                }
+            }
+            #endif
             .background(fill, in: shape)
             .overlay {
                 shape.strokeBorder(borderColor, lineWidth: isFocused ? 1.5 : 1)
@@ -351,7 +371,11 @@ struct EPGProgramBlock: View {
         VStack(alignment: .leading, spacing: 2) {
             title
                 .font(isCard ? metrics.cardTitleFont : metrics.blockTitleFont)
+                #if os(tvOS)
+                .foregroundStyle(.white)
+                #else
                 .foregroundStyle(isCard ? EPGColors.cardText : .primary)
+                #endif
                 .lineLimit(1)
 
             if showsTime {
@@ -362,7 +386,11 @@ struct EPGProgramBlock: View {
                     Text(cell.start ..< cell.end, format: .interval.hour().minute())
                 }
                 .font(metrics.blockTimeFont)
+                #if os(tvOS)
+                .foregroundStyle(.white.opacity(0.72))
+                #else
                 .foregroundStyle(isCard ? EPGColors.cardTextSecondary : .primary.opacity(0.6))
+                #endif
                 .lineLimit(1)
             }
         }
@@ -390,13 +418,15 @@ struct EPGProgramBlock: View {
     }
 
     private var fill: Color {
-        if isCard { return EPGColors.cardFill }
         #if os(tvOS)
-        // The reference uses slate glass tiles instead of flat grey strips.
-        return isFocused
-            ? TVNeonTheme.electricBlue.opacity(0.26)
-            : Color(red: 0.13, green: 0.18, blue: 0.27).opacity(isLive ? 0.94 : 0.80)
+        // Use the selected theme for every realised programme block.
+        // Keep the card dark enough to support white text on Light wallpaper.
+        let stops = palette.backgroundColors(light: false)
+        let base = isCard ? stops[1] : (isLive ? stops[1] : stops[0])
+        let alpha = max(0.58, 1 - surfaceTransparency * (liquidGlass ? 0.40 : 0.25))
+        return base.opacity(isCard ? max(alpha, 0.80) : alpha)
         #else
+        if isCard { return EPGColors.cardFill }
         // A focused gap keeps a light fill on touch platforms.
         if isFocused { return .primary.opacity(0.18) }
         return .primary.opacity(isLive ? 0.12 : 0.05)
@@ -405,7 +435,7 @@ struct EPGProgramBlock: View {
 
     private var borderColor: Color {
         #if os(tvOS)
-        isCard ? TVNeonTheme.iceBlue : .white.opacity(0.19)
+        isCard ? palette.selectionAccent : palette.selectionAccent.opacity(0.22)
         #else
         isCard ? EPGColors.cardBorder : .primary.opacity(0.1)
         #endif
