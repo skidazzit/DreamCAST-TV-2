@@ -44,6 +44,14 @@ struct MainTabView: View {
     @AppStorage("dreamcast.tv.startupTab") private var startupTabRaw = "liveTV"
     @AppStorage("dreamcast.tv.autoResumeLastChannel") private var autoResumeLastChannel = true
     @AppStorage("dreamcast.tv.confirmExit") private var confirmExit = true
+    // Observing all visual options at app root refreshes shared chrome
+    // without replacing the persistent video player or changing tabs.
+    @AppStorage(DreamCASTAccentTheme.storageKey)
+    private var visualThemeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+    @AppStorage(DreamCASTVisualSettings.transparencyKey)
+    private var visualTransparency = DreamCASTVisualSettings.defaultTransparency
+    @AppStorage(DreamCASTVisualSettings.liquidGlassKey)
+    private var visualGlass = DreamCASTVisualSettings.defaultLiquidGlass
     @AppStorage(LiveTVLayoutMode.storageKey) private var tvLiveLayoutRaw = LiveTVLayoutMode.defaultMode.rawValue
     private var usesLiveList: Bool { LiveTVLayoutMode(storedValue: tvLiveLayoutRaw) == .list }
     #endif
@@ -451,6 +459,12 @@ struct MainTabView: View {
                         tvTabButton("Settings", .settings, symbol: "gearshape", selection: selection)
                     }
                     .padding(6)
+                    .background {
+                        if visualGlass {
+                            Capsule().fill(.ultraThinMaterial)
+                                .opacity(0.72 * (1 - visualTransparency))
+                        }
+                    }
                     .background(TVNeonTheme.glass, in: Capsule())
                     .overlay {
                         Capsule().strokeBorder(TVNeonTheme.iceBlue.opacity(0.34), lineWidth: 1)
@@ -478,6 +492,7 @@ struct MainTabView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .tint(DreamCASTAccentTheme.resolve(visualThemeRaw).selectionAccent)
             // Exactly one backdrop behind the app chrome and active tab.
             // It follows Live TV's settled channel tint across tab switches.
             .background {
