@@ -133,8 +133,7 @@ struct SportsZoneMiniPlayerTests {
 
     @Test func duplicateFallbackDismissalDoesNotRestartTwice() {
         let session = SportsZonePlaybackSession()
-        session.tune(media("a"))
-        session.openFullScreen() // No decoder available for adoption yet.
+        session.tune(media("a"), previewMode: .off) // No preview decoder exists.
         let before = session.reloadToken
         session.fullScreenMedia = nil
         session.returnedFromFullScreen()
@@ -153,20 +152,49 @@ struct SportsZoneMiniPlayerTests {
     }
 
     #if os(tvOS)
-    @Test func fullScreenOpensWhenPreviewHasNotStarted() {
+    @Test func fullScreenWaitsBrieflyAndAdoptsWhenPreviewStarts() {
         let session = SportsZonePlaybackSession()
         let channel = media("buffering")
         session.tune(channel, previewMode: .small)
         #expect(!session.handle.hasStarted)
 
         session.openFullScreen()
+        #expect(session.pendingFullScreenRequest)
+        #expect(session.fullScreenMedia == nil)
 
-        // tvOS must not leave the user staring at an unresponsive button.
-        // With no started decoder, GuidePreviewController shuts the preview
-        // down and the full-screen player opens its own stream.
+        let decoder = KSVideoPlayer.Coordinator()
+        session.handle.register(media: channel, resolved: nil, coordinator: .ks(decoder))
+        session.handle.markStarted()
+        session.previewDidStart()
+
+        #expect(session.fullScreenMedia?.id == channel.id)
+        #expect(!session.pendingFullScreenRequest)
+        #expect(session.handle.owner == .fullScreen)
+        #expect(session.handle.coordinator?.ksCoordinator === decoder)
+    }
+
+    @Test func fullScreenFallsBackAfterBoundedPreviewWait() async throws {
+        let session = SportsZonePlaybackSession()
+        let channel = media("slow")
+        session.tune(channel, previewMode: .small)
+        session.openFullScreen()
+        #expect(session.pendingFullScreenRequest)
+
+        try await Task.sleep(for: .milliseconds(2300))
         #expect(session.fullScreenMedia?.id == channel.id)
         #expect(!session.pendingFullScreenRequest)
         #expect(session.guidePreview.isSuspended)
+    }
+
+    @Test func pendingFullScreenRequestSurvivesPreviewFailure() {
+        let session = SportsZonePlaybackSession()
+        let channel = media("failed")
+        session.tune(channel)
+        session.openFullScreen()
+        #expect(session.pendingFullScreenRequest)
+        session.previewFailed(channel.id)
+        #expect(session.fullScreenMedia?.id == channel.id)
+        #expect(!session.pendingFullScreenRequest)
     }
 
     @Test func fullScreenOpensEvenWhenPreviewFailed() {
