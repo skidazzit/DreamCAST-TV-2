@@ -77,7 +77,7 @@ enum AppAppearance: String, CaseIterable, Identifiable {
 }
 
 
-/// Saved accent choices. tvOS keeps its dark display style.
+/// Saved accent choices, shared across tvOS Light and Dark modes.
 enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
     case dreamcast, lightBlue, ocean, violet, emerald, sunset, ruby, grey, charcoal, white
 
@@ -155,6 +155,26 @@ enum DreamCASTAccentTheme: String, CaseIterable, Identifiable {
     }
 }
 
+/// A shared contrast policy for Apple TV. All screens read this saved mode,
+/// including controls that use fixed colors rather than SwiftUI semantic colors.
+enum DreamCASTDisplayColors {
+    static var mode: AppAppearance {
+        AppAppearance.resolve(UserDefaults.standard.string(forKey: AppAppearance.storageKey) ?? "")
+    }
+    static var isLight: Bool {
+        if mode == .light { return true }
+        if mode == .dark { return false }
+        return UITraitCollection.current.userInterfaceStyle == .light
+    }
+    static var foreground: Color { isLight ? .black : .white }
+    static var secondary: Color { foreground.opacity(0.70) }
+    static var surface: Color {
+        let palette = DreamCASTVisualSettings.theme
+        return isLight ? Color.white.opacity(max(0.15, 1 - DreamCASTVisualSettings.transparency))
+            : palette.gradientColors[1].opacity(max(0.15, 1 - DreamCASTVisualSettings.transparency))
+    }
+}
+
 /// Shared per-device visual options. An old install keeps its current feel.
 enum DreamCASTVisualSettings {
     static let liquidGlassKey = "dreamcast.appearance.liquidGlass"
@@ -220,7 +240,11 @@ extension View {
     /// `UIUserInterfaceStyle` key (see the file header).
     func appAppearance(_ appearance: AppAppearance) -> some View {
         #if os(tvOS)
-            return self
+            // nil follows tvOS device Appearance; explicit modes change the
+            // whole SwiftUI presentation without remounting the player.
+            return preferredColorScheme(
+                appearance == .system ? nil : (appearance == .light ? .light : .dark)
+            )
         #elseif canImport(UIKit)
             return background(
                 AppearanceWindowApplier(style: appearance.interfaceStyle)
