@@ -27,6 +27,21 @@ struct EPGChannelCell: View {
     let row: EPGChannelRow
     let metrics: EPGMetrics
     var highlight = EPGChannelCellHighlight.none
+    @AppStorage(DreamCASTAccentTheme.storageKey)
+    private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+    @AppStorage(DreamCASTVisualSettings.transparencyKey)
+    private var transparency = DreamCASTVisualSettings.defaultTransparency
+    @AppStorage(AppAppearance.storageKey)
+    private var appearanceRaw = AppAppearance.defaultValue.rawValue
+    @Environment(\.colorScheme) private var systemScheme
+
+    private var highlightColor: Color {
+        DreamCASTAccentTheme.resolve(themeRaw).selectionAccent
+    }
+    private var isLight: Bool {
+        let mode = AppAppearance.resolve(appearanceRaw)
+        return mode == .light || (mode == .system && systemScheme == .light)
+    }
 
     private var isHub: Bool {
         highlight == .hub
@@ -39,7 +54,7 @@ struct EPGChannelCell: View {
             #if os(tvOS)
                 if isHub {
                     EPGSelectedChannelName(name: row.name, font: metrics.channelNameFont)
-                        .foregroundStyle(EPGColors.cardText)
+                        .foregroundStyle(.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
                     Text(row.name)
@@ -58,7 +73,7 @@ struct EPGChannelCell: View {
             if row.catchupCapable {
                 CatchupBadge(days: nil)
                     .font(metrics.catchupGlyphFont)
-                    .foregroundStyle(isHub ? EPGColors.cardText : LiveTVPalette.accent)
+                    .foregroundStyle(isHub ? highlightColor : LiveTVPalette.accent)
             }
         }
         .padding(.horizontal, metrics.channelCellPadding)
@@ -74,21 +89,21 @@ struct EPGChannelCell: View {
     }
 
     private var fill: Color {
+        #if os(tvOS)
+        let visible = max(0.12, 1 - transparency)
         switch highlight {
-        case .hub: EPGColors.cardFill
-        case .row:
-            #if os(tvOS)
-            Color(red: 0.15, green: 0.23, blue: 0.34)
-            #else
-            .primary.opacity(0.15)
-            #endif
-        case .none:
-            #if os(tvOS)
-            Color(red: 0.08, green: 0.13, blue: 0.21)
-            #else
-            .primary.opacity(0.05)
-            #endif
+        case .hub: return highlightColor.opacity(isLight ? 0.30 : 0.46)
+        case .row: return highlightColor.opacity(visible * 0.25)
+        case .none: return isLight ? Color.white.opacity(visible * 0.65)
+                                   : DreamCASTAccentTheme.resolve(themeRaw).gradientColors[1].opacity(visible)
         }
+        #else
+        return switch highlight {
+        case .hub: EPGColors.cardFill
+        case .row: .primary.opacity(0.15)
+        case .none: .primary.opacity(0.05)
+        }
+        #endif
     }
 
     private var border: Color {
