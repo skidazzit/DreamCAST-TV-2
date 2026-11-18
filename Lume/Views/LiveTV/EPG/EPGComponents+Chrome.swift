@@ -73,7 +73,7 @@ struct EPGChannelCell: View {
             if row.catchupCapable {
                 CatchupBadge(days: nil)
                     .font(metrics.catchupGlyphFont)
-                    .foregroundStyle(isHub ? highlightColor : LiveTVPalette.accent)
+                    .foregroundStyle(highlightColor)
             }
         }
         .padding(.horizontal, metrics.channelCellPadding)
@@ -304,6 +304,8 @@ struct EPGTimeRuler: View {
 struct EPGNowPill: View {
     let date: Date
     let metrics: EPGMetrics
+    @AppStorage(DreamCASTAccentTheme.storageKey)
+    private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
 
     var body: some View {
         Text(date, format: .dateTime.hour().minute())
@@ -311,7 +313,7 @@ struct EPGNowPill: View {
             .foregroundStyle(EPGColors.onAccent)
             .padding(.horizontal, metrics.headerHeight * 0.28)
             .padding(.vertical, metrics.headerHeight * 0.11)
-            .background(Capsule().fill(LiveTVPalette.accent))
+            .background(Capsule().fill(DreamCASTAccentTheme.resolve(themeRaw).selectionAccent))
             .fixedSize()
             .frame(height: metrics.headerHeight)
             // Zero-width and centred on its point: an alignment guide
@@ -325,11 +327,13 @@ struct EPGNowPill: View {
 struct EPGRulerCorner: View {
     let date: Date
     let metrics: EPGMetrics
+    @AppStorage(DreamCASTAccentTheme.storageKey)
+    private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
 
     var body: some View {
         Text("Today · \(date, format: .dateTime.weekday(.abbreviated).day().month(.abbreviated))")
             .font(metrics.cornerFont)
-            .foregroundStyle(.primary.opacity(0.7))
+            .foregroundStyle(.white.opacity(0.72))
             .lineLimit(1)
             .minimumScaleFactor(0.8)
             .padding(.leading, metrics.channelCellPadding)
