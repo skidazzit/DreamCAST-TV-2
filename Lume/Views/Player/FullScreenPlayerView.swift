@@ -152,15 +152,23 @@ struct FullScreenPlayerView: View {
         _activeMedia = State(initialValue: media)
         (_clock, _castSession) = Self.playbackStates(adopting: media)
         let defaults = UserDefaults.standard
-        enginePriority = PlayerEnginePriority.playable(
-            media.isLive ? LiveTVEngineSelection.priority(defaults: defaults)
-                : PlayerEnginePriority.resolve(
-                    priorityRaw: defaults.string(forKey: PlayerSettings.enginePriorityKey) ?? "",
-                    legacyEngineRaw: defaults.string(forKey: PlayerSettings.engineKey)
-                        ?? PlayerEngineKind.defaultValue.rawValue
-                ),
-            for: media
+        #if os(tvOS)
+        // This must be the same order as the persistent mini-player.
+        // Otherwise Full Screen can pick a different engine and reopen
+        // an already-playing channel instead of adopting its coordinator.
+        let preferredEngines = LiveTVEngineSelection.seamlessHandoffPriority(
+            isLive: media.isLive, defaults: defaults
         )
+        #else
+        let preferredEngines = media.isLive
+            ? LiveTVEngineSelection.priority(defaults: defaults)
+            : PlayerEnginePriority.resolve(
+                priorityRaw: defaults.string(forKey: PlayerSettings.enginePriorityKey) ?? "",
+                legacyEngineRaw: defaults.string(forKey: PlayerSettings.engineKey)
+                    ?? PlayerEngineKind.defaultValue.rawValue
+            )
+        #endif
+        enginePriority = PlayerEnginePriority.playable(preferredEngines, for: media)
         let adoption = handle == nil ? nil : Self.previewAdoption(
             of: handle, for: media, enginePriority: enginePriority, airPlayActive: CastService.shared.isAirPlayActive
         )
