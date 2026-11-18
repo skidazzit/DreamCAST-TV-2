@@ -218,7 +218,8 @@ struct LiveTVView: View {
                 categorySortRaw: $categorySortRaw,
                 contentSortRaw: $contentSortRaw,
                 showingSync: $showingSync,
-                showingSettings: $showingSettings
+                showingSettings: $showingSettings,
+                showsBrowseActionsInToolbar: false
             ))
             // After `libraryToolbar`, so Recordings and Multi-View lead the bar
             // as their own cluster, never beside Settings. Guide or List is
@@ -287,7 +288,7 @@ struct LiveTVView: View {
             VStack(spacing: 0) {
                 // Category and Guide/List share one compact row, leaving
                 // more vertical room for channels in portrait and landscape.
-                HStack(spacing: 10) {
+                HStack(spacing: 5) {
                     CategoryBar(
                         groups: groups,
                         selectedSection: selectedSectionBinding,
@@ -300,10 +301,36 @@ struct LiveTVView: View {
                         Text("List").tag(LiveTVLayoutMode.list.rawValue)
                     }
                     .pickerStyle(.segmented)
-                    .frame(width: 160)
+                    .frame(width: 115)
                     .accessibilityLabel("Live TV layout")
                 }
-                .padding(.horizontal, 12)
+                    // Keep the library actions in this same row instead of
+                    // duplicating them in the navigation toolbar.
+                    HStack(spacing: 2) {
+                        SortMenu(categorySortRaw: $categorySortRaw, contentSortRaw: $contentSortRaw)
+                            .accessibilityLabel("Sort categories and channels")
+                            .frame(width: 33, height: 38)
+                        LibrarySyncButton(
+                            playlists: playlists,
+                            scope: catalogScope,
+                            showingSync: $showingSync
+                        )
+                        .labelStyle(.iconOnly)
+                        .accessibilityLabel("Sync playlist")
+                        .frame(width: 33, height: 38)
+                        Button {
+                            showingSettings = true
+                        } label: {
+                            Image(systemName: "gearshape")
+                                .frame(width: 33, height: 38)
+                        }
+                        .accessibilityLabel("Live TV settings")
+                    }
+                    .font(.system(size: 17, weight: .medium))
+                    .buttonStyle(.plain)
+                    .dreamCASTGlass(radius: 14)
+                }
+                .padding(.horizontal, 10)
                 .padding(.vertical, 8)
 
                 if layoutMode == .guide, sharedPlayback == nil {
