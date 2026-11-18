@@ -166,12 +166,13 @@ enum DreamCASTDisplayColors {
         if mode == .dark { return false }
         return UITraitCollection.current.userInterfaceStyle == .light
     }
-    static var foreground: Color { isLight ? .black : .white }
-    static var secondary: Color { foreground.opacity(0.70) }
+    // Apple TV keeps white lettering on dark, theme-tinted panels in both modes.
+    // Light/Dark applies to the wallpaper, never to the text contrast.
+    static var foreground: Color { .white }
+    static var secondary: Color { .white.opacity(0.76) }
     static var surface: Color {
-        let palette = DreamCASTVisualSettings.theme
-        return isLight ? Color.white.opacity(max(0.15, 1 - DreamCASTVisualSettings.transparency))
-            : palette.gradientColors[1].opacity(max(0.15, 1 - DreamCASTVisualSettings.transparency))
+        let dark = DreamCASTVisualSettings.theme.backgroundColors(light: false)
+        return dark[1].opacity(max(0.72, 1 - DreamCASTVisualSettings.transparency * 0.30))
     }
 }
 
