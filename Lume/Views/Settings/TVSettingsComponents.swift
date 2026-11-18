@@ -347,7 +347,7 @@
                         if liquidGlass && !isFocused {
                             Color.clear
                                 .glassEffectCompat(.regular, in: RoundedRectangle(cornerRadius: 16))
-                                .opacity(1 - transparency)
+                                .opacity(0.85)
                         }
                     }
                     .background {
@@ -418,7 +418,7 @@
                                     .regular,
                                     in: RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius)
                                 )
-                                .opacity(1 - transparency)
+                                .opacity(0.85)
                         }
                     }
                     .background(
@@ -456,17 +456,25 @@
             @Environment(\.colorScheme) private var systemScheme
             @AppStorage(AppAppearance.storageKey) private var appearanceRaw = AppAppearance.defaultValue.rawValue
             @AppStorage(DreamCASTVisualSettings.transparencyKey) private var transparency = DreamCASTVisualSettings.defaultTransparency
+            @AppStorage(DreamCASTVisualSettings.liquidGlassKey) private var liquidGlass = DreamCASTVisualSettings.defaultLiquidGlass
 
             var body: some View {
                 let mode = AppAppearance.resolve(appearanceRaw)
                 let light = mode == .light || (mode == .system && systemScheme == .light)
-                let restFill = TVNeonTheme.glassBottom.opacity(max(0.65, 1 - transparency * 0.35))
+                let restFill = TVNeonTheme.glassBottom.opacity(max(0.28, 0.96 - transparency * 0.75))
                 return configuration.label
                     .font(.system(size: 24, weight: .medium))
                     .foregroundStyle(Color.white)
                     .opacity(isEnabled ? 1 : 0.4)
                     .padding(.horizontal, 40)
                     .padding(.vertical, 16)
+                    .background {
+                        if liquidGlass && !isFocused {
+                            RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius)
+                                .fill(.ultraThinMaterial)
+                                .opacity(0.85)
+                        }
+                    }
                     .background(
                         RoundedRectangle(cornerRadius: TVSettingsMetrics.rowCornerRadius, style: .continuous)
                             .fill(isFocused ? AnyShapeStyle(TVNeonTheme.selection) : AnyShapeStyle(restFill))
