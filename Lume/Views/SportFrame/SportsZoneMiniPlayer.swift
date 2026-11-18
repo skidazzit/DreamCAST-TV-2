@@ -96,11 +96,12 @@ final class SportsZonePlaybackSession {
            !guidePreview.isSuspended {
             guard !pendingFullScreenRequest else { return }
             pendingFullScreenRequest = true
+            let requestedID = media.id
             fullScreenGraceTask = Task { @MainActor [weak self] in
                 try? await Task.sleep(for: .seconds(2))
                 guard !Task.isCancelled, let self,
                       self.pendingFullScreenRequest,
-                      self.miniMedia?.id == media.id else { return }
+                      self.miniMedia?.id == requestedID else { return }
                 self.presentFullScreenWithoutPreview()
             }
             return
