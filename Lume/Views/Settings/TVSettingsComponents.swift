@@ -439,12 +439,18 @@
             let prominent: Bool
             @Environment(\.isFocused) private var isFocused
             @Environment(\.isEnabled) private var isEnabled
+            @Environment(\.colorScheme) private var systemScheme
+            @AppStorage(AppAppearance.storageKey) private var appearanceRaw = AppAppearance.defaultValue.rawValue
+            @AppStorage(DreamCASTVisualSettings.transparencyKey) private var transparency = DreamCASTVisualSettings.defaultTransparency
 
             var body: some View {
-                let restFill = prominent ? Color.white.opacity(0.16) : Color.white.opacity(0.06)
+                let mode = AppAppearance.resolve(appearanceRaw)
+                let light = mode == .light || (mode == .system && systemScheme == .light)
+                let restFill = light ? Color.white.opacity(max(0.15, 1 - transparency))
+                    : TVNeonTheme.glassBottom.opacity(max(0.15, 1 - transparency))
                 return configuration.label
                     .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(isFocused ? Color.white : (light ? Color.black : Color.white))
                     .opacity(isEnabled ? 1 : 0.4)
                     .padding(.horizontal, 40)
                     .padding(.vertical, 16)
