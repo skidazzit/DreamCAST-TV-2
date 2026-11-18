@@ -26,6 +26,17 @@ final class SportsZonePlaybackSession {
     private var isAwaitingFullScreenDismissal = false
     private var pendingReturnMedia: PlayableMedia?
     private(set) var pendingFullScreenRequest = false
+    #if os(tvOS)
+    @ObservationIgnored private var fullScreenGraceTask: Task<Void, Never>?
+    #endif
+
+    private func cancelPendingFullScreen() {
+        pendingFullScreenRequest = false
+        #if os(tvOS)
+        fullScreenGraceTask?.cancel()
+        fullScreenGraceTask = nil
+        #endif
+    }
 
     func tune(_ media: PlayableMedia, previewMode: GuidePreviewMode = .small) {
         userStopped = false
@@ -34,7 +45,7 @@ final class SportsZonePlaybackSession {
             if previewMode == .off { openFullScreen() }
             return
         }
-        pendingFullScreenRequest = false
+        cancelPendingFullScreen()
         handle.stopPreview()
         failedMediaID = nil
         reloadToken += 1
@@ -78,19 +89,35 @@ final class SportsZonePlaybackSession {
     /// especially for buffering, failed and VOD preview tiles.
     func openFullScreen() {
         guard let media = miniMedia, fullScreenMedia == nil else { return }
-        #if !os(tvOS)
-        // iOS can wait for its permanently mounted preview's first frame.
+        #if os(tvOS)
+        // Give a buffering, compatible preview a brief chance to produce its
+        // first frame. The button shows "Opening…" during this bounded wait.
+        // On timeout, open full screen using the Guide's safe fallback.
+        if !CastService.shared.isAirPlayActive, failedMediaID != media.id,
+           !handle.hasStarted, handle.owner == .preview,
+           !guidePreview.isSuspended {
+            guard !pendingFullScreenRequest else { return }
+            pendingFullScreenRequest = true
+            fullScreenGraceTask = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .seconds(2))
+                guard !Task.isCancelled, let self,
+                      self.pendingFullScreenRequest,
+                      self.miniMedia?.id == media.id else { return }
+                self.presentFullScreenWithoutPreview()
+            }
+            return
+        }
+        #else
+        // iOS waits for its fixed preview to produce a usable decoder.
         guard failedMediaID != media.id else { return }
         if !CastService.shared.isAirPlayActive && !handle.hasStarted {
             pendingFullScreenRequest = true
             return
         }
         #endif
-        pendingFullScreenRequest = false
+        cancelPendingFullScreen()
         pendingReturnMedia = nil
         #if os(tvOS)
-        // Either transfers the running engine or stops the preview first.
-        // A failed/unsupported decoder must never block full-screen playback.
         guidePreview.prepareToPresent(media)
         #else
         if handle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) {
@@ -110,13 +137,13 @@ final class SportsZonePlaybackSession {
 
     func previewFailed(_ mediaID: String) {
         guard miniMedia?.id == mediaID, handle.owner == .preview else { return }
-        pendingFullScreenRequest = false
+        cancelPendingFullScreen()
         failedMediaID = mediaID
     }
 
     private func presentFullScreenWithoutPreview() {
         guard let media = miniMedia, fullScreenMedia == nil else { return }
-        pendingFullScreenRequest = false
+        cancelPendingFullScreen()
         pendingReturnMedia = nil
         #if os(tvOS)
         guidePreview.prepareToPresent(media)
@@ -128,7 +155,7 @@ final class SportsZonePlaybackSession {
     func returnedFromFullScreen() {
         guard isAwaitingFullScreenDismissal, fullScreenMedia == nil else { return }
         isAwaitingFullScreenDismissal = false
-        pendingFullScreenRequest = false
+        cancelPendingFullScreen()
         #if os(tvOS)
         guidePreview.fullScreenDidClose()
         #else
@@ -161,7 +188,7 @@ final class SportsZonePlaybackSession {
               !isAwaitingFullScreenDismissal,
               !guidePreview.isSuspended,
               handle.owner == .preview || handle.owner == .released else { return }
-        pendingFullScreenRequest = false
+        cancelPendingFullScreen()
         pendingReturnMedia = nil
         handle.stopPreview()
         failedMediaID = nil
@@ -172,7 +199,7 @@ final class SportsZonePlaybackSession {
     func close() {
         guard fullScreenMedia == nil else { return }
         userStopped = true
-        pendingFullScreenRequest = false
+        cancelPendingFullScreen()
         pendingReturnMedia = nil
         handle.stopPreview()
         miniMedia = nil
@@ -448,7 +475,7 @@ struct TVPersistentMiniPlayer: View {
                             session.openFullScreen()
                         } label: {
                             miniPlayerActionLabel(
-                                "Full Screen",
+                                session.pendingFullScreenRequest ? "Opening…" : "Full Screen",
                                 symbol: "arrow.up.left.and.arrow.down.right",
                                 focused: focusedAction == .fullScreen
                             )
