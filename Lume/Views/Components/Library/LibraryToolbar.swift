@@ -8,6 +8,7 @@ struct LibraryToolbarModifier: ViewModifier {
     @Binding var contentSortRaw: String
     @Binding var showingSync: Bool
     @Binding var showingSettings: Bool
+    let showsBrowseActionsInToolbar: Bool
     @Environment(\.catalogScope) private var catalogScope
     /// The page Settings opens on, set by the switcher's Combined entry and
     /// cleared when Settings closes so the toolbar's own gear opens the root.
@@ -24,8 +25,10 @@ struct LibraryToolbarModifier: ViewModifier {
                     ToolbarItem(placement: .automatic) { playlistSwitcher }
                 }
 
-                ToolbarItem(placement: .automatic) {
-                    SortMenu(categorySortRaw: $categorySortRaw, contentSortRaw: $contentSortRaw)
+                if showsBrowseActionsInToolbar {
+                    ToolbarItem(placement: .automatic) {
+                        SortMenu(categorySortRaw: $categorySortRaw, contentSortRaw: $contentSortRaw)
+                    }
                 }
 
                 // One ToolbarItem each, deliberately not an HStack in a single
@@ -36,15 +39,17 @@ struct LibraryToolbarModifier: ViewModifier {
                 // items degrade into menu rows instead. The titles also give the
                 // menu rows (and VoiceOver) real names rather than the symbols'
                 // defaults.
-                ToolbarItem(placement: .automatic) {
-                    LibrarySyncButton(playlists: playlists, scope: catalogScope, showingSync: $showingSync)
-                }
+                if showsBrowseActionsInToolbar {
+                    ToolbarItem(placement: .automatic) {
+                        LibrarySyncButton(playlists: playlists, scope: catalogScope, showingSync: $showingSync)
+                    }
 
-                ToolbarItem(placement: .automatic) {
-                    Button {
-                        showingSettings = true
-                    } label: {
-                        Label("Settings", systemImage: "gear")
+                    ToolbarItem(placement: .automatic) {
+                        Button {
+                            showingSettings = true
+                        } label: {
+                            Label("Settings", systemImage: "gear")
+                        }
                     }
                 }
             }
@@ -98,7 +103,7 @@ struct LibraryToolbarModifier: ViewModifier {
 /// Sync for the playlist on screen, or — while Combined is on screen — every
 /// due member, queued one after another by `AutoSyncQueue` rather than in a
 /// sheet here. Its own view so the queue's busy flag re-renders this button only.
-private struct LibrarySyncButton: View {
+struct LibrarySyncButton: View {
     let playlists: [Playlist]
     let scope: CatalogScope
     @Binding var showingSync: Bool
@@ -136,6 +141,7 @@ struct LibraryToolbarConfiguration {
     @Binding var contentSortRaw: String
     @Binding var showingSync: Bool
     @Binding var showingSettings: Bool
+    var showsBrowseActionsInToolbar = true
 }
 
 extension View {
@@ -150,7 +156,8 @@ extension View {
                 categorySortRaw: config.$categorySortRaw,
                 contentSortRaw: config.$contentSortRaw,
                 showingSync: config.$showingSync,
-                showingSettings: config.$showingSettings
+                showingSettings: config.$showingSettings,
+                showsBrowseActionsInToolbar: config.showsBrowseActionsInToolbar
             ))
         #endif
     }
