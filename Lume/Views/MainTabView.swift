@@ -461,8 +461,9 @@ struct MainTabView: View {
                     .padding(6)
                     .background {
                         if visualGlass {
-                            Capsule().fill(.ultraThinMaterial)
-                                .opacity(0.72 * (1 - visualTransparency))
+                            Color.clear
+                                .glassEffectCompat(.regular, in: Capsule())
+                                .opacity(0.82)
                         }
                     }
                     .background(TVNeonTheme.glass, in: Capsule())
