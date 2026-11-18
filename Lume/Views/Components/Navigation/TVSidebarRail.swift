@@ -56,6 +56,53 @@
         }
     }
 
+    /// Moves only overflowing category names while their row is highlighted.
+    /// The row and its icon stay fixed, so remote focus does not jump.
+    private struct TVSidebarMarqueeTitle: View {
+        let title: Text
+        let isHighlighted: Bool
+        let font: Font
+
+        @State private var measuredWidth: CGFloat = 0
+        @State private var focusBegan = Date()
+
+        var body: some View {
+            GeometryReader { geometry in
+                let overflow = max(0, measuredWidth - geometry.size.width)
+                TimelineView(.animation(minimumInterval: 1.0 / 30.0,
+                                        paused: !isHighlighted || overflow < 2)) { timeline in
+                    let elapsed = max(0, timeline.date.timeIntervalSince(focusBegan) - 0.8)
+                    let slideTime = Double(overflow) / 34.0
+                    let cycle = max(1, slideTime + 2.0)
+                    let position = elapsed.truncatingRemainder(dividingBy: cycle)
+                    let distance = min(overflow, CGFloat(min(position, slideTime) * 34.0))
+                    title
+                        .font(font)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .offset(x: isHighlighted ? -distance : 0)
+                        .frame(width: geometry.size.width, alignment: .leading)
+                }
+                .frame(width: geometry.size.width, height: geometry.size.height,
+                       alignment: .leading)
+                .clipped()
+            }
+            .frame(height: 35)
+            .background(alignment: .leading) {
+                title
+                    .font(font)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .hidden()
+                    .onGeometryChange(for: CGFloat.self) {
+                        $0.size.width
+                    } action: { measuredWidth = $0 }
+            }
+            .onChange(of: isHighlighted) { _, highlighted in
+                if highlighted { focusBegan = Date() }
+            }
+        }
+    }
+
     /// One row of a `TVSidebarRail`.
     struct TVSidebarRailItem: Identifiable {
         let id: String
@@ -378,14 +425,15 @@
                         // actual art in an overlay AFTER the focusable button.
                         Color.clear.frame(width: 32, height: 32)
                     }
-                    item.title
-                        .font(.system(
+                    TVSidebarMarqueeTitle(
+                        title: item.title,
+                        isHighlighted: isItemFocused || isSelected,
+                        font: .system(
                             size: 22,
                             weight: isSelected || isItemFocused ? .semibold : .medium
-                        ))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    Spacer(minLength: 0)
+                        )
+                    )
+                    .frame(maxWidth: .infinity)
                 }
                 .foregroundStyle(textColor(isFocused: isItemFocused, isSelected: isSelected))
                 .frame(maxWidth: .infinity, minHeight: 60, alignment: .leading)
