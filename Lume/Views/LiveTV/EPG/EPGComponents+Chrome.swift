@@ -54,12 +54,12 @@ struct EPGChannelCell: View {
             #if os(tvOS)
                 if isHub {
                     EPGSelectedChannelName(name: row.name, font: metrics.channelNameFont)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(.white)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
                     Text(row.name)
                         .font(metrics.channelNameFont)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(.white)
                         .lineLimit(metrics.channelNameLineLimit)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -92,10 +92,9 @@ struct EPGChannelCell: View {
         #if os(tvOS)
         let visible = max(0.12, 1 - transparency)
         switch highlight {
-        case .hub: return highlightColor.opacity(isLight ? 0.30 : 0.46)
-        case .row: return highlightColor.opacity(visible * 0.25)
-        case .none: return isLight ? Color.white.opacity(visible * 0.65)
-                                   : DreamCASTAccentTheme.resolve(themeRaw).gradientColors[1].opacity(visible)
+        case .hub: return TVNeonTheme.glassTop
+        case .row: return TVNeonTheme.glassTop.opacity(max(0.65, visible))
+        case .none: return TVNeonTheme.glassBottom.opacity(max(0.65, visible))
         }
         #else
         return switch highlight {
