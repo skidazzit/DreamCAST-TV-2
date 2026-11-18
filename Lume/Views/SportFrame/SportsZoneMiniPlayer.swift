@@ -71,19 +71,26 @@ final class SportsZonePlaybackSession {
         #endif
     }
 
-    /// Adopt only an already running preview decoder. A rapid full-screen
-    /// press while buffering waits for its first frame instead of opening a
-    /// second connection to the provider.
+    /// Open full-screen immediately on tvOS. Reuse a started, compatible
+    /// preview decoder; otherwise the Guide controller closes the preview
+    /// before full-screen starts its own session. Waiting forever for a
+    /// hasStarted callback made the Full Screen button appear unresponsive,
+    /// especially for buffering, failed and VOD preview tiles.
     func openFullScreen() {
-        guard let media = miniMedia, fullScreenMedia == nil,
-              failedMediaID != media.id else { return }
+        guard let media = miniMedia, fullScreenMedia == nil else { return }
+        #if !os(tvOS)
+        // iOS can wait for its permanently mounted preview's first frame.
+        guard failedMediaID != media.id else { return }
         if !CastService.shared.isAirPlayActive && !handle.hasStarted {
             pendingFullScreenRequest = true
             return
         }
+        #endif
         pendingFullScreenRequest = false
         pendingReturnMedia = nil
         #if os(tvOS)
+        // Either transfers the running engine or stops the preview first.
+        // A failed/unsupported decoder must never block full-screen playback.
         guidePreview.prepareToPresent(media)
         #else
         if handle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) {
