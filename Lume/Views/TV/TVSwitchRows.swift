@@ -32,11 +32,25 @@
                 HStack(spacing: 16) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(playlist.name)
-                        Text(playlist.displayURL)
+                        // Xtream endpoints are managed by the provider directory.
+                        // Never expose their raw addresses in playlist switchers.
+                        if playlist.sourceType == .xtream {
+                            Text(
+                                XtreamProviderDirectory.provider(
+                                    id: playlist.xtreamProviderID,
+                                    address: playlist.serverURL
+                                )?.name ?? "Provider unavailable"
+                            )
                             .font(.system(size: TVSettingsMetrics.secondaryFontSize))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
-                            .truncationMode(.middle)
+                        } else {
+                            Text(playlist.displayURL)
+                                .font(.system(size: TVSettingsMetrics.secondaryFontSize))
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
                     }
                     Spacer(minLength: 0)
                     if isLocked {
