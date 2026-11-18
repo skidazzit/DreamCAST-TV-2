@@ -80,6 +80,7 @@ struct LiveTVView: View {
         @AppStorage("dreamcast.tv.autoResumeLastChannel") private var autoResumeLastChannel = true
         @State private var guidePreview = GuidePreviewController()
         @State private var guideHero = GuideHeroModel()
+        @State private var restoredGuideChannelOnLaunch = false
     #else
         /// Non-nil while Multi-View is up; carries the channels it opened with,
         /// when it was started from a channel rather than the toolbar.
@@ -173,7 +174,7 @@ struct LiveTVView: View {
                         layout(for: groups)
                             // Switching List -> Guide must also locate
                             // and highlight the already playing live channel.
-                            .task(id: "\(catalogScope.token)|\(layoutModeRaw)") {
+                            .task(id: "\(catalogScope.token)|\(layoutModeRaw)|\(groups.allSections.map(\.id).joined(separator: ","))") {
                                 seedSelection(from: groups.allSections)
                             }
                     }
@@ -412,18 +413,24 @@ struct LiveTVView: View {
         #if os(tvOS)
             // Restore the last live channel and its real category on entering
             // Live TV. Never jump into a hidden or locked section.
-            if autoResumeLastChannel,
+            if !restoredGuideChannelOnLaunch,
+               autoResumeLastChannel,
                layoutMode == .guide,
                LiveChannelHistory.shouldResumeLiveOnLaunch(),
                let lastID = LiveChannelHistory.currentChannelId(),
-               let lastStream = try? modelContext.fetch(
-                   FetchDescriptor<LiveStream>(predicate: #Predicate { $0.id == lastID && $0.isHidden == false })
-               ).first,
+               let lastStream = PlayerContentLookup.liveStream(lastID, in: modelContext),
+               !lastStream.isHidden,
+               !restriction.hides(categoryID: lastStream.categoryId),
+               let owner = playlists.owner(ofContentID: lastStream.id),
+               catalogScope.members(for: .liveTV).contains(owner.id),
                let lastCategoryID = lastStream.categoryId,
                let matchingSection = sections.first(where: { section in
                    if case let .category(category) = section { return category.id == lastCategoryID }
                    return false
                }) {
+                // Only restore once per app launch. Returning to Live TV later
+                // must never undo a viewer's manual category selection.
+                restoredGuideChannelOnLaunch = true
                 selectedSection = matchingSection
                 guidePreview.preferredStreamID = lastID
                 seededScopeToken = catalogScope.token
