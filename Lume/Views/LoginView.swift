@@ -232,10 +232,11 @@ struct LoginView: View {
 
         private var tvBody: some View {
             ScrollView {
-                VStack(alignment: .leading, spacing: 28) {
+                VStack(alignment: .leading, spacing: 25) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Add Playlist")
-                            .font(.system(size: 38, weight: .bold))
+                            .font(.system(size: 40, weight: .bold))
+                            .foregroundStyle(.primary)
                         Text("Connect to your IPTV provider")
                             .font(.system(size: TVSettingsMetrics.secondaryFontSize))
                             .foregroundStyle(.secondary)
@@ -271,7 +272,7 @@ struct LoginView: View {
                     .pickerStyle(.segmented)
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
 
-                    VStack(spacing: 22) {
+                    VStack(spacing: 24) {
                         TVSettingsField(title: "Name", placeholder: "e.g. My IPTV", text: $name, contentType: .name)
                         switch sourceType {
                         case .xtream:
@@ -340,12 +341,12 @@ struct LoginView: View {
                     .padding(.top, 8)
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
                 }
-                .frame(maxWidth: TVSettingsMetrics.contentMaxWidth, alignment: .leading)
+                .frame(maxWidth: 820, alignment: .leading)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 48)
-                .padding(.vertical, 72)
+                .padding(.vertical, 50)
             }
-            .tvSettingsBackground()
+            .background { DreamCASTThemeBackground() }
             .fullScreenCover(isPresented: $showDiagnostics) {
                 TVDiagnosticsView(origin: diagnosticsOrigin, visibleProblem: errorMessage)
             }
