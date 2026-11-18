@@ -25,7 +25,7 @@ struct XtreamProviderPicker: View {
             Text("SERVER PROVIDER")
                 .font(.system(size: TVSettingsMetrics.labelFontSize, weight: .semibold))
                 .tracking(1.4)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.white.opacity(0.78))
                 .padding(.horizontal, TVSettingsMetrics.rowHPadding)
 
             Button {
@@ -35,14 +35,14 @@ struct XtreamProviderPicker: View {
             } label: {
                 HStack(spacing: 16) {
                     Image(systemName: "server.rack")
-                        .foregroundStyle(.tint)
+                        .foregroundStyle(.white)
                     Text(store.providers.first(where: { $0.serverURL == serverURL })?.name
                          ?? "Select a server provider")
                         .lineLimit(1)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(.white)
                     Spacer(minLength: 8)
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.78))
                 }
                 .font(.system(size: 25, weight: .medium))
                 .padding(.horizontal, 22)
@@ -73,12 +73,12 @@ struct XtreamProviderPicker: View {
                             HStack(spacing: 16) {
                                 Text(verbatim: provider.name)
                                     .font(.system(size: 24, weight: .medium))
-                                    .foregroundStyle(.primary)
+                                    .foregroundStyle(.white)
                                     .lineLimit(1)
                                 Spacer()
                                 if serverURL == provider.serverURL {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(.tint)
+                                        .foregroundStyle(.white)
                                 }
                             }
                             .padding(.horizontal, 22)
