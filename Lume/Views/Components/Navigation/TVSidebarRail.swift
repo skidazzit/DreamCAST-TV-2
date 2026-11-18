@@ -133,6 +133,12 @@
         /// from focus parked on its scroll view's fast-scroll index.
         @State private var panelFrame: CGRect = .zero
         @State private var crossPaneFocusID: String?
+        @AppStorage(DreamCASTAccentTheme.storageKey)
+        private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+        @AppStorage(DreamCASTVisualSettings.transparencyKey)
+        private var transparency = DreamCASTVisualSettings.defaultTransparency
+        @AppStorage(DreamCASTVisualSettings.liquidGlassKey)
+        private var liquidGlass = DreamCASTVisualSettings.defaultLiquidGlass
 
         private let panelPadding: CGFloat = 16
         private let rowInset: CGFloat = 18
@@ -176,6 +182,12 @@
             }
             .frame(width: Self.width, alignment: .leading)
             .frame(maxHeight: .infinity, alignment: .top)
+            .background {
+                if liquidGlass {
+                    panelShape.fill(.ultraThinMaterial)
+                        .opacity(0.65 * (1 - transparency))
+                }
+            }
             .background(panelShape.fill(TVNeonTheme.glass))
             .foregroundStyle(.white)
             .overlay(panelShape.strokeBorder(TVNeonTheme.iceBlue.opacity(0.36), lineWidth: 1))
@@ -426,8 +438,9 @@
         }
 
         private func rowFill(isFocused: Bool, isSelected: Bool) -> Color {
-            if isFocused { return TVNeonTheme.glassTop }
-            if isSelected { return TVNeonTheme.glassTop.opacity(0.9) }
+            let theme = DreamCASTAccentTheme.resolve(themeRaw)
+            if isFocused { return theme.backgroundColors(light: false)[1] }
+            if isSelected { return theme.backgroundColors(light: false)[1].opacity(0.9) }
             return .clear
         }
 
