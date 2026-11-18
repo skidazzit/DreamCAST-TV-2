@@ -82,11 +82,9 @@ final class SportsZonePlaybackSession {
         #endif
     }
 
-    /// Open full-screen immediately on tvOS. Reuse a started, compatible
-    /// preview decoder; otherwise the Guide controller closes the preview
-    /// before full-screen starts its own session. Waiting forever for a
-    /// hasStarted callback made the Full Screen button appear unresponsive,
-    /// especially for buffering, failed and VOD preview tiles.
+    /// Reuse a started, compatible decoder without reloading the stream.
+    /// A brief bounded wait lets an almost-ready decoder finish loading;
+    /// failure or timeout falls back instead of leaving Full Screen inert.
     func openFullScreen() {
         guard let media = miniMedia, fullScreenMedia == nil else { return }
         #if os(tvOS)
@@ -137,8 +135,13 @@ final class SportsZonePlaybackSession {
 
     func previewFailed(_ mediaID: String) {
         guard miniMedia?.id == mediaID, handle.owner == .preview else { return }
+        let wasOpening = pendingFullScreenRequest
         cancelPendingFullScreen()
         failedMediaID = mediaID
+        #if os(tvOS)
+        // A pending Full Screen request must still finish when preview fails.
+        if wasOpening { presentFullScreenWithoutPreview() }
+        #endif
     }
 
     private func presentFullScreenWithoutPreview() {
@@ -604,7 +607,7 @@ struct TVPersistentMiniPlayer: View {
                               session.fullScreenMedia == nil,
                               session.handle.owner == .preview,
                               canShowVideo else { return }
-                        session.failedMediaID = media.id
+                        session.previewFailed(media.id)
                     }
                 )
                 .id(tileID(media))
