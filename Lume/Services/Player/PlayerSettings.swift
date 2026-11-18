@@ -118,6 +118,37 @@ nonisolated enum LiveTVEngineSelection: String, CaseIterable {
         }
         return [preferred] + global.filter { $0 != preferred }
     }
+
+    /// Use the SAME engine order for a tvOS shared preview and its full-screen
+    /// host. AetherEngine, LumeEngine and VLCKit cannot hand their live decoder
+    /// to FullScreenPlayerView, which made both transitions go black and reload.
+    /// In Automatic mode, start with KSPlayer then AVPlayer so normal playback
+    /// can transfer the *running* engine without reconnecting the stream.
+    /// Keep all other engines as a fallback when neither can play the content.
+    /// Honor an explicit Live TV engine choice, even if it cannot be adopted.
+    static func seamlessHandoffPriority(
+        isLive: Bool,
+        defaults: UserDefaults = .standard
+    ) -> [PlayerEngineKind] {
+        let global = PlayerEnginePriority.resolve(
+            priorityRaw: defaults.string(forKey: PlayerSettings.enginePriorityKey) ?? "",
+            legacyEngineRaw: defaults.string(forKey: PlayerSettings.engineKey)
+                ?? PlayerEngineKind.defaultValue.rawValue
+        )
+        let chosenLiveEngine = isLive
+            ? selected(defaults.string(forKey: storageKey) ?? "automatic").engine
+            : nil
+        let existing = isLive ? priority(defaults: defaults) : global
+        // A deliberate non-handoff-compatible choice still takes precedence.
+        if let chosenLiveEngine,
+           chosenLiveEngine != .ksPlayer && chosenLiveEngine != .avPlayer {
+            return existing
+        }
+        let supported: [PlayerEngineKind] = chosenLiveEngine == .avPlayer
+            ? [.avPlayer, .ksPlayer] : [.ksPlayer, .avPlayer]
+        let first = supported.filter(\.isAvailable)
+        return first + existing.filter { !first.contains($0) }
+    }
 }
 
 /// How much the in-player stream-information caption spells out. A two-level
