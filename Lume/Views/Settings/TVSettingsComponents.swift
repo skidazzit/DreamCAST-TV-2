@@ -29,7 +29,10 @@
         static let detailMaxWidth: CGFloat = 860
         /// Width of a secondary column sitting beside a `contentMaxWidth` one.
         static let sideColumnWidth: CGFloat = 560
-        static let background = Color(white: 0.09)
+        static var background: Color { DreamCASTDisplayColors.isLight
+            ? Color(red: 0.92, green: 0.95, blue: 0.98)
+            : DreamCASTVisualSettings.theme.gradientColors[2]
+        }
     }
 
     extension View {
@@ -316,13 +319,17 @@
         private struct FocusedCard: View {
             let configuration: ButtonStyleConfiguration
             @Environment(\.isFocused) private var isFocused
+            @Environment(\.colorScheme) private var scheme
+            @AppStorage(AppAppearance.storageKey) private var displayModeRaw = AppAppearance.defaultValue.rawValue
             @AppStorage(DreamCASTAccentTheme.storageKey) private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
             @AppStorage(DreamCASTVisualSettings.liquidGlassKey) private var liquidGlass = DreamCASTVisualSettings.defaultLiquidGlass
             @AppStorage(DreamCASTVisualSettings.transparencyKey) private var transparency = DreamCASTVisualSettings.defaultTransparency
 
             var body: some View {
-                configuration.label
-                    .foregroundStyle(.white)
+                let mode = AppAppearance.resolve(displayModeRaw)
+                let light = mode == .light || (mode == .system && scheme == .light)
+                return configuration.label
+                    .foregroundStyle(isFocused ? Color.white : (light ? Color.black : Color.white))
                     .background {
                         if liquidGlass && !isFocused {
                             Color.clear
@@ -369,13 +376,18 @@
             let isDestructive: Bool
             @Environment(\.isFocused) private var isFocused
             @Environment(\.isEnabled) private var isEnabled
+            @Environment(\.colorScheme) private var scheme
+            @AppStorage(AppAppearance.storageKey) private var displayModeRaw = AppAppearance.defaultValue.rawValue
             @AppStorage(DreamCASTVisualSettings.liquidGlassKey)
             private var liquidGlass = DreamCASTVisualSettings.defaultLiquidGlass
             @AppStorage(DreamCASTVisualSettings.transparencyKey)
             private var transparency = DreamCASTVisualSettings.defaultTransparency
 
             var body: some View {
-                let foreground: Color = isDestructive && !isFocused ? .red : .white
+                let mode = AppAppearance.resolve(displayModeRaw)
+                let light = mode == .light || (mode == .system && scheme == .light)
+                let foreground: Color = isDestructive && !isFocused ? .red
+                    : (isFocused ? .white : (light ? .black : .white))
                 let fill: AnyShapeStyle = isFocused
                     ? (isDestructive ? AnyShapeStyle(Color.red)
                                      : AnyShapeStyle(TVNeonTheme.selection))
