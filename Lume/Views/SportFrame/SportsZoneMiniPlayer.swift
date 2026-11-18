@@ -24,6 +24,8 @@ final class SportsZonePlaybackSession {
     var reloadToken = 0
     // Prevent repeated dismissal callbacks from restarting a live stream.
     private var isAwaitingFullScreenDismissal = false
+    private var pendingReturnMedia: PlayableMedia?
+    private(set) var pendingFullScreenRequest = false
 
     func tune(_ media: PlayableMedia, previewMode: GuidePreviewMode = .small) {
         userStopped = false
@@ -32,6 +34,7 @@ final class SportsZonePlaybackSession {
             if previewMode == .off { openFullScreen() }
             return
         }
+        pendingFullScreenRequest = false
         handle.stopPreview()
         failedMediaID = nil
         reloadToken += 1
@@ -46,7 +49,8 @@ final class SportsZonePlaybackSession {
         // Match the Live TV setting: "Off" means no inline preview.
         // Open the stream full screen rather than playing it off-screen.
         if previewMode == .off {
-            openFullScreen()
+            // No embedded decoder exists to hand over.
+            presentFullScreenWithoutPreview()
         }
     }
 
@@ -60,18 +64,26 @@ final class SportsZonePlaybackSession {
     /// Do not update fullScreenMedia: that value owns the current cover's identity.
     func didSwitchFullScreen(to media: PlayableMedia) {
         guard fullScreenMedia != nil else { return }
-        miniMedia = media
+        pendingReturnMedia = media
         failedMediaID = nil
         #if os(tvOS)
         guidePreview.preferredStreamID = media.id
         #endif
     }
 
+    /// Adopt only an already running preview decoder. A rapid full-screen
+    /// press while buffering waits for its first frame instead of opening a
+    /// second connection to the provider.
     func openFullScreen() {
-        guard let media = miniMedia, fullScreenMedia == nil else { return }
+        guard let media = miniMedia, fullScreenMedia == nil,
+              failedMediaID != media.id else { return }
+        if !CastService.shared.isAirPlayActive && !handle.hasStarted {
+            pendingFullScreenRequest = true
+            return
+        }
+        pendingFullScreenRequest = false
+        pendingReturnMedia = nil
         #if os(tvOS)
-        // Use Live TV's exact preparation, including owner transition
-        // and suspend/cooldown state for a non-adoptable decoder.
         guidePreview.prepareToPresent(media)
         #else
         if handle.canAdopt(media, airPlayActive: CastService.shared.isAirPlayActive) {
@@ -84,34 +96,54 @@ final class SportsZonePlaybackSession {
         fullScreenMedia = media
     }
 
+    func previewDidStart() {
+        guard pendingFullScreenRequest, handle.hasStarted else { return }
+        openFullScreen()
+    }
+
+    func previewFailed(_ mediaID: String) {
+        guard miniMedia?.id == mediaID, handle.owner == .preview else { return }
+        pendingFullScreenRequest = false
+        failedMediaID = mediaID
+    }
+
+    private func presentFullScreenWithoutPreview() {
+        guard let media = miniMedia, fullScreenMedia == nil else { return }
+        pendingFullScreenRequest = false
+        pendingReturnMedia = nil
+        #if os(tvOS)
+        guidePreview.prepareToPresent(media)
+        #endif
+        isAwaitingFullScreenDismissal = true
+        fullScreenMedia = media
+    }
+
     func returnedFromFullScreen() {
-        // A single dismissal may be reported twice by SwiftUI. Live TV
-        // must receive just one matching return for each presentation.
         guard isAwaitingFullScreenDismissal, fullScreenMedia == nil else { return }
         isAwaitingFullScreenDismissal = false
-
+        pendingFullScreenRequest = false
         #if os(tvOS)
-        // Let the working Guide code return the same decoder, or cool down
-        // a failed handoff before opening another provider connection.
         guidePreview.fullScreenDidClose()
-        // An unsupported engine restarts after the Guide's cooldown. Never
-        // leave a stale failure badge hiding that next preview attempt.
-        failedMediaID = nil
         #else
-        if handle.owner == .preview,
-           handle.media?.id == miniMedia?.id,
-           handle.coordinator != nil { return }
         if handle.owner == .fullScreen, let media = miniMedia,
            handle.media?.id == media.id {
             _ = handle.returnToPreview(mediaID: media.id)
         }
-        if handle.finishReturnToPreview() {
-            failedMediaID = nil
-            return
+        let returned = handle.finishReturnToPreview()
+        if !returned { handle.release() }
+        #endif
+        if let switchedMedia = pendingReturnMedia {
+            pendingReturnMedia = nil
+            // Only a real channel switch needs a new decoder after dismissal.
+            if switchedMedia.id != miniMedia?.id {
+                miniMedia = switchedMedia
+                handle.release()
+                reloadToken += 1
+            }
         }
-        handle.release()
         failedMediaID = nil
-        reloadToken += 1
+        #if !os(tvOS)
+        if handle.owner == .released { reloadToken += 1 }
         #endif
     }
 
@@ -122,6 +154,8 @@ final class SportsZonePlaybackSession {
               !isAwaitingFullScreenDismissal,
               !guidePreview.isSuspended,
               handle.owner == .preview || handle.owner == .released else { return }
+        pendingFullScreenRequest = false
+        pendingReturnMedia = nil
         handle.stopPreview()
         failedMediaID = nil
         userStopped = false
@@ -131,6 +165,8 @@ final class SportsZonePlaybackSession {
     func close() {
         guard fullScreenMedia == nil else { return }
         userStopped = true
+        pendingFullScreenRequest = false
+        pendingReturnMedia = nil
         handle.stopPreview()
         miniMedia = nil
         failedMediaID = nil
@@ -319,7 +355,7 @@ struct SportsZoneMiniPlayer: View {
                               session.fullScreenMedia == nil,
                               session.handle.owner == .preview,
                               canShowVideoTile else { return }
-                        session.failedMediaID = media.id
+                        session.previewFailed(media.id)
                     }
                 )
                 .id(tileIdentity(for: media))
@@ -453,6 +489,9 @@ struct TVPersistentMiniPlayer: View {
                 .shadow(color: TVNeonTheme.electricBlue.opacity(0.26), radius: 10)
             }
             .focusSection()
+            .onChange(of: session.handle.hasStarted, initial: true) { _, started in
+                if started { session.previewDidStart() }
+            }
             .onChange(of: backFocus?.playerFocusRequest) { _, _ in
                 // Keep the video running. Only the footer's first button
                 // receives focus, without activating Full Screen.
