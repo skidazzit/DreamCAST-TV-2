@@ -254,7 +254,11 @@ struct SportFrameHome: View {
         case sportSetting(String)
     }
 
-    private var accent: Color { DreamCASTVisualSettings.theme.color }
+    @AppStorage(DreamCASTAccentTheme.storageKey)
+    private var sportsAccentThemeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+    private var accent: Color {
+        DreamCASTAccentTheme.resolve(sportsAccentThemeRaw).selectionAccent
+    }
     private let fallbackSports = ["Soccer", "Basketball", "American Football", "Tennis", "Motorsport", "Ice Hockey", "Cricket", "Baseball", "Rugby", "Golf"]
 
     private var sportOrder: [String] {
