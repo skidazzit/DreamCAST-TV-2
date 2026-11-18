@@ -703,8 +703,8 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
-				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvos*]" = Dark;
-				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvsimulator*]" = Dark;
+				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvos*]" = Automatic;
+				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvsimulator*]" = Automatic;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
@@ -767,8 +767,8 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
-				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvos*]" = Dark;
-				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvsimulator*]" = Dark;
+				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvos*]" = Automatic;
+				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvsimulator*]" = Automatic;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
@@ -1104,8 +1104,8 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
-				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvos*]" = Dark;
-				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvsimulator*]" = Dark;
+				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvos*]" = Automatic;
+				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvsimulator*]" = Automatic;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
@@ -1595,8 +1595,8 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
-				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvos*]" = Dark;
-				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvsimulator*]" = Dark;
+				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvos*]" = Automatic;
+				"INFOPLIST_KEY_UIUserInterfaceStyle[sdk=appletvsimulator*]" = Automatic;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
