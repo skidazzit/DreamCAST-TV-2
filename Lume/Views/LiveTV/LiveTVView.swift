@@ -285,28 +285,26 @@ struct LiveTVView: View {
     #if os(iOS)
         private func iOSLayout(groups: [LiveTVSectionGroup], displayed: LiveTVSection?) -> some View {
             VStack(spacing: 0) {
-                CategoryBar(
-                    groups: groups,
-                    selectedSection: selectedSectionBinding
-                )
+                // Category and Guide/List share one compact row, leaving
+                // more vertical room for channels in portrait and landscape.
+                HStack(spacing: 10) {
+                    CategoryBar(
+                        groups: groups,
+                        selectedSection: selectedSectionBinding,
+                        compact: true
+                    )
+                    .frame(maxWidth: .infinity)
 
-                // A small, thumb-friendly guide switch. Keep this inside
-                // the iOS layout so Apple TV's focus rail is untouched.
-                HStack(spacing: 12) {
-                    Label("Live TV", systemImage: "dot.radiowaves.left.and.right")
-                        .font(.headline)
-                        .lineLimit(1)
-                    Spacer(minLength: 8)
                     Picker("Channel layout", selection: $layoutModeRaw) {
                         Text("Guide").tag(LiveTVLayoutMode.guide.rawValue)
                         Text("List").tag(LiveTVLayoutMode.list.rawValue)
                     }
                     .pickerStyle(.segmented)
-                    .frame(maxWidth: 190)
+                    .frame(width: 160)
                     .accessibilityLabel("Live TV layout")
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
 
                 if layoutMode == .guide, sharedPlayback == nil {
                     // Standalone previews retain a mini-player. In the app,
