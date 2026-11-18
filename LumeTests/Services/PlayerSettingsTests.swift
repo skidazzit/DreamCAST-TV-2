@@ -25,6 +25,50 @@ struct PlayerSettingsTests {
         #expect(preferred.dropFirst().first == .avPlayer)
     }
 
+    @Test func `shared tvOS handoff prefers reusable engines in automatic mode`() throws {
+        let suite = "DreamCAST-SeamlessHandoff-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(
+            "aetherEngine,lumeEngine,ksPlayer,vlcKit,avPlayer",
+            forKey: PlayerSettings.enginePriorityKey
+        )
+        let normal = LiveTVEngineSelection.priority(defaults: defaults)
+        #expect(normal.first == .aetherEngine)
+
+        let live = LiveTVEngineSelection.seamlessHandoffPriority(isLive: true, defaults: defaults)
+        #expect(live.prefix(2).elementsEqual([.ksPlayer, .avPlayer]))
+        #expect(Set(live) == Set(normal))
+        #expect(live.count == normal.count)
+
+        let vod = LiveTVEngineSelection.seamlessHandoffPriority(isLive: false, defaults: defaults)
+        #expect(vod.prefix(2).elementsEqual([.ksPlayer, .avPlayer]))
+        #expect(Set(vod) == Set(normal))
+    }
+
+    @Test func `explicit Live TV decoder choice is not overwritten`() throws {
+        let suite = "DreamCAST-SeamlessExplicit-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(
+            "aetherEngine,lumeEngine,ksPlayer,vlcKit,avPlayer",
+            forKey: PlayerSettings.enginePriorityKey
+        )
+        defaults.set("avPlayer", forKey: LiveTVEngineSelection.storageKey)
+        #expect(
+            LiveTVEngineSelection.seamlessHandoffPriority(
+                isLive: true, defaults: defaults
+            ).prefix(2).elementsEqual([.avPlayer, .ksPlayer])
+        )
+
+        defaults.set("vlcKit", forKey: LiveTVEngineSelection.storageKey)
+        #expect(
+            LiveTVEngineSelection.seamlessHandoffPriority(
+                isLive: true, defaults: defaults
+            ).first == .vlcKit
+        )
+    }
+
     @Test func `engine kind all cases`() {
         #expect(PlayerEngineKind.allCases.count == 5)
         #expect(PlayerEngineKind.lumeEngine.rawValue == "lumeEngine")
