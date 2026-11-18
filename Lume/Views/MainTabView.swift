@@ -149,7 +149,15 @@ struct MainTabView: View {
                 case "settings": requested = .settings
                 default: requested = .liveTV
                 }
-                if isVisibleTVTab(requested, tabs: tabs) {
+                // A cold launch with Live TV as the last played media
+                // returns to its guide. VOD history never triggers playback.
+                let resumeLive = autoResumeLastChannel
+                    && LiveChannelHistory.shouldResumeLiveOnLaunch()
+                    && LiveChannelHistory.currentChannelId() != nil
+                    && isVisibleTVTab(.liveTV, tabs: tabs)
+                if resumeLive {
+                    router.selectedTab = .liveTV
+                } else if isVisibleTVTab(requested, tabs: tabs) {
                     router.selectedTab = requested
                 }
             }
