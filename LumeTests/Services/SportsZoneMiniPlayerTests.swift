@@ -153,6 +153,33 @@ struct SportsZoneMiniPlayerTests {
     }
 
     #if os(tvOS)
+    @Test func fullScreenOpensWhenPreviewHasNotStarted() {
+        let session = SportsZonePlaybackSession()
+        let channel = media("buffering")
+        session.tune(channel, previewMode: .small)
+        #expect(!session.handle.hasStarted)
+
+        session.openFullScreen()
+
+        // tvOS must not leave the user staring at an unresponsive button.
+        // With no started decoder, GuidePreviewController shuts the preview
+        // down and the full-screen player opens its own stream.
+        #expect(session.fullScreenMedia?.id == channel.id)
+        #expect(!session.pendingFullScreenRequest)
+        #expect(session.guidePreview.isSuspended)
+    }
+
+    @Test func fullScreenOpensEvenWhenPreviewFailed() {
+        let session = SportsZonePlaybackSession()
+        let channel = media("failed")
+        session.tune(channel)
+        session.failedMediaID = channel.id
+        session.openFullScreen()
+
+        #expect(session.fullScreenMedia?.id == channel.id)
+        #expect(!session.pendingFullScreenRequest)
+    }
+
     @Test func sportsZoneSharesLiveTVGuideHandleState() {
         let session = SportsZonePlaybackSession()
         #expect(session.handle === session.guidePreview.handle)
