@@ -100,11 +100,12 @@ struct EPGGrid: View, Equatable {
         }
     }
 
-    /// Parks the current time a few minutes inside the leading edge.
-    /// Unlike half-hour snapping, this keeps the NOW indicator steady.
+    /// Show a useful stretch of the current programme, not just the last
+    /// few minutes before now. Match the scroller's half-hour ruler anchor.
     private func currentTimeOffset() -> CGFloat {
-        timeline.x(
-            for: Date().addingTimeInterval(-Double(metrics.nowLeadInMinutes) * 60)
+        timeline.halfHourParkingX(
+            forNow: Date(),
+            leadIn: max(45, metrics.nowLeadInMinutes)
         )
     }
 
