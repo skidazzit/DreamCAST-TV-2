@@ -408,7 +408,7 @@ struct EPGProgramBlock: View {
             #else
             let blockMinX = proxy.frame(in: .scrollView).minX
             #endif
-            content.offset(
+            return content.offset(
                 x: !sticksToLeadingEdge ? 0 : EPGStickyText.shift(
                     blockMinX: blockMinX,
                     blockWidth: proxy.size.width,
