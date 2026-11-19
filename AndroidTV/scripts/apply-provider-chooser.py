@@ -92,8 +92,9 @@ internal object DreamcastProviderCatalog {
             src = src.replace("import androidx.compose.foundation.text.KeyboardOptions",
                               item + "\nimport androidx.compose.foundation.text.KeyboardOptions", 1)
     section = """    // DreamCAST provider dropdown (tracked AndroidTV overlay)
-    val choices = remember(LocalContext.current) {
-        DreamcastProviderCatalog.load(context = LocalContext.current)
+    val context = LocalContext.current
+    val choices = remember(context) {
+        DreamcastProviderCatalog.load(context)
     }
     var expanded by remember { mutableStateOf(false) }
     var selectedProvider by rememberSaveable { mutableStateOf("") }
