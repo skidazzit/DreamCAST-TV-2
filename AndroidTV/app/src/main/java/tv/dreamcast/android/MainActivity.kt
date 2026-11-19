@@ -71,6 +71,7 @@ class MainActivity : ComponentActivity() {
 private fun DreamCastApp() {
     val context = LocalContext.current
     val repository = remember { PlaylistRepository(context.applicationContext) }
+    val epgRepository = remember { EpgRepository(context.applicationContext) }
     val scope = rememberCoroutineScope()
     val player = remember { ExoPlayer.Builder(context).build().apply { playWhenReady = true } }
     DisposableEffect(player) { onDispose { player.release() } }
@@ -84,6 +85,9 @@ private fun DreamCastApp() {
     var status by remember { mutableStateOf("Add an M3U playlist from Settings to begin.") }
     var loading by remember { mutableStateOf(false) }
     var sourceUrl by remember { mutableStateOf(repository.savedUrl()) }
+    var epgUrl by remember { mutableStateOf(epgRepository.savedUrl()) }
+    var epgPrograms by remember { mutableStateOf<List<EpgProgramme>>(emptyList()) }
+    var epgStatus by remember { mutableStateOf("Add an XMLTV address to display programs.") }
 
     fun play(channel: TvChannel) {
         if (playingChannel?.id != channel.id) {
@@ -108,6 +112,14 @@ private fun DreamCastApp() {
         try {
             install(repository.restore())
             if (channels.isEmpty()) status = "Add an M3U playlist from Settings to begin."
+            if (epgUrl.isNotBlank()) {
+                try {
+                    epgPrograms = epgRepository.load(epgUrl)
+                    epgStatus = "Loaded ${epgPrograms.size} programs."
+                } catch (e: Exception) {
+                    epgStatus = e.message ?: "Unable to load EPG."
+                }
+            }
         } catch (e: Exception) {
             status = e.message ?: "Could not restore the playlist."
         } finally {
@@ -171,60 +183,68 @@ private fun DreamCastApp() {
                         TvButton("Open playlist settings") { tab = Tab.SETTINGS }
                     }
                 } else {
-                    val groups = remember(channels) { listOf("All") + channels.map { it.group }.distinct().sorted() }
-                    val displayed = remember(channels, selectedGroup) {
-                        if (selectedGroup == "All") channels else channels.filter { it.group == selectedGroup }
-                    }
-                    Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Column(Modifier.width(180.dp).fillMaxHeight().verticalScroll(rememberScrollState())) {
-                            Text("Groups", color = muted, fontSize = 18.sp)
-                            Spacer(Modifier.height(8.dp))
-                            groups.forEach { group ->
-                                TvButton(group, active = selectedGroup == group, modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)) {
-                                    selectedGroup = group
-                                }
+                    Column(Modifier.fillMaxSize()) {
+                        Row(
+                            Modifier.fillMaxWidth().height(190.dp),
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            Box(
+                                Modifier.weight(1f).fillMaxHeight()
+                                    .background(Color.Black, RoundedCornerShape(10.dp))
+                            ) {
+                                if (playingChannel != null) VideoSurface(player, Modifier.fillMaxSize())
+                                else Text(
+                                    "Select a channel, then press OK again to play.",
+                                    color = muted,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
                             }
-                        }
-                        Column(Modifier.weight(0.9f).fillMaxHeight()) {
-                            Text("Channels (${displayed.size})", color = muted, fontSize = 18.sp)
-                            Spacer(Modifier.height(8.dp))
-                            LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                items(displayed, key = { it.id }) { channel ->
-                                    TvButton(
-                                        label = channel.name,
-                                        active = selectedChannel?.id == channel.id,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        if (selectedChannel?.id != channel.id) {
-                                            selectedChannel = channel
-                                        } else if (playingChannel?.id != channel.id) {
-                                            play(channel)
-                                        } else {
-                                            fullScreen = true
+                            Column(Modifier.weight(1f)) {
+                                Text(playingChannel?.name ?: "Live TV", color = Color.White, fontSize = 22.sp)
+                                Spacer(Modifier.height(8.dp))
+                                Text(
+                                    selectedChannel?.name ?: "No channel selected",
+                                    color = muted,
+                                    fontSize = 16.sp
+                                )
+                                Spacer(Modifier.height(12.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    TvButton("Play selected") { selectedChannel?.let(::play) }
+                                    TvButton("Full screen") {
+                                        if (playingChannel != null) fullScreen = true
+                                    }
+                                    TvButton("Refresh EPG") {
+                                        if (epgUrl.isNotBlank() && !loading) scope.launch {
+                                            loading = true
+                                            try {
+                                                epgPrograms = epgRepository.load(epgUrl)
+                                                epgStatus = "Loaded ${epgPrograms.size} programs."
+                                            } catch (e: Exception) {
+                                                epgStatus = e.message ?: "Unable to load EPG."
+                                            } finally { loading = false }
                                         }
                                     }
                                 }
+                                Spacer(Modifier.height(8.dp))
+                                Text(epgStatus, color = muted, fontSize = 13.sp)
                             }
                         }
-                        Column(Modifier.weight(1.5f).fillMaxHeight()) {
-                            Text(playingChannel?.name ?: "Preview", color = Color.White, fontSize = 22.sp)
-                            Spacer(Modifier.height(8.dp))
-                            Box(
-                                Modifier.fillMaxWidth().weight(1f).background(Color.Black, RoundedCornerShape(10.dp))
-                            ) {
-                                if (playingChannel != null) VideoSurface(player, Modifier.fillMaxSize())
-                                else Text("Select a channel, then press OK to play.", color = muted, modifier = Modifier.align(Alignment.Center))
-                            }
-                            Spacer(Modifier.height(12.dp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                TvButton("Play selected") { selectedChannel?.let(::play) }
-                                TvButton("Full screen") {
-                                    if (playingChannel != null) fullScreen = true
+                        Spacer(Modifier.height(12.dp))
+                        LiveGuide(
+                            channels = channels,
+                            programmes = epgPrograms,
+                            selectedChannel = selectedChannel,
+                            selectedGroup = selectedGroup,
+                            onGroupSelected = { selectedGroup = it },
+                            onChannelPressed = { channel ->
+                                when {
+                                    selectedChannel?.id != channel.id -> selectedChannel = channel
+                                    playingChannel?.id != channel.id -> play(channel)
+                                    else -> fullScreen = true
                                 }
-                            }
-                            Spacer(Modifier.height(8.dp))
-                            Text("EPG timeline is the next feature.", color = muted, fontSize = 15.sp)
-                        }
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
             }
@@ -259,6 +279,31 @@ private fun DreamCastApp() {
                         if (!loading) openFile.launch(arrayOf("*/*"))
                     }
                 }
+                Spacer(Modifier.height(20.dp))
+                Text("XMLTV EPG HTTP/HTTPS address", color = muted)
+                Spacer(Modifier.height(8.dp))
+                BasicTextField(
+                    value = epgUrl,
+                    onValueChange = { epgUrl = it },
+                    singleLine = true,
+                    textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 20.sp),
+                    modifier = Modifier.fillMaxWidth().background(panel, RoundedCornerShape(8.dp))
+                        .padding(16.dp)
+                )
+                Spacer(Modifier.height(8.dp))
+                TvButton(if (loading) "Loading..." else "Load XMLTV EPG") {
+                    if (!loading) scope.launch {
+                        loading = true
+                        try {
+                            epgPrograms = epgRepository.load(epgUrl.trim())
+                            epgStatus = "Loaded ${epgPrograms.size} programs."
+                        } catch (e: Exception) {
+                            epgStatus = e.message ?: "Unable to load EPG."
+                        } finally { loading = false }
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+                Text(epgStatus, color = muted, fontSize = 14.sp)
                 Spacer(Modifier.height(15.dp))
                 Text(status, color = muted)
                 Spacer(Modifier.height(18.dp))
@@ -289,7 +334,7 @@ private fun VideoSurface(player: ExoPlayer, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun TvButton(
+fun TvButton(
     label: String,
     active: Boolean = false,
     modifier: Modifier = Modifier,
