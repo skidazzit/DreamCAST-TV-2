@@ -76,6 +76,12 @@ struct EPGGrid: View, Equatable {
                 updateViewport(size)
             }
         }
+        // The programme grid has no native ScrollView. Measure label frames
+        // against this fixed viewport so long events keep their titles at the
+        // visible left edge as their start time moves offscreen.
+        #if os(tvOS)
+        .coordinateSpace(name: EPGStickyText.viewportSpaceName)
+        #endif
         .onChange(of: initialRowOffset) { _, rowOffset in
             guard didMount else { return }
             park(x: currentTimeOffset(), y: rowOffset, animated: false)
