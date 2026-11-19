@@ -112,7 +112,7 @@ import sys
 file = Path(sys.argv[1])
 data = file.read_text(encoding='utf-8')
 data, count = re.subn(
-    r'rootProject\\.name\\s*=\\s*"StreamVault"',
+    r'rootProject\.name\s*=\s*"StreamVault"',
     'rootProject.name = "DreamCAST TV Android"',
     data
 )
