@@ -432,7 +432,7 @@ struct EPGProgramBlock: View {
         // Keeps the text of a partially scrolled block readable; see
         // `EPGStickyText` for why this is a `visualEffect`.
         .visualEffect { [inset, sticksToLeadingEdge] content, proxy in
-            content.offset(
+            return content.offset(
                 x: !sticksToLeadingEdge ? 0 : EPGStickyText.shift(
                     blockMinX: proxy.frame(in: .scrollView).minX,
                     blockWidth: proxy.size.width,
