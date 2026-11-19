@@ -31,8 +31,8 @@ enum SyncFrequency: String, CaseIterable, Identifiable {
     /// `@AppStorage` key holding the selected raw value.
     static let storageKey = "lume.syncFrequency"
 
-    /// Default per issue #22: every 3 days.
-    static let defaultValue: SyncFrequency = .everyThreeDays
+    /// DreamCAST playlist refresh default: every 6 hours.
+    static let defaultValue: SyncFrequency = .sixHours
 
     /// Resolves a stored raw value to a case, falling back to the default for an
     /// empty / unknown string.
