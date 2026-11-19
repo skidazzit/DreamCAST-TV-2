@@ -211,11 +211,15 @@ struct PlaylistDetailView: View {
         private var readOnlySection: some View {
             Section(connectionSectionTitle) {
                 LabeledContent("Name", value: playlist.name)
-                LabeledContent(serverURLFieldTitle) {
-                    Text(playlist.displayURL)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .foregroundStyle(.secondary)
+                if playlist.sourceType == .xtream {
+                    LabeledContent("Provider", value: playlist.displaySourceLabel)
+                } else {
+                    LabeledContent(serverURLFieldTitle) {
+                        Text(playlist.displaySourceLabel)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 if isM3U {
                     LabeledContent("EPG URL") {
@@ -260,13 +264,18 @@ struct PlaylistDetailView: View {
         private var editingSection: some View {
             Section(connectionSectionTitle) {
                 TextField("Name", text: $editName)
-                TextField(serverURLFieldTitle, text: $editServerURL)
-                #if os(iOS)
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(.URL)
-                #endif
-                    .autocorrectionDisabled()
-                    .textContentType(.URL)
+                if playlist.sourceType == .xtream {
+                    // The endpoint stays private; only mapped providers are editable.
+                    XtreamProviderPicker(serverURL: $editServerURL)
+                } else {
+                    TextField(serverURLFieldTitle, text: $editServerURL)
+                    #if os(iOS)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.URL)
+                    #endif
+                        .autocorrectionDisabled()
+                        .textContentType(.URL)
+                }
                 if isM3U {
                     TextField("EPG URL (optional)", text: $editEPGURL)
                     #if os(iOS)
