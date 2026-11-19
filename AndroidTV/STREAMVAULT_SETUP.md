@@ -1,4 +1,4 @@
-# DreamCAST TV 2 — StreamVault-based Android development
+# DreamCAST TV — StreamVault-based Android development
 
 This migration is separate from the earlier Kotlin prototype in `AndroidTV/app/`.
 **The current Android base is `AndroidTV/StreamVault`, pinned as a Git submodule.**
@@ -32,7 +32,7 @@ bash AndroidTV/scripts/prepare-streamvault-worktree.sh
 **Do not run the bootstrap script over a workspace containing local edits.**
 The script stops if the generated workspace already exists. It copies the pinned
 source without .git history, build files, or local secrets and changes the
-Android app display name to `DreamCAST TV 2`. It retains StreamVault's license
+Android app display name to `DreamCAST TV`. It retains StreamVault's license
 and writes a derivative notice. The scripts are early migration tools, not
 a finished APK.
 
