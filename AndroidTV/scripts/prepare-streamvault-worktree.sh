@@ -72,6 +72,8 @@ DreamCAST Android release. Its About/Credits screen and all remaining user
 visible branding must be completed before distribution.
 EOF
 
+bash "$SCRIPT_DIR/apply-dreamcast-branding.sh" "$TARGET"
+
 echo "Prepared source at: $TARGET"
 echo "Open $TARGET in Android Studio, then sync and build."
-echo "The Gradle project is StreamVault-based; only the launcher app_name is rebranded so far."
+echo "The Gradle project is StreamVault-based; app-facing strings and launcher art are now rebranded."
