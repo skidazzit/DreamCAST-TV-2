@@ -3,6 +3,17 @@ import Foundation
 import Testing
 
 struct XtreamProviderDirectoryTests {
+    @Test func `Xtream UI subtitle never exposes backend server address`() {
+        let address = "https://unmapped-playlist-source.example.invalid:9876/private"
+        let xtream = Playlist(name: "My IPTV", serverURL: address, username: "user", password: "pass")
+        #expect(xtream.sourceType == .xtream)
+        #expect(!xtream.displaySourceLabel.contains("example.invalid"))
+        #expect(!xtream.displaySourceLabel.contains("https://"))
+
+        let m3u = Playlist(name: "M3U", m3uURL: "https://example.invalid/playlist.m3u")
+        #expect(m3u.displaySourceLabel == m3u.displayURL)
+    }
+
     @Test func `rejects unsafe provider addresses`() {
         for address in ["file:///tmp/list", "ftp://example.test", "https://user:pass@example.test", "https://example.test?token=x", "https://example.test/#x"] {
             #expect(XtreamProvider.normalizedAddress(address) == nil)
