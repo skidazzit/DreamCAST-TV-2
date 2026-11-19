@@ -35,6 +35,16 @@ struct LumeApp: App {
     init() {
         // First, so the launch marker precedes anything the setup below logs.
         DiagnosticSession.start()
+        // Apply the new six-hour cadence once to existing installs still using
+        // the old three-day default. Keep other user-selected intervals intact.
+        let defaults = UserDefaults.standard
+        let migrationKey = "dreamcast.playlistSync.sixHourDefaultApplied"
+        if !defaults.bool(forKey: migrationKey) {
+            if defaults.string(forKey: SyncFrequency.storageKey) == SyncFrequency.everyThreeDays.rawValue {
+                defaults.set(SyncFrequency.sixHours.rawValue, forKey: SyncFrequency.storageKey)
+            }
+            defaults.set(true, forKey: migrationKey)
+        }
         let (catalog, cloud) = Self.makeModelContainers()
         catalogContainer = catalog
         cloudContainer = cloud
