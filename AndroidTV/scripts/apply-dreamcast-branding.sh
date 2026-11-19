@@ -104,6 +104,25 @@ in-app About/Credits, other hard-coded brand assets and end-to-end QA still
 need review.
 EOF
 
+# Keep Android Studio's project title aligned with the DreamCAST app branding.
+python3 - "$TARGET/settings.gradle.kts" <<'PY'
+from pathlib import Path
+import re
+import sys
+file = Path(sys.argv[1])
+data = file.read_text(encoding='utf-8')
+data, count = re.subn(
+    r'rootProject\\.name\\s*=\\s*"StreamVault"',
+    'rootProject.name = "DreamCAST TV Android"',
+    data
+)
+if count:
+    file.write_text(data, encoding='utf-8')
+PY
+
+# Apply the tracked Xtream provider selector without overwriting local provider maps.
+python3 "$SCRIPT_DIR/apply-provider-chooser.py" "$TARGET"
+
 echo "Updated Android app-facing strings, launcher icon and TV banner in $TARGET"
 echo "Next: ./gradlew :app:assembleDebug"
 echo "Note: Existing installed apps need a rebuilt and reinstalled APK to show changes."
