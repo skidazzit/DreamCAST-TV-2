@@ -332,6 +332,22 @@ struct MainTabView: View {
                 restoreLastLiveChannelOnLaunch()
             }
             #endif
+            // Check while the app stays open, not only on launch or foreground.
+            // The queue and the saved sync interval decide which playlists are due.
+            // SwiftUI cancels this task when the library view disappears.
+            .task(id: playlists.map(\.id)) {
+                while !Task.isCancelled {
+                    do {
+                        try await Task.sleep(for: .seconds(60))
+                    } catch {
+                        break
+                    }
+                    guard !Task.isCancelled else { break }
+                    if scenePhase == .active {
+                        enqueueDueSyncs(playlists)
+                    }
+                }
+            }
             .task(id: playlists.count) {
                 // On launch (and whenever a playlist is added) sync the active
                 // playlist if it is due, plus any playlist that has never synced.
