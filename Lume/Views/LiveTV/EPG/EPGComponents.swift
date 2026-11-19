@@ -397,12 +397,20 @@ struct EPGProgramBlock: View {
         }
         .padding(.horizontal, inset)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        // Keeps the text of a partially scrolled block readable; see
-        // `EPGStickyText` for why this is a `visualEffect`.
+        // Pin titles inside the visible part of long programmes.
+        // tvOS has a fixed, manually offset grid, not a ScrollView: asking for
+        // .scrollView geometry leaves the title at the programme's old start.
+        // The named grid viewport reflects the exact clip edge without
+        // observing scroll state or forcing each event cell to redraw.
         .visualEffect { [inset, sticksToLeadingEdge] content, proxy in
+            #if os(tvOS)
+            let blockMinX = proxy.frame(in: .named(EPGStickyText.viewportSpaceName)).minX
+            #else
+            let blockMinX = proxy.frame(in: .scrollView).minX
+            #endif
             content.offset(
                 x: !sticksToLeadingEdge ? 0 : EPGStickyText.shift(
-                    blockMinX: proxy.frame(in: .scrollView).minX,
+                    blockMinX: blockMinX,
                     blockWidth: proxy.size.width,
                     inset: inset
                 )
