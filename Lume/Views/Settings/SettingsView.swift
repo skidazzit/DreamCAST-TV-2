@@ -311,8 +311,11 @@ struct SettingsView: View {
         case general, playback, liveGuide, sports, backup, appearance, dataSources, about
         case advanced // Opens existing account options without adding a rail row.
 
+        // SportsZone owns its own settings page within SportsZone.
+        // Keep the legacy case for deep-link compatibility but hide this
+        // duplicate entry from the main tvOS Settings sidebar.
         static let sidebar: [Self] = [
-            .general, .playback, .liveGuide, .sports,
+            .general, .playback, .liveGuide,
             .backup, .appearance, .dataSources, .about
         ]
 
