@@ -1,0 +1,3 @@
+[submodule "AndroidTV/StreamVault"]
+	path = AndroidTV/StreamVault
+	url = https://github.com/Davidona/StreamVault-IPTV.git
