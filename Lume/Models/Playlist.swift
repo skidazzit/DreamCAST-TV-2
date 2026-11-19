@@ -338,6 +338,17 @@ extension Playlist {
         PlaylistSourceType(rawValue: sourceTypeRaw)
     }
 
+    /// Source subtitle for the playlist UI. Xtream server endpoints are managed
+    /// in the provider directory and must never be shown to the viewer.
+    /// Non-Xtream source types still display their credential-stripped URL.
+    var displaySourceLabel: String {
+        guard sourceType == .xtream else { return displayURL }
+        return XtreamProviderDirectory.provider(
+            id: xtreamProviderID,
+            address: serverURL
+        )?.name ?? String(localized: "Provider unavailable")
+    }
+
     /// The only form of `serverURL` that may be rendered on screen: any
     /// userinfo credentials are stripped, so a URL that carries them cannot be
     /// shown, screenshotted or read aloud.
