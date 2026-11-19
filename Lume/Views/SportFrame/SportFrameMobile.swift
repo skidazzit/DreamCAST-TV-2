@@ -196,8 +196,14 @@ struct SportFrameMobile: View {
             await fixtures.pollSportsZone(sports: followed, date: date)
         }
         .onChange(of: followedValue) { _, _ in
+            // The SportsZone sport selector only shows followed categories.
+            // If the active sport gets unfollowed, return to All Sports and
+            // clear its league filter so matches remain visible.
             if selectedSport != "All Sports" && !followed.contains(selectedSport) {
                 selectedSport = "All Sports"
+                selectedLeague = "All Leagues"
+            } else if selectedLeague != "All Leagues" && !availableLeagues.contains(selectedLeague) {
+                selectedLeague = "All Leagues"
             }
         }
     }
