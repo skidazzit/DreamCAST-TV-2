@@ -272,11 +272,10 @@ struct SportFrameHome: View {
         return sportOrder.filter { saved.contains($0) }
     }
 
-    /// SportsZone's sidebar lists TheSportsDB sport categories, even when
-    /// they are not in "Which sports you follow". The saved/offline list is
-    /// only used until the API catalog arrives.
+    /// The sidebar only shows sports selected in SportsZone Settings.
+    /// Their names and choices still come from the TheSportsDB catalog.
     private var sidebarSports: [String] {
-        catalog.sports.isEmpty ? sportOrder : catalog.sports
+        followedSports
     }
 
     /// Avoid requesting every category on the All Sports landing page.
@@ -431,9 +430,12 @@ struct SportFrameHome: View {
             await fixtures.pollSportsZone(sports: sportsForHub, date: selectedDay)
         }
         .onChange(of: followedValue) { _, _ in
-            // Browsing an API category must not be cleared just because it
-            // was removed from the user's optional followed-sports list.
-            if selectedLeague != "All Leagues" && !availableLeagues.contains(selectedLeague) {
+            // Reset the rail selection if the active sport was unfollowed.
+            // All Sports and the in-page Settings entry remain accessible.
+            if selectedSport != "All Sports" && !followedSports.contains(selectedSport) {
+                selectedSport = "All Sports"
+                selectedLeague = "All Leagues"
+            } else if selectedLeague != "All Leagues" && !availableLeagues.contains(selectedLeague) {
                 selectedLeague = "All Leagues"
             }
         }
@@ -500,7 +502,7 @@ struct SportFrameHome: View {
     }
 
     private var hubRailItems: [TVSidebarRailItem] {
-        // TheSportsDB's complete sport category list, not just followed sports.
+        // Only the sports marked as followed appear in the sidebar.
         var items: [TVSidebarRailItem] = [
             TVSidebarRailItem(
                 id: "all", title: Text("All Sports"),
