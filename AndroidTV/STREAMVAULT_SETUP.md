@@ -107,6 +107,28 @@ The cloud config website and authenticated endpoint are not built yet.
 The chooser is not yet compiled or tested against the modified app.
 
 
+## Gradle catalog repair (only if `libs` stays unresolved)
+
+If Gradle reports `Unresolved reference: libs` even though
+`gradle/libs.versions.toml` exists, use the isolated workaround:
+
+```bash
+cd ~/Desktop/DreamCAST-TV-2-Android
+git pull --ff-only origin feature/dreamcast-streamvault-migration
+python3 AndroidTV/scripts/repair-gradle-catalog.py AndroidTV/DreamCAST-StreamVault
+cd AndroidTV/DreamCAST-StreamVault
+./gradlew --stop
+./gradlew help --no-configuration-cache
+./gradlew :app:assembleDebug --no-configuration-cache
+```
+
+The script backs up `settings.gradle.kts` and the original catalog.
+It gives the TOML file a new name and imports it directly through Gradle
+settings, avoiding a clash with Gradle's default catalog auto-import.
+It does not change Android app files, branding, credentials, or player logic.
+This is a diagnostic workaround rather than a confirmed fix for every setup.
+Do not rerun the script if it reports a backup conflict.
+
 ## StreamVault source reference
 
 - Upstream: https://github.com/Davidona/StreamVault-IPTV
