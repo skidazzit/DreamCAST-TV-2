@@ -588,7 +588,9 @@ struct MainTabView: View {
 
         private var tvBrand: some View {
             Image("DreamCASTHeaderLogo")
+                .renderingMode(.original)
                 .resizable()
+                .interpolation(.high)
                 .scaledToFit()
                 .frame(width: 210, height: 108, alignment: .leading)
                 .accessibilityLabel("DreamCAST TV")
