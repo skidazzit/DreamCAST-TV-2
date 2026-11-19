@@ -26,10 +26,11 @@ final class AutoSyncQueue {
 
     private var pending: [Playlist] = []
 
-    /// Playlists already auto-synced (or attempted) this session, so the
-    /// launch / switch / foreground triggers don't re-present the cover for one
-    /// that's already been handled.
-    private var attempted: Set<UUID> = []
+    /// Keep a short retry delay after each attempt, rather than blocking a
+    /// playlist for the entire app session. Long-running sessions must refresh
+    /// again when their selected sync interval expires.
+    private var attemptedAt: [UUID: Date] = [:]
+    private let retryDelay: TimeInterval = 15 * 60
 
     /// The scope the latest request was made for; a background sync finishing
     /// promotes the next playlist against it.
@@ -51,12 +52,19 @@ final class AutoSyncQueue {
     /// priority order and run one at a time, never all at once.
     func enqueueDue(_ candidates: [Playlist], scope: CatalogScope, frequency: SyncFrequency, context: ModelContext) {
         guard !isDisabled else { return }
+        let now = Date()
+        // Do not enqueue an item already waiting or actively syncing, even if
+        // its last attempt was long ago.
+        let queued = Set(pending.map(\.id))
+            .union([coverPlaylist?.id, backgroundPlaylist?.id].compactMap(\.self))
         for playlist in candidates.inPriorityOrder(of: scope) where AutoSync.shouldSync(
             playlist.autoSyncCandidate(in: scope),
             frequency: frequency,
-            alreadyStarted: attempted.contains(playlist.id)
+            alreadyStarted: queued.contains(playlist.id)
+                || attemptedAt[playlist.id].map { now.timeIntervalSince($0) < retryDelay } == true,
+            now: now
         ) {
-            attempted.insert(playlist.id)
+            attemptedAt[playlist.id] = now
             pending.append(playlist)
         }
         promoteNextIfIdle(scope: scope, context: context)
@@ -71,7 +79,7 @@ final class AutoSyncQueue {
         for playlist in AutoSync.manualMemberSyncs(playlists.members(of: scope), frequency: frequency)
             where !queued.contains(playlist.id)
         {
-            attempted.insert(playlist.id)
+            attemptedAt[playlist.id] = Date()
             pending.append(playlist)
         }
         promoteNextIfIdle(scope: scope, context: context)
@@ -89,10 +97,9 @@ final class AutoSyncQueue {
     private func promoteNextIfIdle(context: ModelContext) {
         guard coverPlaylist == nil, backgroundPlaylist == nil, !pending.isEmpty else { return }
         let next = pending.removeFirst()
-        let presentsCover = AutoSync.presentsCover(
-            isCombined: isCombined,
-            hasContent: AutoSync.hasContent(next.id, in: context)
-        )
+        // Keep the guide and playback usable during scheduled refreshes.
+        // Only a playlist with no cached content needs the initial sync cover.
+        let presentsCover = !AutoSync.hasContent(next.id, in: context)
         if presentsCover {
             coverPlaylist = next
         } else {
