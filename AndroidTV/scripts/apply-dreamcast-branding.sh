@@ -20,6 +20,20 @@ if [[ ! -f "$ICON" || ! -f "$LOGO" ]]; then
   echo "DreamCAST tvOS artwork not found in $BRAND_RES" >&2
   exit 1
 fi
+# The upstream Gradle version catalog is needed for libs.plugins.* aliases.
+# Restore it only if absent; never replace an edited local catalog.
+if [[ ! -f "$TARGET/gradle/libs.versions.toml" ]]; then
+  CATALOG_SOURCE="$ROOT/AndroidTV/StreamVault/gradle/libs.versions.toml"
+  if [[ ! -f "$CATALOG_SOURCE" ]]; then
+    echo "Missing Gradle catalog from both workspace and submodule." >&2
+    echo "Run: git submodule update --init --recursive" >&2
+    exit 1
+  fi
+  mkdir -p "$TARGET/gradle"
+  cp "$CATALOG_SOURCE" "$TARGET/gradle/libs.versions.toml"
+  echo "Restored Gradle version catalog."
+fi
+
 if ! command -v sips >/dev/null; then
   echo "Mac 'sips' image utility is required for launcher art." >&2
   exit 1
