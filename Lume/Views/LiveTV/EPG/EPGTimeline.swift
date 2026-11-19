@@ -119,13 +119,17 @@ nonisolated struct EPGTimeline: Equatable {
 /// of the block; the cap stops it from sliding out of the block's own trailing
 /// edge as the block scrolls away.
 ///
-/// Both block views apply it from `visualEffect` rather than the shared scroll
-/// offset: the closure re-runs on geometry change without invalidating the
-/// block's body, where observing the guide's per-frame offset would re-render
-/// every realized cell — the cost the grid is built around.
+/// The tvOS grid is a fixed clipped surface, NOT a native ScrollView.
+/// Its coordinate space is attached to the viewport in EPGGrid so
+/// `visualEffect` measures each programme's actual clipped position. Using
+/// `.scrollView` gave the wrong edge and hid titles on long-running events.
+/// Geometry-based effects adjust text without observing scroll state or
+/// re-rendering hundreds of programme cells.
 ///
 /// `nonisolated`: called from the `visualEffect` closure, which is `@Sendable`.
 nonisolated enum EPGStickyText {
+    static let viewportSpaceName = "DreamCASTEPGProgramViewport"
+
     static func shift(blockMinX: CGFloat, blockWidth: CGFloat, inset: CGFloat) -> CGFloat {
         guard blockMinX < 0 else { return 0 }
         return min(-blockMinX, max(0, blockWidth - inset * 2))
