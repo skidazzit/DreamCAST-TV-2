@@ -29,7 +29,7 @@ Its README lists Xtream Codes, M3U, XMLTV, full guide, live preview, movies/seri
 
 ## tvOS to Android feature parity targets
 ### 1. Identity and settings
-- App display and navigation branding "DreamCAST TV 2"; use DreamCAST TV art, icons, TV banner and splash.
+- App display and navigation branding "DreamCAST TV"; use DreamCAST TV art, icons, TV banner and splash.
 - Preserve StreamVault attribution and links where license requires.
 - Top tabs: Live TV, SportsZone, Movies, Series, Settings; remove Home from main nav.
 - Move sports/playlist configuration to matching DreamCAST Settings categories.
