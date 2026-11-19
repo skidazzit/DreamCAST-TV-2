@@ -514,17 +514,12 @@ struct SportFrameHome: View {
         ]
 
         for sport in sidebarSports {
-            let preferred = hubPreferredLeague(for: sport)
-            let art = preferred.flatMap { league in
-                [league.strBadge, league.strLogo]
-                    .compactMap { $0 }
-                    .first(where: { !$0.isEmpty })
-                    .flatMap(URL.init(string:))
-            }
             let id = "sport:" + sport
             items.append(TVSidebarRailItem(
-                id: id, title: Text(hubSportTitle(sport)),
-                icon: hubSportSymbol(sport), badgeURL: art
+                id: id, title: Text(sport),
+                // Sport categories use sport symbols, not an unrelated
+                // league badge such as NBA for all of Basketball.
+                icon: hubSportSymbol(sport)
             ) {
                 page = 0
                 selectedSport = sport
