@@ -133,7 +133,7 @@ struct MainTabView: View {
         @Bindable var autoSyncQueue = autoSyncQueue
         let scope = catalogScope
         let tabs = visibleTabs(in: scope)
-        return persistentTabHost(selection: $router.selectedTab, tabs: tabs)
+        let tabHost = persistentTabHost(selection: $router.selectedTab, tabs: tabs)
         #if os(tvOS)
             .task {
                 // Apply the saved startup tab once. Never override user tab
@@ -197,6 +197,10 @@ struct MainTabView: View {
             .environment(autoSyncQueue)
             .environment(\.contentRestriction, contentRestriction)
             .catalogScope(scope, playlists: playlists)
+
+        // Divide the long modifier chain into smaller expressions so Swift's
+        // type checker does not have to infer the entire root at once.
+        let navigationHost = tabHost
             // A tab switch is the one browse interaction that has no scroll
             // view of its own to stamp from, and it is the moment a merge is
             // most expensive — the incoming tab is re-running its queries.
@@ -267,6 +271,7 @@ struct MainTabView: View {
                 // playlist if it is due, plus any playlist that has never synced.
                 enqueueDueSyncs(playlists)
             }
+        let lifecycleHost = navigationHost
             .onChange(of: scope.token) {
                 // On playlist switch, sync the newly selected one — or every due
                 // Combined member — unless the switch asked to land in the
@@ -327,6 +332,7 @@ struct MainTabView: View {
                 // Coming back to `.active` also refreshes stale sports data.
                 SportsSyncService.shared.isForeground = phase == .active
             }
+        let presentationHost = lifecycleHost
             .syncCover(item: $autoSyncQueue.coverPlaylist) {
                 autoSyncQueue.promoteNextIfIdle(scope: catalogScope, context: modelContext)
             }
@@ -355,6 +361,7 @@ struct MainTabView: View {
         #if os(tvOS)
             .overlay { tvOverlays }
         #endif
+        return presentationHost
     }
 
     /// Keep the single live decoder outside tvOS's active-only tab content.
