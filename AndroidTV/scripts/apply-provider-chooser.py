@@ -32,9 +32,9 @@ def main():
             if not isinstance(value, str) or (value and not value.startswith("https://")):
                 raise SystemExit(f"Provider URL for {key} must be HTTPS or blank")
         data = supplied
-    (assets / "dreamcast_provider_map.json").write_text(
-        json.dumps(data, indent=2) + "\n", encoding="utf-8"
-    )
+    map_file = assets / "dreamcast_provider_map.json"
+    if args.mapping or not map_file.exists():
+        map_file.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
     catalog = folder / "DreamcastProviderCatalog.kt"
     catalog_content = """package com.streamvault.feature.provider.setup
 
