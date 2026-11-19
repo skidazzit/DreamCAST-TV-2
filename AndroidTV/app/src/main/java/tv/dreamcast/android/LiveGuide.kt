@@ -64,7 +64,7 @@ fun LiveGuide(
             Text("Groups", color = Color.LightGray, fontSize = 16.sp)
             Spacer(Modifier.height(10.dp))
             groups.forEach { group ->
-                GuideButton(group, selectedGroup == group, Modifier.fillMaxWidth().padding(bottom = 5.dp)) {
+                TvButton(group, selectedGroup == group, Modifier.fillMaxWidth().padding(bottom = 5.dp)) {
                     onGroupSelected(group)
                 }
             }
@@ -89,7 +89,7 @@ fun LiveGuide(
                     val events = byId[channel.epgId.lowercase(Locale.ROOT)].orEmpty()
                     Row(Modifier.fillMaxWidth().height(64.dp), verticalAlignment = Alignment.CenterVertically) {
                         // The only focusable target in each guide row is the channel name.
-                        GuideButton(
+                        TvButton(
                             channel.name,
                             selectedChannel?.id == channel.id,
                             Modifier.width(250.dp).height(60.dp)
