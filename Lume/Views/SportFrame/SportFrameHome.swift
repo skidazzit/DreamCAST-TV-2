@@ -272,6 +272,19 @@ struct SportFrameHome: View {
         return sportOrder.filter { saved.contains($0) }
     }
 
+    /// SportsZone's sidebar lists TheSportsDB sport categories, even when
+    /// they are not in "Which sports you follow". The saved/offline list is
+    /// only used until the API catalog arrives.
+    private var sidebarSports: [String] {
+        catalog.sports.isEmpty ? sportOrder : catalog.sports
+    }
+
+    /// Avoid requesting every category on the All Sports landing page.
+    /// A chosen category loads on demand, even when it isn't followed.
+    private var sportsForHub: [String] {
+        selectedSport == "All Sports" ? followedSports : [selectedSport]
+    }
+
     // Honor saved sports even if TheSportsDB has not loaded their catalog data.
     private var followedSportsForLeagueEditor: [String] {
         Array(Set(followedValue.split(separator: "|").map(String.init)))
@@ -313,7 +326,7 @@ struct SportFrameHome: View {
     private var visibleEvents: [SportEvent] {
         // These values must be decoded/collected once, not for each event.
         // This matters when All Sports contains matches across many leagues.
-        let selectedSports = Set(followedSports)
+        let selectedSports = Set(sportsForHub)
         let chosenLeagues = leagueSelections.mapValues { Set($0) }
         let allSports = selectedSport == "All Sports"
         let allLeagues = selectedLeague == "All Leagues"
@@ -412,15 +425,14 @@ struct SportFrameHome: View {
                 .environment(sportsPlayback)
         }
         .task { await catalog.refresh() }
-        .task(id: "\(dayOffset)|\(followedValue)|\(SportsDBAccess.apiKey)|\(page)|\(scenePhase == .active)") {
+        .task(id: "\(dayOffset)|\(followedValue)|\(selectedSport)|\(SportsDBAccess.apiKey)|\(page)|\(scenePhase == .active)") {
             guard page == 0, scenePhase == .active else { return }
             let selectedDay = Calendar.current.date(byAdding: .day, value: dayOffset, to: .now) ?? .now
-            await fixtures.pollSportsZone(sports: followedSports, date: selectedDay)
+            await fixtures.pollSportsZone(sports: sportsForHub, date: selectedDay)
         }
         .onChange(of: followedValue) { _, _ in
-            if selectedSport != "All Sports" && !followedSports.contains(selectedSport) {
-                selectedSport = "All Sports"
-            }
+            // Browsing an API category must not be cleared just because it
+            // was removed from the user's optional followed-sports list.
             if selectedLeague != "All Leagues" && !availableLeagues.contains(selectedLeague) {
                 selectedLeague = "All Leagues"
             }
@@ -445,15 +457,9 @@ struct SportFrameHome: View {
     /// Use real followed sports, saved league picks and live fixtures. The
     /// mockup's NFL / NBA / NHL labels are shortcuts, not hardcoded data.
     private func hubSportTitle(_ sport: String) -> String {
-        switch sport {
-        case "American Football": "NFL"
-        case "Basketball": "NBA"
-        case "Baseball": "MLB"
-        case "Ice Hockey": "NHL"
-        case "Mixed Martial Arts": "UFC"
-        case "Motorsport": "Motorsports"
-        default: sport
-        }
+        // Show TheSportsDB's category name. NBA, NFL and similar names are
+        // leagues, not sport categories.
+        sport
     }
 
     private func hubSportSymbol(_ sport: String) -> String {
@@ -494,12 +500,12 @@ struct SportFrameHome: View {
     }
 
     private var hubRailItems: [TVSidebarRailItem] {
-        // All Sports stays at the top, followed by the user's saved sports.
+        // TheSportsDB's complete sport category list, not just followed sports.
         var items: [TVSidebarRailItem] = [
             TVSidebarRailItem(
                 id: "all", title: Text("All Sports"),
                 icon: "square.grid.2x2",
-                header: "★  My Sports"
+                header: "Sports"
             ) {
                 page = 0
                 selectedSport = "All Sports"
@@ -507,7 +513,7 @@ struct SportFrameHome: View {
             }
         ]
 
-        for sport in followedSports {
+        for sport in sidebarSports {
             let preferred = hubPreferredLeague(for: sport)
             let art = preferred.flatMap { league in
                 [league.strBadge, league.strLogo]
@@ -522,7 +528,9 @@ struct SportFrameHome: View {
             ) {
                 page = 0
                 selectedSport = sport
-                selectedLeague = preferred?.strLeague ?? "All Leagues"
+                // A sport category must display all its chosen leagues.
+                // Never silently turn Basketball into NBA, or Football into NFL.
+                selectedLeague = "All Leagues"
             })
         }
 
@@ -541,7 +549,7 @@ struct SportFrameHome: View {
 
     private var hubTitle: String {
         if selectedLeague != "All Leagues" { return selectedLeague }
-        return selectedSport == "All Sports" ? "My Sports" : hubSportTitle(selectedSport)
+        return selectedSport == "All Sports" ? "All Sports" : hubSportTitle(selectedSport)
     }
 
     /// Derived once per page evaluation. Separate properties previously
@@ -558,7 +566,7 @@ struct SportFrameHome: View {
         let now = Date()
         let live = visible.filter { fixtures.isLive($0) }
         let laterToday = visible.filter { ($0.startDate ?? .distantPast) > now }
-        let allowedSports = Set(followedSports)
+        let allowedSports = Set(sportsForHub)
         let choices = leagueSelections.mapValues { Set($0) }
         let tomorrow = fixtures.nextDayEvents.filter { event in
             guard let sport = fixtures.nextDaySports[event.idEvent],
@@ -1333,7 +1341,7 @@ struct SportFrameHome: View {
 
     private func refresh() async {
         let selectedDay = Calendar.current.date(byAdding: .day, value: dayOffset, to: .now) ?? .now
-        await fixtures.fetch(sports: followedSports, date: selectedDay)
+        await fixtures.fetch(sports: sportsForHub, date: selectedDay)
     }
 }
 
