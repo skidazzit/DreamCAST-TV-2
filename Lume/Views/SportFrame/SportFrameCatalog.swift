@@ -19,11 +19,18 @@ private struct SportsLeaguesResponse: Decodable { let leagues: [SportsCatalogLea
 
 @MainActor
 final class SportFrameCatalog: ObservableObject {
+    private static let sportsCacheKey = "dreamcast.sportszone.thesportsdb.categories.v1"
     @Published private(set) var sports: [String] = []
     @Published private(set) var leagues: [SportsCatalogLeague] = []
     @Published private(set) var message: String?
     @Published private(set) var badgeURLs: [String: URL] = [:]
     private var requestedBadges = Set<String>()
+
+    init() {
+        // Restore TheSportsDB categories before the first network response.
+        // The sidebar remains useful after an offline app relaunch.
+        sports = UserDefaults.standard.stringArray(forKey: Self.sportsCacheKey) ?? []
+    }
 
     func refresh() async {
         let base = "https://www.thesportsdb.com/api/v1/json/\(SportsDBAccess.apiKey)/"
@@ -34,8 +41,15 @@ final class SportFrameCatalog: ObservableObject {
             let (leagueData, leagueResponse) = try await leaguesRequest
             guard (sportResponse as? HTTPURLResponse)?.statusCode == 200,
                   (leagueResponse as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
-            sports = Array(Set((try JSONDecoder().decode(SportsListResponse.self, from: sportData).sports ?? []).map(\.strSport)))
-                .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+            let fetchedSports = Array(Set(
+                (try JSONDecoder().decode(SportsListResponse.self, from: sportData).sports ?? [])
+                    .map { $0.strSport.trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .filter { !$0.isEmpty }
+            )).sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+            if !fetchedSports.isEmpty {
+                sports = fetchedSports
+                UserDefaults.standard.set(fetchedSports, forKey: Self.sportsCacheKey)
+            }
             leagues = try JSONDecoder().decode(SportsLeaguesResponse.self, from: leagueData).leagues ?? []
             message = nil
         } catch {
