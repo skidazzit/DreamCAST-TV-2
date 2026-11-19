@@ -437,33 +437,9 @@ struct TVPersistentMiniPlayer: View {
                 let pictureHeight = max(0, geometry.size.height - Self.controlsHeight)
 
                 VStack(spacing: 0) {
-                    ZStack(alignment: .bottomLeading) {
-                        videoSurface(for: media)
-                            .frame(width: geometry.size.width, height: pictureHeight)
-
-                        LinearGradient(
-                            colors: [.clear, .black.opacity(0.72)],
-                            startPoint: .top, endPoint: .bottom
-                        )
-                        .frame(height: min(68, pictureHeight))
-                        .allowsHitTesting(false)
-
-                        HStack(spacing: 10) {
-                            Text(media.isLive ? "LIVE" : "PLAYING")
-                                .font(.system(size: 15, weight: .bold))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 9)
-                                .padding(.vertical, 5)
-                                .background(media.isLive ? Color.red.opacity(0.88) : TVNeonTheme.electricBlue.opacity(0.88), in: Capsule())
-
-                            Text(media.title)
-                                .font(.system(size: 19, weight: .semibold))
-                                .foregroundStyle(.white)
-                                .lineLimit(1)
-                        }
-                        .padding(.horizontal, 13)
-                        .padding(.bottom, 10)
-                    }
+                    // Keep the picture clear of the LIVE badge and channel title.
+                    // Player controls remain below the video.
+                    videoSurface(for: media)
                     .frame(width: geometry.size.width, height: pictureHeight)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                     .overlay {
