@@ -70,6 +70,43 @@ It does not rename Kotlin packages, internal API names or third-party credits.
 Other hard-coded product strings/graphics, About/Credits UI and all tvOS feature
 ports remain pending. It can be run again without erasing your working directory.
 
+### Xtream provider chooser — first integration
+The branding script now also applies a source patch to the Xtream setup form.
+It shows the four choices in this order: **DreamCAST TV, Klepto TV, Strong,
+IPTVeditor**. The existing provider-name, username and password fields remain.
+
+No provider addresses are committed. Until a URL is configured for a choice,
+the server URL text field remains available so login does not break.
+
+For local testing only, you may pass a separate JSON mapping to the tracked
+overlay. The file must have exactly four keys:
+
+```json
+{
+  "DreamCAST TV": "",
+  "Klepto TV": "",
+  "Strong": "",
+  "IPTVeditor": ""
+}
+```
+
+Save it outside GitHub, for example `~/private-dreamcast-provider-map.json`,
+and run:
+
+```bash
+python3 AndroidTV/scripts/apply-provider-chooser.py \
+  AndroidTV/DreamCAST-StreamVault \
+  --map ~/private-dreamcast-provider-map.json
+```
+
+A populated local mapping is bundled into the APK, **so its server URLs are
+not secret from someone who inspects the APK**. This is only a short-term
+development aid, not the planned authenticated provider management service.
+The cloud config website and authenticated endpoint are not built yet.
+
+The chooser is not yet compiled or tested against the modified app.
+
+
 ## StreamVault source reference
 
 - Upstream: https://github.com/Davidona/StreamVault-IPTV
