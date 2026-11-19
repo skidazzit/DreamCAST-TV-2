@@ -41,7 +41,7 @@ for file in (root / 'app/src/main/res').glob('values*/strings.xml'):
     data = file.read_text(encoding='utf-8')
     new_data, n = re.subn(
         r'(<string\s+name="app_name"[^>]*>).*?(</string>)',
-        r'\g<1>DreamCAST TV 2\g<2>',
+        r'\g<1>DreamCAST TV\g<2>',
         data,
         count=1,
         flags=re.DOTALL
@@ -55,7 +55,7 @@ print(f'Updated app title in {changed} resource file(s).')
 PY
 
 cat > "$TARGET/DREAMCAST_DERIVATIVE_NOTICE.md" <<'EOF'
-# DreamCAST TV 2 (Android) — development copy
+# DreamCAST TV (Android) — development copy
 
 Based on StreamVault by David Nashash (Davidona).
 Original source: https://github.com/Davidona/StreamVault-IPTV
