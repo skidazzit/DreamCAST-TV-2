@@ -49,6 +49,27 @@ cd AndroidTV/DreamCAST-StreamVault
 Check `app/build/outputs/apk/debug/` for generated debug output.
 **No successful Android build, emulator run, or device test is claimed here.**
 
+## Rebrand an existing built Android workspace
+
+Do not rerun the `prepare-streamvault-worktree.sh` script or clone again.
+From the existing DreamCAST checkout:
+
+```bash
+cd ~/Desktop/DreamCAST-TV-2-Android
+git pull --ff-only origin feature/dreamcast-streamvault-migration
+bash AndroidTV/scripts/apply-dreamcast-branding.sh
+cd AndroidTV/DreamCAST-StreamVault
+./gradlew :app:assembleDebug
+```
+
+Reinstall the new APK rather than relaunching the old installed app.
+This script replaces launcher labels and StreamVault-branded values in
+`app/src/main/res/values*/strings.xml`, plus launcher icons and TV banner
+from the current DreamCAST tvOS assets.
+It does not rename Kotlin packages, internal API names or third-party credits.
+Other hard-coded product strings/graphics, About/Credits UI and all tvOS feature
+ports remain pending. It can be run again without erasing your working directory.
+
 ## StreamVault source reference
 
 - Upstream: https://github.com/Davidona/StreamVault-IPTV
