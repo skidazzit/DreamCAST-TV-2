@@ -82,7 +82,7 @@ private extension [Playlist] {
                         HStack(spacing: 10) {
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(playlist.name)
-                                Text(playlist.displayURL)
+                                Text(playlist.displaySourceLabel)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                     .lineLimit(1)
