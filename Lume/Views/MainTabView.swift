@@ -1084,19 +1084,6 @@ private struct TVEmbeddedPageHeader: View {
                     .foregroundStyle(.white.opacity(0.72))
                     .lineLimit(2)
 
-                HStack(spacing: 10) {
-                    Circle()
-                        .fill(.red)
-                        .frame(width: 10, height: 10)
-                    Text("LIVE")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(.white)
-                    Text(media.title)
-                        .font(.system(size: compact ? 18 : 22))
-                        .foregroundStyle(.white.opacity(0.82))
-                        .lineLimit(2)
-                }
-                .padding(.top, compact ? 7 : 18)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.leading, 7)
