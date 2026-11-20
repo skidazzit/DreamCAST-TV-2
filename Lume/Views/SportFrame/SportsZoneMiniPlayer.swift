@@ -293,12 +293,6 @@ struct SportsZoneMiniPlayer: View {
 
     private func tvInfo(_ media: PlayableMedia) -> some View {
         VStack(alignment: .leading, spacing: 18) {
-            Text("NOW PLAYING")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-            Text(media.title)
-                .font(.system(size: 35, weight: .bold))
-                .lineLimit(2)
             HStack(spacing: 18) {
                 Button {
                     session.openFullScreen()
