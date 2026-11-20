@@ -264,42 +264,42 @@ struct SportsZoneMiniPlayer: View {
     /// controls. Only the decoration changes; the video decoder keeps its
     /// existing stable position and full-screen handoff lifecycle.
     private func phonePlayer(_ media: PlayableMedia) -> some View {
-        VStack(spacing: 0) {
+        let compact = verticalSizeClass == .compact
+        let controlSize: CGFloat = compact ? 32 : 44
+        return HStack(spacing: 10) {
             surface(media)
-                .frame(height: verticalSizeClass == .compact ? 88
+                .frame(height: compact ? 104
                        : (embeddedMode == .large ? 192 : (embeddedMode == .infoOnly ? 98 : 152)))
                 .overlay {
                     RoundedRectangle(cornerRadius: 22)
                         .strokeBorder(DreamCASTMobileTheme.iceBlue.opacity(0.94), lineWidth: 1.6)
                 }
                 .shadow(color: DreamCASTMobileTheme.electricBlue.opacity(0.32), radius: 12)
-            HStack(spacing: 12) {
-                Spacer(minLength: 0)
+            VStack(spacing: compact ? 4 : 6) {
                 Button { session.openFullScreen() } label: {
                     Image(systemName: "arrow.up.left.and.arrow.down.right")
-                        .frame(width: 35, height: 35)
+                        .frame(width: controlSize, height: controlSize)
+                        .contentShape(Rectangle())
                 }
                 .accessibilityLabel("Open video full screen")
                 .dreamCASTGlass(radius: 11)
                 Button { session.restartCurrentChannel() } label: {
                     Image(systemName: "arrow.clockwise")
-                        .frame(width: 35, height: 35)
+                        .frame(width: controlSize, height: controlSize)
+                        .contentShape(Rectangle())
                 }
                 .accessibilityLabel(media.isLive ? "Restart channel" : "Restart stream")
                 .dreamCASTGlass(radius: 11)
                 Button { session.close() } label: {
                     Image(systemName: "stop.fill")
-                        .frame(width: 35, height: 35)
+                        .frame(width: controlSize, height: controlSize)
+                        .contentShape(Rectangle())
                 }
                 .accessibilityLabel("Stop playback")
                 .dreamCASTGlass(radius: 11)
             }
             .buttonStyle(.plain)
             .foregroundStyle(.white)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity)
-            .background(DreamCASTMobileTheme.electricBlue.opacity(0.12))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 7)
