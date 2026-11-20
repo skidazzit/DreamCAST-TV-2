@@ -149,20 +149,14 @@ struct SportFrameMobile: View {
                         }
                     }
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 16)
+                    .padding(.bottom, 16)
+                }
+                .safeAreaInset(edge: .top, spacing: 2) {
+                    compactTitleBar
                 }
                 .background { DreamCASTMobileWallpaper() }
                 .foregroundStyle(.primary)
-                .navigationTitle("SportsZone")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button { Task { await refresh() } } label: {
-                            Image(systemName: "arrow.clockwise")
-                        }
-                        .accessibilityLabel("Refresh SportsZone")
-                    }
-                }
+                .toolbar(.hidden, for: .navigationBar)
                 .sheet(item: $selectedEvent, onDismiss: {
                     // Wait for dismissal, so the sheet and mini-player never
                     // try to play separate streams at the same time.
@@ -206,6 +200,28 @@ struct SportFrameMobile: View {
                 selectedLeague = "All Leagues"
             }
         }
+    }
+
+    private var compactTitleBar: some View {
+        Text("SportsZone")
+            .font(.headline)
+            .accessibilityAddTraits(.isHeader)
+            .frame(maxWidth: .infinity)
+            .frame(height: 44)
+            .overlay(alignment: .trailing) {
+                Button { Task { await refresh() } } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .frame(width: 32, height: 32)
+                        .dreamCASTGlass(radius: 16)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(DreamCASTMobileTheme.iceBlue)
+                .accessibilityLabel("Refresh SportsZone")
+            }
+            .padding(.horizontal, 16)
+            .background { DreamCASTMobileWallpaper() }
     }
 
     private var header: some View {
@@ -322,6 +338,7 @@ struct SportFrameMobile: View {
                                 onSelectEvent: { selectedEvent = $0 },
                                 scores: fixtures
                             )
+                            .toolbar(.visible, for: .navigationBar)
                         } label: {
                             HStack(spacing: 10) {
                                 AsyncImage(url: logoURL) { image in

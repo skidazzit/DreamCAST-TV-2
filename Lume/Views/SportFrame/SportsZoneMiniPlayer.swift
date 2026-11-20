@@ -269,7 +269,7 @@ struct SportsZoneMiniPlayer: View {
         return HStack(spacing: 10) {
             surface(media)
                 .frame(height: compact ? 104
-                       : (embeddedMode == .large ? 192 : (embeddedMode == .infoOnly ? 98 : 152)))
+                       : (embeddedMode == .large ? 210 : 170))
                 .overlay {
                     RoundedRectangle(cornerRadius: 22)
                         .strokeBorder(DreamCASTMobileTheme.iceBlue.opacity(0.94), lineWidth: 1.6)
