@@ -268,58 +268,38 @@ struct SportsZoneMiniPlayer: View {
             surface(media)
                 .frame(height: verticalSizeClass == .compact ? 88
                        : (embeddedMode == .large ? 192 : (embeddedMode == .infoOnly ? 98 : 152)))
-                .overlay(alignment: .bottom) {
-                    HStack(alignment: .bottom, spacing: 8) {
-                        Text(media.isLive ? "LIVE" : "PLAYING")
-                            .font(.caption2.bold())
-                            .padding(.horizontal, 9)
-                            .padding(.vertical, 6)
-                            .background(
-                                media.isLive ? Color.red.opacity(0.9)
-                                    : DreamCASTMobileTheme.electricBlue.opacity(0.9),
-                                in: Capsule()
-                            )
-                        Text(media.title)
-                            .font(.subheadline.bold())
-                            .lineLimit(1)
-                            .foregroundStyle(.white)
-                        Spacer(minLength: 4)
-                        Button { session.openFullScreen() } label: {
-                            Image(systemName: "arrow.up.left.and.arrow.down.right")
-                                .frame(width: 35, height: 35)
-                        }
-                        .accessibilityLabel("Open video full screen")
-                        .dreamCASTGlass(radius: 11)
-                        Button { session.restartCurrentChannel() } label: {
-                            Image(systemName: "arrow.clockwise")
-                                .frame(width: 35, height: 35)
-                        }
-                        .accessibilityLabel(media.isLive ? "Restart channel" : "Restart stream")
-                        .dreamCASTGlass(radius: 11)
-                        Button { session.close() } label: {
-                            Image(systemName: "stop.fill")
-                                .frame(width: 35, height: 35)
-                        }
-                        .accessibilityLabel("Stop playback")
-                        .dreamCASTGlass(radius: 11)
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.white)
-                    .padding(10)
-                    .background {
-                        LinearGradient(
-                            colors: [.clear, .black.opacity(0.86)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: 21))
-                }
                 .overlay {
                     RoundedRectangle(cornerRadius: 22)
                         .strokeBorder(DreamCASTMobileTheme.iceBlue.opacity(0.94), lineWidth: 1.6)
                 }
                 .shadow(color: DreamCASTMobileTheme.electricBlue.opacity(0.32), radius: 12)
+            HStack(spacing: 12) {
+                Spacer(minLength: 0)
+                Button { session.openFullScreen() } label: {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                        .frame(width: 35, height: 35)
+                }
+                .accessibilityLabel("Open video full screen")
+                .dreamCASTGlass(radius: 11)
+                Button { session.restartCurrentChannel() } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .frame(width: 35, height: 35)
+                }
+                .accessibilityLabel(media.isLive ? "Restart channel" : "Restart stream")
+                .dreamCASTGlass(radius: 11)
+                Button { session.close() } label: {
+                    Image(systemName: "stop.fill")
+                        .frame(width: 35, height: 35)
+                }
+                .accessibilityLabel("Stop playback")
+                .dreamCASTGlass(radius: 11)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity)
+            .background(DreamCASTMobileTheme.electricBlue.opacity(0.12))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 7)
