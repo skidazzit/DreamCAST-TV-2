@@ -95,7 +95,7 @@ struct MoviesView: View {
             #if os(tvOS)
             .safeAreaInset(edge: .top) {
                 if layout.isEmpty, sharedPlayback?.miniMedia != nil {
-                    HStack { Spacer(); TVEmbeddedPlayerSlot(width: 600, height: 336) }
+                    HStack { Spacer(); TVEmbeddedPlayerSlot(videoWidth: 600) }
                 }
             }
             #endif

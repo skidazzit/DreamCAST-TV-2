@@ -404,7 +404,6 @@ struct SportsZoneMiniPlayer: View {
 /// This keeps the same live decoder and audio running as viewers browse.
 struct TVPersistentMiniPlayer: View {
     let session: SportsZonePlaybackSession
-    var showcaseTab: AppTab? = nil
     @Environment(TVBackFocusCoordinator.self) private var backFocus: TVBackFocusCoordinator?
     @FocusState private var focusedAction: MiniPlayerAction?
 
@@ -426,11 +425,14 @@ struct TVPersistentMiniPlayer: View {
 
     var body: some View {
         if let media = session.miniMedia {
-            // The same surface hosts the video in both footer layouts.
+            // The stream view itself stays mounted on every tab. The footer is
+            // below the video, so buttons never cover the broadcast picture.
             GeometryReader { geometry in
-                let pictureHeight = max(0, geometry.size.height - (showcaseTab == nil ? Self.controlsHeight : 0))
+                let pictureHeight = max(0, geometry.size.height - Self.controlsHeight)
 
-                VStack(spacing: showcaseTab == nil ? 0 : -Self.controlsHeight) {
+                VStack(spacing: 0) {
+                    // Keep the picture clear of the LIVE badge and channel title.
+                    // Player controls remain below the video.
                     videoSurface(for: media)
                     .frame(width: geometry.size.width, height: pictureHeight)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
@@ -440,15 +442,7 @@ struct TVPersistentMiniPlayer: View {
                             .allowsHitTesting(false)
                     }
 
-                    HStack(spacing: 10) {
-                        if let showcaseTab {
-                            if media.isLive && showcaseTab != .movies {
-                                Text("LIVE").font(.system(size: 14, weight: .bold))
-                                    .padding(5).background(.red, in: Capsule())
-                            }
-                            Text(media.title).font(.system(size: 18, weight: .semibold))
-                                .lineLimit(1).truncationMode(.tail)
-                        }
+                    HStack(spacing: 12) {
                         Spacer(minLength: 0)
 
                         Button {
@@ -496,11 +490,7 @@ struct TVPersistentMiniPlayer: View {
                     }
                     .padding(.horizontal, 13)
                     .frame(width: geometry.size.width, height: Self.controlsHeight)
-                    .background {
-                        if showcaseTab != nil {
-                            LinearGradient(colors: [.clear, .black.opacity(0.8)], startPoint: .top, endPoint: .bottom)
-                        } else { TVNeonTheme.glass }
-                    }
+                    .background(TVNeonTheme.glass)
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .clipShape(RoundedRectangle(cornerRadius: 20))
@@ -544,13 +534,7 @@ struct TVPersistentMiniPlayer: View {
         symbol: String,
         focused: Bool
     ) -> some View {
-        Group {
-            if showcaseTab != nil {
-                Text(Image(systemName: symbol)).frame(width: 21)
-            } else {
-                TVFixedButtonLabel(title: title, systemName: symbol, iconSize: 20)
-            }
-        }
+        TVFixedButtonLabel(title: title, systemName: symbol, iconSize: 20)
             .font(.system(size: 18, weight: .semibold))
             .foregroundStyle(.white)
             .padding(.horizontal, 16)

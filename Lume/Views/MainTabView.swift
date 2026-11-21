@@ -389,7 +389,7 @@ struct MainTabView: View {
                         ZStack(alignment: .topLeading) {
                             if sharedLivePlayback.miniMedia != nil,
                                let slot, slot.width > 0, slot.height > 0 {
-                                TVPersistentMiniPlayer(session: sharedLivePlayback, showcaseTab: isShowcase ? tab : nil)
+                                TVPersistentMiniPlayer(session: sharedLivePlayback)
                                     .frame(width: slot.width, height: slot.height + guideFooter)
                                     .position(x: slot.midX, y: slot.midY + guideFooter / 2)
                                     .opacity(hasVisibleSlot ? 1 : 0)
@@ -1040,6 +1040,13 @@ struct TVEmbeddedPlayerSlot: View {
             .frame(width: width, height: height)
             .anchorPreference(key: TVPlayerSlotAnchorKey.self, value: .bounds) { $0 }
             .accessibilityHidden(true)
+    }
+}
+
+extension TVEmbeddedPlayerSlot {
+    /// Reserve a widescreen picture and the guide's button row beneath it.
+    init(videoWidth: CGFloat) {
+        self.init(width: videoWidth, height: videoWidth * 9 / 16 + TVPersistentMiniPlayer.controlsHeight)
     }
 }
 

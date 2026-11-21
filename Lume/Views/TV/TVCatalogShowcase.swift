@@ -31,7 +31,8 @@ struct TVCatalogShowcase<Library: View>: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: TVSidebarRail.paneSpacing) {
+        let playerSlot = TVEmbeddedPlayerSlot(videoWidth: isSeries ? 660 : 600)
+        return HStack(alignment: .top, spacing: TVSidebarRail.paneSpacing) {
             TVSidebarRail(items: sidebar, selectedID: section)
             VStack(alignment: .leading, spacing: 18) {
                 HStack(spacing: 28) {
@@ -42,10 +43,10 @@ struct TVCatalogShowcase<Library: View>: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     if playback?.miniMedia != nil {
-                        TVEmbeddedPlayerSlot(width: isSeries ? 660 : 600, height: isSeries ? 366 : 336)
+                        playerSlot
                     }
                 }
-                .frame(height: 350)
+                .frame(height: playback?.miniMedia == nil ? 350 : playerSlot.height)
                 .focusSection()
                 if section == "library" {
                     library()
