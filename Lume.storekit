@@ -25,8 +25,8 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "com.bilipp.lume.premium.lifetime",
-      "referenceName" : "Lume Pro Lifetime",
+      "productID" : "com.skidazzit.dreamcasttv2.premium.lifetime",
+      "referenceName" : "DreanCAST TV Pro Lifetime",
       "type" : "NonConsumable"
     },
     {
@@ -40,8 +40,8 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "com.bilipp.lume.premium.monthly",
-      "referenceName" : "Lume Pro Retired Monthly",
+      "productID" : "com.skidazzit.dreamcasttv2.premium.monthly",
+      "referenceName" : "DreamCAST TV Pro Retired Monthly",
       "type" : "NonConsumable"
     }
   ],
@@ -103,7 +103,7 @@
       "localizations" : [
 
       ],
-      "name" : "Lume Pro",
+      "name" : "DreamCAST TV Pro",
       "subscriptions" : [
         {
           "adHocOffers" : [
@@ -135,9 +135,9 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.bilipp.lume.pro.monthly",
+          "productID" : "com.skidazzit.dreamcasttv2.pro.monthly",
           "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Lume Pro Monthly Subscription",
+          "referenceName" : "DreamCAST TV Pro Monthly Subscription",
           "subscriptionGroupID" : "22272764",
           "type" : "RecurringSubscription",
           "winbackOffers" : [
