@@ -377,6 +377,9 @@ struct MainTabView: View {
                     GeometryReader { geometry in
                         let measured = anchor.map { geometry[$0] }
                         let slot = measured ?? livePlayerSlotFrame
+                        let tab = selection.wrappedValue
+                        let isShowcase = tab == .movies || tab == .series || tab == .search
+                        let hasVisibleSlot = !isShowcase || measured != nil
                         // The Live TV guide reports the picture-only frame.
                         // Its controls sit below that frame; the other tabs
                         // include their footer in the measured player slot.
@@ -386,9 +389,12 @@ struct MainTabView: View {
                         ZStack(alignment: .topLeading) {
                             if sharedLivePlayback.miniMedia != nil,
                                let slot, slot.width > 0, slot.height > 0 {
-                                TVPersistentMiniPlayer(session: sharedLivePlayback)
+                                TVPersistentMiniPlayer(session: sharedLivePlayback, showcaseTab: isShowcase ? tab : nil)
                                     .frame(width: slot.width, height: slot.height + guideFooter)
                                     .position(x: slot.midX, y: slot.midY + guideFooter / 2)
+                                    .opacity(hasVisibleSlot ? 1 : 0)
+                                    .allowsHitTesting(hasVisibleSlot)
+                                    .accessibilityHidden(!hasVisibleSlot)
                             }
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -627,6 +633,7 @@ struct MainTabView: View {
         ) -> some View {
             let selected = selection.wrappedValue == tab
             let focused = focusedTVTab == tab
+            let showcaseSelected = selected && (tab == .movies || tab == .series || tab == .search)
             return Button {
                 // A remote click, not moving focus, changes the active page.
                 selection.wrappedValue = tab
@@ -642,18 +649,20 @@ struct MainTabView: View {
                             .fixedSize()
                             .accessibilityHidden(true)
                     }
-                    if tab != .search && tab != .settings {
+                    if tab != .settings && (tab != .search || selected) {
                         Text(title)
                             .font(.system(size: 22, weight: .semibold))
                     }
                 }
-                .foregroundStyle(.white)
+                .foregroundStyle(showcaseSelected ? Color.black : .white)
                 .padding(.horizontal, tab == .search || tab == .settings ? 17 : 22)
                 .frame(height: 55)
                 .contentShape(Capsule())
                 .focusEffectDisabled()
                 .background {
-                    if selected || focused {
+                    if showcaseSelected {
+                        Capsule().fill(.white)
+                    } else if selected || focused {
                         Capsule().fill(TVNeonTheme.selection)
                     }
                 }
@@ -717,7 +726,9 @@ struct MainTabView: View {
                     // measured video slot. Never stack the generic page hero
                     // above it; that duplicates the player and clips fixtures.
                     if let media = sharedLivePlayback.miniMedia,
-                       tab != .sports,
+                       tab != .sports, tab != .search,
+                       (tab != .movies || !router.moviesPath.isEmpty),
+                       (tab != .series || !router.seriesPath.isEmpty),
                        tab != .settings,
                        (tab != .liveTV || usesLiveList) {
                         TVEmbeddedPageHeader(tab: tab, media: media)

@@ -112,7 +112,14 @@ nonisolated struct TMDBClient {
     /// larger pool to match against the active playlist — the trending row only
     /// shows titles already in the library, so a wider net surfaces more of them.
     func trending(_ media: MediaType, timeWindow: TimeWindow = .week, pages: Int = 5) async throws -> [TrendingTitle] {
-        let basePath = "/trending/\(media.rawValue)/\(timeWindow.rawValue)"
+        try await rankedTitles(path: "/trending/\(media.rawValue)/\(timeWindow.rawValue)", pages: pages)
+    }
+
+    func popularMovies() async throws -> [TrendingTitle] {
+        try await rankedTitles(path: "/movie/popular", pages: 5)
+    }
+
+    private func rankedTitles(path basePath: String, pages: Int) async throws -> [TrendingTitle] {
         let cacheKey = "\(basePath)-\(pages)-\(Locale.preferredLanguages.first ?? "")"
         if let cached = await TrendingFeedCache.shared.titles(for: cacheKey, maxAge: 30 * 60) {
             return cached

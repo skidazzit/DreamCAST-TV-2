@@ -18,6 +18,9 @@ struct SeriesView: View {
     @Environment(\.catalogScope) private var scope
     // Optional so previews (which don't inject it) fall back to a local path.
     @Environment(DeepLinkRouter.self) private var router: DeepLinkRouter?
+    #if os(tvOS)
+    @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
+    #endif
     @State private var fallbackPath = NavigationPath()
     @Query private var playlists: [Playlist]
     @Query(filter: #Predicate<Category> { $0.typeRaw == "series" && $0.isHidden == false })
@@ -27,9 +30,6 @@ struct SeriesView: View {
     @State private var showingSync = false
     @State private var showingSettings = false
     @State private var genres: [String] = []
-    #if os(tvOS)
-    @State private var selectedBrowseRail = "all"
-    #endif
 
     @AppStorage(SortStorageKey.seriesCategories) private var categorySortRaw: String = CategorySortOption.playlist.rawValue
     @AppStorage(SortStorageKey.seriesContent) private var contentSortRaw: String = ContentSortOption.playlist.rawValue
@@ -71,20 +71,32 @@ struct SeriesView: View {
                     }
                 } else {
                     #if os(tvOS)
-                    HStack(alignment: .top, spacing: TVSidebarRail.paneSpacing) {
-                        TVSidebarRail(
-                            items: browseRailItems(for: layout),
-                            selectedID: selectedBrowseRail
-                        )
-                        browseContent(for: layout)
-                            .frame(maxWidth: .infinity)
+                    TVCatalogShowcase(isSeries: true, scope: scope, genres: genres,
+                                      open: { item in
+                        switch item {
+                        case let .movie(movie): navigationPath.wrappedValue.append(movie)
+                        case let .series(series): navigationPath.wrappedValue.append(series)
+                        case .live: break
+                        }
+                    }, openGenre: { genre in
+                        navigationPath.wrappedValue.append(GenreSelection(genre: genre, type: .series))
+                    }, library: { browseContent(for: layout) })
+                    .id(scope.token + restriction.visibilityToken)
+                    .task(id: scope.token + restriction.visibilityToken) {
+                        genres = await GenreDerivation.seriesGenres(in: modelContext.container, scope: scope, restriction: restriction)
                     }
-                    .padding(.horizontal, 35)
                     #else
                     browseContent(for: layout)
                     #endif
                 }
             }
+            #if os(tvOS)
+            .safeAreaInset(edge: .top) {
+                if layout.isEmpty, sharedPlayback?.miniMedia != nil {
+                    HStack { Spacer(); TVEmbeddedPlayerSlot(width: 600, height: 336) }
+                }
+            }
+            #endif
             .platformNavigationTitle("Series")
             .profileMenuToolbar()
             .libraryToolbar(config: LibraryToolbarConfiguration(
@@ -148,46 +160,6 @@ struct SeriesView: View {
                     }
     }
 
-    #if os(tvOS)
-    /// Every rail action opens the existing collection or category destination.
-    /// Moving focus alone never changes the selected category.
-    private func browseRailItems(for layout: LibraryCategoryLayout) -> [TVSidebarRailItem] {
-        var items: [TVSidebarRailItem] = [
-            TVSidebarRailItem(
-                id: "all", title: Text("All Series"), icon: "play.tv",
-                action: {
-                    selectedBrowseRail = "all"
-                    navigationPath.wrappedValue = NavigationPath()
-                }
-            )
-        ]
-
-        for kind in [LibraryCollection.Kind.recentlyWatched, .favorites, .recentlyAdded] {
-            let rowID = "collection-\(kind.rawValue)"
-            items.append(TVSidebarRailItem(
-                id: rowID, title: Text(kind.title), icon: kind.emptyIcon,
-                action: {
-                    selectedBrowseRail = rowID
-                    navigationPath.wrappedValue.append(
-                        LibraryCollection(kind: kind, type: .series)
-                    )
-                }
-            ))
-        }
-
-        let visibleCategories = layout.previews + layout.remaining.flatMap { $0.categories }
-        for category in visibleCategories.prefix(14) {
-            items.append(TVSidebarRailItem(
-                id: category.id, title: Text(category.name),
-                action: {
-                    selectedBrowseRail = category.id
-                    navigationPath.wrappedValue.append(category)
-                }
-            ))
-        }
-        return items
-    }
-    #endif
 
     /// Drives the stack from the shared `DeepLinkRouter` so an `onOpenURL` push
     /// lands here; falls back to a local path in previews where no router exists.

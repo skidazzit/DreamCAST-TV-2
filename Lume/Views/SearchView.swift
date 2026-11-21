@@ -36,6 +36,14 @@ struct SearchView: View {
     #if os(tvOS)
     @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
     @FocusState private var searchTextFocused: Bool
+    @Environment(ProfileManager.self) private var profileManager: ProfileManager?
+    @State private var completedSearch = ""
+    @State private var tvScope = "All"
+    @State private var recentTerms: [String] = []
+    @StateObject private var fixtures = FixtureStore()
+    @AppStorage("sportFrameFollowedSportsV2") private var followedSports = "Soccer|Basketball|American Football"
+    @State private var selectedEvent: SportEvent?
+    @State private var pendingSportsMedia: PlayableMedia?
     #endif
 
     /// Max matches fetched per content type. Keeps the result set bounded so the
@@ -72,40 +80,33 @@ struct SearchView: View {
         NavigationStack {
             Group {
                 #if os(tvOS)
-                HStack(alignment: .top, spacing: TVSidebarRail.paneSpacing) {
-                    TVSidebarRail(
-                        items: ContentFilter.allCases.map { filter in
-                            TVSidebarRailItem(
-                                id: filter.id, title: Text(filter.label),
-                                icon: searchFilterSymbol(filter),
-                                action: { selectedFilter = filter }
-                            )
-                        },
-                        selectedID: selectedFilter.id
-                    )
-                    // Keep both the keyboard and results inside this column.
-                    // A native tvOS searchField would expand its keyboard over
-                    // the sidebar and hide the app's top tab bar.
-                    VStack(alignment: .leading, spacing: 12) {
-                        tvSearchKeyboard
-                        resultList
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                }
-                .padding(.horizontal, 35)
+                tvSearchPage
                 #else
                 resultList
                 #endif
             }
             .navigationDestination(for: Movie.self) { movie in
                 MovieDetailView(movie: movie, animationNamespace: animationNamespace)
+                #if os(tvOS)
+                    .safeAreaInset(edge: .top) {
+                        if sharedPlayback?.miniMedia != nil {
+                            HStack { Spacer(); TVEmbeddedPlayerSlot(width: 480, height: 280) }
+                        }
+                    }
+                #endif
                 #if os(iOS)
                     .navigationTransition(.zoom(sourceID: movie.id, in: animationNamespace))
                 #endif
             }
             .navigationDestination(for: Series.self) { series in
                 SeriesDetailView(series: series, animationNamespace: animationNamespace)
+                #if os(tvOS)
+                    .safeAreaInset(edge: .top) {
+                        if sharedPlayback?.miniMedia != nil {
+                            HStack { Spacer(); TVEmbeddedPlayerSlot(width: 480, height: 280) }
+                        }
+                    }
+                #endif
                 #if os(iOS)
                     .navigationTransition(.zoom(sourceID: series.id, in: animationNamespace))
                 #endif
@@ -127,7 +128,7 @@ struct SearchView: View {
                 text: debouncedSearchText,
                 filter: selectedFilter,
                 allPlaylists: searchAllPlaylists,
-                scopeToken: scope.token
+                scopeToken: scope.token + restriction.visibilityToken
             )) {
                 // Re-run whenever the settled query or the filter changes.
                 // Filter changes are instant (no debounce on the segmented control).
@@ -247,6 +248,158 @@ struct SearchView: View {
     }
 
     #if os(tvOS)
+    private var historyKey: String {
+        "tvSearch.history." + (profileManager?.activeProfileID.uuidString ?? "default")
+    }
+
+    private func rememberQuery() {
+        guard !trimmedQuery.isEmpty else { return }
+        recentTerms.removeAll { $0.caseInsensitiveCompare(trimmedQuery) == .orderedSame }
+        recentTerms.insert(trimmedQuery, at: 0)
+        recentTerms = Array(recentTerms.prefix(5))
+        UserDefaults.standard.set(recentTerms, forKey: historyKey)
+    }
+
+    private let tvScopes = ["All", "Live TV", "SportsZone", "Movies", "Series"]
+
+    private var searchSidebar: [TVSidebarRailItem] {
+        let icons = ["magnifyingglass", "tv", "trophy", "film", "play.rectangle"]
+        var rows = zip(tvScopes, icons).map { name, icon in
+            TVSidebarRailItem(id: name, title: Text(name == "All" ? "Search All" : name), icon: icon) { tvScope = name }
+        }
+        for (index, term) in recentTerms.enumerated() {
+            rows.append(TVSidebarRailItem(id: "recent-" + term, title: Text(term), icon: "clock",
+                                          header: index == 0 ? "Recent Searches" : nil) { searchText = term })
+        }
+        return rows
+    }
+
+    private var matchingEvents: [SportEvent] {
+        guard !debouncedSearchText.isEmpty, debouncedSearchText == trimmedQuery else { return [] }
+        var seen = Set<String>()
+        return (fixtures.events + fixtures.nextDayEvents).filter { event in
+            let fields = [event.name, event.league, event.strHomeTeam, event.strAwayTeam, event.strSport].compactMap { $0 }
+            return fields.contains { $0.localizedCaseInsensitiveContains(debouncedSearchText) } && seen.insert(event.id).inserted
+        }
+    }
+
+    private func group(of result: SearchResult) -> String {
+        switch result {
+        case .liveStream: "Live TV"
+        case .movie: "Movies"
+        case .series: "Series"
+        }
+    }
+
+    private var tvSearchPage: some View {
+        let events = matchingEvents
+        let displayedResults = completedSearch == trimmedQuery ? results : []
+        let groups = Dictionary(grouping: displayedResults) { group(of: $0) }
+        let total = displayedResults.count + events.count
+        return HStack(alignment: .top, spacing: TVSidebarRail.paneSpacing) {
+            TVSidebarRail(items: searchSidebar, selectedID: tvScope)
+            VStack(alignment: .leading, spacing: 20) {
+                HStack(alignment: .top, spacing: 26) {
+                    tvSearchKeyboard.frame(maxWidth: .infinity)
+                    if sharedPlayback?.miniMedia != nil {
+                        TVEmbeddedPlayerSlot(width: 700, height: 380)
+                    }
+                }
+                if !trimmedQuery.isEmpty {
+                    HStack {
+                        Text("Search Results for “\(trimmedQuery)”").font(.title3.bold()).lineLimit(1)
+                        Spacer()
+                        Text("\(total) Results").font(.caption)
+                    }
+                    HStack {
+                        ForEach(tvScopes, id: \.self) { name in
+                            let count = name == "All" ? total : name == "SportsZone" ? events.count : groups[name]?.count ?? 0
+                            Button("\(name) (\(count))") { tvScope = name }
+                                .buttonStyle(TVChipButtonStyle(isSelected: tvScope == name))
+                        }
+                    }.focusSection()
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        LazyHStack(alignment: .top, spacing: 18) {
+                            ForEach(tvScopes.dropFirst().filter { tvScope == "All" || tvScope == $0 }, id: \.self) { name in
+                                if name == "SportsZone" {
+                                    ForEach(events) { event in
+                                        Button {
+                                            rememberQuery()
+                                            selectedEvent = event
+                                        } label: {
+                                            searchCard(event.name, subtitle: event.league, url: event.homeBadge ?? event.leagueBadge)
+                                        }.buttonStyle(TVShowcaseCardStyle())
+                                    }
+                                } else {
+                                    ForEach(groups[name] ?? []) { result in tvResult(result) }
+                                }
+                            }
+                        }.padding(8)
+                    }.focusSection()
+                    if completedSearch == trimmedQuery && (tvScope == "All" ? total == 0 : tvScope == "SportsZone" ? events.isEmpty : groups[tvScope] == nil) {
+                        Text("No matching results").foregroundStyle(.secondary)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(.horizontal, 35)
+        .task(id: historyKey) { recentTerms = UserDefaults.standard.stringArray(forKey: historyKey) ?? [] }
+        .task(id: trimmedQuery.isEmpty ? "" : followedSports) {
+            guard !trimmedQuery.isEmpty else { return }
+            await fixtures.fetch(sports: followedSports.split(separator: "|").map(String.init), date: Date())
+        }
+        .fullScreenCover(item: $selectedEvent, onDismiss: {
+            guard let media = pendingSportsMedia else { return }
+            pendingSportsMedia = nil
+            sharedPlayback?.tune(media, previewMode: .small)
+        }) { event in
+            SportFrameMatchSheet(event: event) { channel, matches in
+                guard let media = SportsPlayback.media(for: channel, in: modelContext) else { return }
+                if !ExternalPlayback.open(media) {
+                    sharedPlayback?.rememberMatches(matches, selected: channel)
+                    pendingSportsMedia = media
+                }
+                selectedEvent = nil
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func tvResult(_ result: SearchResult) -> some View {
+        switch result {
+        case let .movie(movie):
+            NavigationLink(value: movie) {
+                searchCard(movie.name, subtitle: movie.genre ?? "Movies", url: movie.streamIcon.flatMap(URL.init(string:)))
+            }.buttonStyle(TVShowcaseCardStyle())
+            .simultaneousGesture(TapGesture().onEnded { rememberQuery() })
+            .mediaFavoriteMenu(isFavorite: { movie.isFavorite }, onToggleFavorite: { MediaFavorites.toggle(movie, in: modelContext) })
+        case let .series(show):
+            NavigationLink(value: show) {
+                searchCard(show.name, subtitle: show.genre ?? "Series", url: show.cover.flatMap(URL.init(string:)))
+            }.buttonStyle(TVShowcaseCardStyle())
+            .simultaneousGesture(TapGesture().onEnded { rememberQuery() })
+            .mediaFavoriteMenu(isFavorite: { show.isFavorite }, onToggleFavorite: { MediaFavorites.toggle(show, in: modelContext) })
+        case let .liveStream(stream):
+            Button { playChannel(stream) } label: {
+                searchCard(stream.name, subtitle: playlistName(for: result, in: searchedScope) ?? "Live TV",
+                           url: stream.streamIcon.flatMap(URL.init(string:)))
+            }.buttonStyle(TVShowcaseCardStyle())
+            .liveChannelMenu(stream: stream, isFavorite: stream.isFavorite,
+                             onToggleFavorite: { LiveChannelFavorites.toggle(stream, in: modelContext) })
+        }
+    }
+
+    private func searchCard(_ title: String, subtitle: String, url: URL?) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            TVShowcaseArtwork(url: url, width: 220, height: 155)
+            Text(title).font(.system(size: 22, weight: .bold)).lineLimit(2).padding(.horizontal, 9)
+            Text(subtitle).font(.system(size: 17)).foregroundStyle(.secondary).lineLimit(1).padding(.horizontal, 9)
+        }
+        .frame(width: 220, height: 255, alignment: .topLeading)
+        .background(Color.white.opacity(0.07)).clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
     /// Remote-friendly keys stay inside the Search content column. No system
     /// search controller is presented, so the top tabs remain visible.
     private var tvSearchKeyboard: some View {
@@ -263,7 +416,7 @@ struct SearchView: View {
                     .focusEffectDisabled()
                     .focused($searchTextFocused)
                     .submitLabel(.search)
-                    .onSubmit { searchTextFocused = false }
+                    .onSubmit { rememberQuery(); searchTextFocused = false }
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityLabel("Search text")
@@ -290,7 +443,7 @@ struct SearchView: View {
             searchKeyRow(["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"])
             searchKeyRow(["K", "L", "M", "N", "O", "P", "Q", "R", "S", "T"])
             searchKeyRow(["U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4"])
-            searchKeyRow(["5", "6", "7", "8", "9", "0", "SPACE", "DELETE"])
+            searchKeyRow(["5", "6", "7", "8", "9", "0", "DELETE", "SPACE"])
         }
         .padding(12)
         .background(Color(red: 0.025, green: 0.047, blue: 0.095),
@@ -316,9 +469,10 @@ struct SearchView: View {
                     Text(key == "DELETE" ? "⌫" : key == "SPACE" ? "Space" : key)
                         .font(.system(size: key.count > 1 ? 17 : 22, weight: .medium))
                         .frame(maxWidth: .infinity)
-                        .frame(height: 38)
+                        .frame(height: 44)
+                        .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 10))
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(TVShowcaseCardStyle())
                 .accessibilityLabel(Text(key == "DELETE" ? "Delete last character" : key))
             }
         }
@@ -365,9 +519,10 @@ struct SearchView: View {
             MacPlayerWindowRouter.shared.play(media, using: openWindow)
         #elseif os(tvOS)
             if let sharedPlayback {
+                rememberQuery()
                 sharedPlayback.matchedChannels = []
                 sharedPlayback.tune(media, previewMode: .small)
-                sharedPlayback.openFullScreen()
+
             } else {
                 playingMedia = media
             }
@@ -389,6 +544,9 @@ struct SearchView: View {
         let query = debouncedSearchText
         guard !query.isEmpty else {
             results = []
+            #if os(tvOS)
+            completedSearch = ""
+            #endif
             return
         }
 
@@ -420,6 +578,9 @@ struct SearchView: View {
         guard !Task.isCancelled else { return }
 
         results = assembleResults(portal: portal, localHits: localHits)
+        #if os(tvOS)
+        completedSearch = query
+        #endif
     }
 
     /// Portal search hits (element ids) from every Stalker playlist in scope.
