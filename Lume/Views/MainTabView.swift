@@ -383,7 +383,12 @@ struct MainTabView: View {
                         ZStack(alignment: .topLeading) {
                             if sharedLivePlayback.miniMedia != nil,
                                let slot, slot.width > 0, slot.height > 0 {
-                                TVPersistentMiniPlayer(session: sharedLivePlayback)
+                                TVPersistentMiniPlayer(
+                                    session: sharedLivePlayback,
+                                    theme: DreamCASTAccentTheme.resolve(visualThemeRaw),
+                                    transparency: visualTransparency,
+                                    liquidGlass: visualGlass
+                                )
                                     .frame(width: TVEmbeddedPlayerSlot.picture.videoWidth, height: TVEmbeddedPlayerSlot.totalHeight)
                                     .position(x: slot.midX, y: slot.minY + TVEmbeddedPlayerSlot.totalHeight / 2)
                                     .opacity(hasVisibleSlot ? 1 : 0)

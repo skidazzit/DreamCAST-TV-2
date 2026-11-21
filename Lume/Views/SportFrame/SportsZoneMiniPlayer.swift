@@ -408,6 +408,14 @@ struct SportsZoneMiniPlayer: View {
 /// This keeps the same live decoder and audio running as viewers browse.
 struct TVPersistentMiniPlayer: View {
     let session: SportsZonePlaybackSession
+    let theme: DreamCASTAccentTheme
+    let transparency: Double
+    let liquidGlass: Bool
+
+    private var panelFill: LinearGradient {
+        TVNeonTheme.glass(theme: theme, transparency: transparency)
+    }
+
     @Environment(TVBackFocusCoordinator.self) private var backFocus: TVBackFocusCoordinator?
     @FocusState private var focusedAction: MiniPlayerAction?
 
@@ -442,7 +450,7 @@ struct TVPersistentMiniPlayer: View {
                     .clipped()
                     .overlay {
                         Rectangle()
-                            .strokeBorder(TVNeonTheme.iceBlue.opacity(0.85), lineWidth: 2)
+                            .strokeBorder(theme.selectionAccent.opacity(0.85), lineWidth: 2)
                             .allowsHitTesting(false)
                     }
 
@@ -494,11 +502,16 @@ struct TVPersistentMiniPlayer: View {
                     }
                     .padding(.horizontal, 13)
                     .frame(width: geometry.size.width, height: Self.controlsHeight)
-                    .background(TVNeonTheme.glass)
+                    .background {
+                        if liquidGlass {
+                            Color.clear.glassEffectCompat(.regular, in: Rectangle())
+                        }
+                    }
+                    .background(panelFill)
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .clipped()
-                .shadow(color: TVNeonTheme.electricBlue.opacity(0.26), radius: 10)
+                .shadow(color: theme.selectionAccent.opacity(0.26), radius: 10)
             }
             .focusSection()
             .onChange(of: session.handle.hasStarted, initial: true) { _, started in
@@ -545,17 +558,17 @@ struct TVPersistentMiniPlayer: View {
             .frame(height: 48)
             .background {
                 RoundedRectangle(cornerRadius: 13)
-                    .fill(focused ? TVNeonTheme.selection : TVNeonTheme.glass)
+                    .fill(focused ? TVNeonTheme.panelGradient(theme) : panelFill)
             }
             .overlay {
                 RoundedRectangle(cornerRadius: 13)
                     .strokeBorder(
-                        focused ? TVNeonTheme.iceBlue : .white.opacity(0.14),
+                        focused ? theme.selectionAccent : .white.opacity(0.14),
                         lineWidth: focused ? 2.5 : 1
                     )
             }
             .shadow(
-                color: focused ? TVNeonTheme.electricBlue.opacity(0.65) : .clear,
+                color: focused ? theme.selectionAccent.opacity(0.65) : .clear,
                 radius: focused ? 10 : 0
             )
             .contentShape(RoundedRectangle(cornerRadius: 13))

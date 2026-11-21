@@ -28,16 +28,21 @@
         static var glassBottom: Color { darkStops[0] }
 
         static var glass: LinearGradient {
-            let opacity = max(0.28, 0.96 - DreamCASTVisualSettings.transparency * 0.75)
-            return LinearGradient(
-                colors: [glassTop.opacity(opacity), glassBottom.opacity(opacity)],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
+            glass(theme: DreamCASTVisualSettings.theme, transparency: DreamCASTVisualSettings.transparency)
         }
+
+        static func glass(theme: DreamCASTAccentTheme, transparency: Double) -> LinearGradient {
+            panelGradient(theme, opacity: max(0.28, 0.96 - min(0.85, max(0, transparency)) * 0.75))
+        }
+
         static var selection: LinearGradient {
-            // Dark theme-colored selection preserves contrast with white labels.
-            LinearGradient(
-                colors: [darkStops[1], darkStops[0]],
+            panelGradient(DreamCASTVisualSettings.theme)
+        }
+
+        static func panelGradient(_ theme: DreamCASTAccentTheme, opacity: Double = 1) -> LinearGradient {
+            let stops = theme.backgroundColors(light: false)
+            return LinearGradient(
+                colors: [stops[1].opacity(opacity), stops[0].opacity(opacity)],
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
         }
