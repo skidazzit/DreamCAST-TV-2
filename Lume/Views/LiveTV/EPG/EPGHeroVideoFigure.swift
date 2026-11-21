@@ -19,13 +19,8 @@
         let hero: GuideHeroModel?
         let onFailure: () -> Void
 
-        private let metrics = EPGMetrics.current
         @Environment(\.epgHeroLayout) private var layout
         @Environment(SportsZonePlaybackSession.self) private var sharedPlayback: SportsZonePlaybackSession?
-
-        private var shape: RoundedRectangle {
-            RoundedRectangle(cornerRadius: metrics.previewVideoCornerRadius, style: .continuous)
-        }
 
         var body: some View {
             ZStack(alignment: .bottom) {
@@ -35,17 +30,17 @@
                     .frame(height: layout.height / 3)
             }
             .frame(width: layout.videoWidth, height: layout.height)
-            .clipShape(shape)
+            .clipped()
             .overlay {
                 if sharedPlayback?.miniMedia == nil {
-                    shape.strokeBorder(TVNeonTheme.iceBlue.opacity(0.86), lineWidth: 2)
+                    Rectangle().strokeBorder(TVNeonTheme.iceBlue.opacity(0.86), lineWidth: 2)
                 }
             }
             .background {
                 // Do not draw a second black video card beneath the
                 // shared player. The single root surface fills this slot.
                 if sharedPlayback?.miniMedia == nil {
-                    shape.fill(.black)
+                    Rectangle().fill(.black)
                         .shadow(color: TVNeonTheme.electricBlue.opacity(0.26), radius: 19, y: 8)
                 }
             }
@@ -56,7 +51,7 @@
             if sharedPlayback?.miniMedia != nil {
                 // Reserve the exact guide hero frame and publish its position.
                 // The app-root decoder renders here, without a second player.
-                TVEmbeddedPlayerSlot()
+                TVEmbeddedPlayerSlot(includesControls: false)
             } else if let target, !isFailed, isAllowed, sharedPlayback == nil, let media = target.media {
                 ZStack {
                     Color.black

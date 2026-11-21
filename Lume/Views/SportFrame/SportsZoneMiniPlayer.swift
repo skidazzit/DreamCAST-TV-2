@@ -273,7 +273,7 @@ struct SportsZoneMiniPlayer: View {
     /// The same hero dimensions and left/right order as the tvOS Live TV guide.
     /// The fixtures and league table scroll in the space BELOW this hero.
     private func tvPlayer(_ media: PlayableMedia) -> some View {
-        let layout = EPGHeroLayout(mode)
+        let layout = TVEmbeddedPlayerSlot.picture
         return HStack(alignment: .bottom, spacing: 48) {
             if guideDesign == .dreamcast {
                 surface(media)
@@ -394,7 +394,11 @@ struct SportsZoneMiniPlayer: View {
             }
         }
         .frame(maxWidth: .infinity)
+        #if os(tvOS)
+        .clipped()
+        #else
         .clipShape(RoundedRectangle(cornerRadius: 22))
+        #endif
         .accessibilityLabel("SportsZone channel: \(media.title)")
     }
 }
@@ -435,9 +439,9 @@ struct TVPersistentMiniPlayer: View {
                     // Player controls remain below the video.
                     videoSurface(for: media)
                     .frame(width: geometry.size.width, height: pictureHeight)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .clipped()
                     .overlay {
-                        RoundedRectangle(cornerRadius: 20)
+                        Rectangle()
                             .strokeBorder(TVNeonTheme.iceBlue.opacity(0.85), lineWidth: 2)
                             .allowsHitTesting(false)
                     }
@@ -493,7 +497,7 @@ struct TVPersistentMiniPlayer: View {
                     .background(TVNeonTheme.glass)
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
-                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .clipped()
                 .shadow(color: TVNeonTheme.electricBlue.opacity(0.26), radius: 10)
             }
             .focusSection()

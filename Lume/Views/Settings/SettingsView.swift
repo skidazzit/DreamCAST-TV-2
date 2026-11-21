@@ -379,7 +379,7 @@ struct SettingsView: View {
                     )
 
                     GeometryReader { geometry in
-                        let rightWidth = min(620, max(440, geometry.size.width * 0.46))
+                        let rightWidth = TVEmbeddedPlayerSlot.picture.videoWidth
                         HStack(alignment: .top, spacing: 28) {
                             tvDashboardDetail
                                 .frame(maxWidth: .infinity, maxHeight: .infinity,
@@ -388,7 +388,7 @@ struct SettingsView: View {
                                 .padding(.horizontal, 20)
                                 .background(TVNeonTheme.glass, in: RoundedRectangle(cornerRadius: 24))
                                 .focused($detailFocused)
-                            tvDashboardRightColumn(width: rightWidth)
+                            tvDashboardRightColumn
                                 .frame(width: rightWidth)
                                 .foregroundStyle(.white)
                         }
@@ -483,16 +483,13 @@ struct SettingsView: View {
             }
         }
 
-        private func tvDashboardRightColumn(width: CGFloat) -> some View {
+        private var tvDashboardRightColumn: some View {
             ScrollView(.vertical) {
                 VStack(alignment: .leading, spacing: 25) {
                     if dashboardPlayback?.miniMedia != nil {
                         // App root owns the only decoder. This is its actual
                         // measured slot, not a second or floating player.
-                        TVEmbeddedPlayerSlot(
-                            width: width,
-                            height: width * 9 / 16 + TVPersistentMiniPlayer.controlsHeight
-                        )
+                        TVEmbeddedPlayerSlot()
                     } else {
                         VStack(spacing: 12) {
                             Image(systemName: "play.tv")
@@ -502,12 +499,12 @@ struct SettingsView: View {
                                 .font(.system(size: 20))
                                 .foregroundStyle(.white.opacity(0.72))
                         }
-                        .frame(width: width,
-                               height: width * 9 / 16 + TVPersistentMiniPlayer.controlsHeight)
+                        .frame(width: TVEmbeddedPlayerSlot.picture.videoWidth,
+                               height: TVEmbeddedPlayerSlot.totalHeight)
                         .background(TVNeonTheme.glass,
-                                    in: RoundedRectangle(cornerRadius: 22))
+                                    in: Rectangle())
                         .overlay {
-                            RoundedRectangle(cornerRadius: 22)
+                            Rectangle()
                                 .strokeBorder(TVNeonTheme.iceBlue.opacity(0.4), lineWidth: 1)
                         }
                     }

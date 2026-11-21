@@ -390,7 +390,7 @@ struct SportFrameHome: View {
                             if activePlayback.miniMedia != nil {
                                 HStack {
                                     Spacer()
-                                    TVEmbeddedPlayerSlot(width: 560, height: 315)
+                                    TVEmbeddedPlayerSlot()
                                 }
                             }
                             settingsPage
@@ -767,7 +767,7 @@ struct SportFrameHome: View {
 
             Group {
                 if activePlayback.miniMedia != nil {
-                    TVEmbeddedPlayerSlot(width: 580, height: 326 + TVPersistentMiniPlayer.controlsHeight)
+                    TVEmbeddedPlayerSlot()
                 } else {
                     VStack(spacing: 15) {
                         Image(systemName: "play.tv")
@@ -776,10 +776,10 @@ struct SportFrameHome: View {
                             .font(.system(size: 20, weight: .semibold))
                     }
                     .foregroundStyle(.white.opacity(0.64))
-                    .frame(width: 580, height: 326)
-                    .background(TVNeonTheme.glass, in: RoundedRectangle(cornerRadius: 22))
+                    .frame(width: TVEmbeddedPlayerSlot.picture.videoWidth, height: TVEmbeddedPlayerSlot.picture.height)
+                    .background(TVNeonTheme.glass, in: Rectangle())
                     .overlay {
-                        RoundedRectangle(cornerRadius: 22)
+                        Rectangle()
                             .strokeBorder(TVNeonTheme.iceBlue.opacity(0.42), lineWidth: 1)
                     }
                 }

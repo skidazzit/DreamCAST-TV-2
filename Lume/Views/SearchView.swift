@@ -90,7 +90,7 @@ struct SearchView: View {
                 #if os(tvOS)
                     .safeAreaInset(edge: .top) {
                         if sharedPlayback?.miniMedia != nil {
-                            HStack { Spacer(); TVEmbeddedPlayerSlot(videoWidth: 480) }
+                            HStack { Spacer(); TVEmbeddedPlayerSlot() }
                         }
                     }
                 #endif
@@ -103,7 +103,7 @@ struct SearchView: View {
                 #if os(tvOS)
                     .safeAreaInset(edge: .top) {
                         if sharedPlayback?.miniMedia != nil {
-                            HStack { Spacer(); TVEmbeddedPlayerSlot(videoWidth: 480) }
+                            HStack { Spacer(); TVEmbeddedPlayerSlot() }
                         }
                     }
                 #endif
@@ -302,7 +302,7 @@ struct SearchView: View {
                 HStack(alignment: .top, spacing: 26) {
                     tvSearchKeyboard.frame(maxWidth: .infinity)
                     if sharedPlayback?.miniMedia != nil {
-                        TVEmbeddedPlayerSlot(videoWidth: 700)
+                        TVEmbeddedPlayerSlot()
                     }
                 }
                 if !trimmedQuery.isEmpty {

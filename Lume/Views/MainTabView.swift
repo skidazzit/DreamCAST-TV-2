@@ -380,18 +380,12 @@ struct MainTabView: View {
                         let tab = selection.wrappedValue
                         let isShowcase = tab == .movies || tab == .series || tab == .search
                         let hasVisibleSlot = !isShowcase || measured != nil
-                        // The Live TV guide reports the picture-only frame.
-                        // Its controls sit below that frame; the other tabs
-                        // include their footer in the measured player slot.
-                        let guideFooter: CGFloat =
-                            selection.wrappedValue == .liveTV && !usesLiveList
-                            ? TVPersistentMiniPlayer.controlsHeight : 0
                         ZStack(alignment: .topLeading) {
                             if sharedLivePlayback.miniMedia != nil,
                                let slot, slot.width > 0, slot.height > 0 {
                                 TVPersistentMiniPlayer(session: sharedLivePlayback)
-                                    .frame(width: slot.width, height: slot.height + guideFooter)
-                                    .position(x: slot.midX, y: slot.midY + guideFooter / 2)
+                                    .frame(width: TVEmbeddedPlayerSlot.picture.videoWidth, height: TVEmbeddedPlayerSlot.totalHeight)
+                                    .position(x: slot.midX, y: slot.minY + TVEmbeddedPlayerSlot.totalHeight / 2)
                                     .opacity(hasVisibleSlot ? 1 : 0)
                                     .allowsHitTesting(hasVisibleSlot)
                                     .accessibilityHidden(!hasVisibleSlot)
@@ -1032,21 +1026,16 @@ extension Notification.Name {
 /// The guide and other tabs publish their real layout bounds. This is only
 /// an anchor, not a player; the app-root surface is mounted once above TabView.
 struct TVEmbeddedPlayerSlot: View {
-    var width: CGFloat = 640
-    var height: CGFloat = 360
+    static let picture = EPGHeroLayout(.large)
+    static var totalHeight: CGFloat { picture.height + TVPersistentMiniPlayer.controlsHeight }
+
+    var includesControls = true
 
     var body: some View {
         Color.clear
-            .frame(width: width, height: height)
+            .frame(width: Self.picture.videoWidth, height: includesControls ? Self.totalHeight : Self.picture.height)
             .anchorPreference(key: TVPlayerSlotAnchorKey.self, value: .bounds) { $0 }
             .accessibilityHidden(true)
-    }
-}
-
-extension TVEmbeddedPlayerSlot {
-    /// Reserve a widescreen picture and the guide's button row beneath it.
-    init(videoWidth: CGFloat) {
-        self.init(width: videoWidth, height: videoWidth * 9 / 16 + TVPersistentMiniPlayer.controlsHeight)
     }
 }
 
@@ -1066,8 +1055,6 @@ private struct TVEmbeddedPageHeader: View {
 
     // Search and Settings reserve more space below for keys, results and lists.
     private var compact: Bool { tab == .search || tab == .settings }
-    private var videoWidth: CGFloat { compact ? 386 : 640 }
-    private var videoHeight: CGFloat { compact ? 217 : 360 }
 
     private var page: (title: String, description: String, symbol: String) {
         switch tab {
@@ -1107,10 +1094,7 @@ private struct TVEmbeddedPageHeader: View {
             .padding(.leading, 7)
 
             // This slot is never a second player.
-            TVEmbeddedPlayerSlot(
-                width: videoWidth,
-                height: videoHeight + TVPersistentMiniPlayer.controlsHeight
-            )
+            TVEmbeddedPlayerSlot()
         }
         .padding(.horizontal, 64)
         .padding(.top, compact ? 8 : 20)

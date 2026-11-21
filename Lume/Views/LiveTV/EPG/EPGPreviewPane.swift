@@ -11,10 +11,6 @@
     import SwiftUI
 
     extension EPGMetrics {
-        var previewVideoCornerRadius: CGFloat {
-            28
-        }
-
         var previewSpacing: CGFloat {
             48
         }
