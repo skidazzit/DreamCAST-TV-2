@@ -184,6 +184,7 @@
         var isSecure: Bool = false
         var contentType: UITextContentType?
         var whiteText = false
+        @FocusState private var fieldFocused: Bool
 
         var body: some View {
             VStack(alignment: .leading, spacing: 8) {
@@ -201,20 +202,25 @@
                         TextField(placeholder, text: $text)
                     }
                 }
+                .textFieldStyle(.plain)
+                .focusEffectDisabled()
+                .focused($fieldFocused)
                 .font(.system(size: TVSettingsMetrics.rowFontSize))
                 .foregroundStyle(whiteText ? Color.white : Color.primary)
                 .textContentType(contentType)
                 .autocorrectionDisabled()
                 .padding(.horizontal, 16)
                 .padding(.vertical, 9)
+                .frame(minHeight: 64)
                 .background {
                     RoundedRectangle(cornerRadius: 14)
                         .fill(DreamCASTDisplayColors.surface)
                 }
                 .overlay {
                     RoundedRectangle(cornerRadius: 14)
-                        .strokeBorder(DreamCASTVisualSettings.theme.selectionAccent.opacity(0.36),
-                                      lineWidth: 1)
+                        .strokeBorder(DreamCASTVisualSettings.theme.selectionAccent.opacity(fieldFocused ? 1 : 0.36),
+                                      lineWidth: fieldFocused ? 3 : 1)
+                        .allowsHitTesting(false)
                 }
             }
         }
