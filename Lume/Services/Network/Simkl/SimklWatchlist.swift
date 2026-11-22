@@ -198,7 +198,7 @@ nonisolated struct SimklWatchlistCache: Codable, Equatable {
 
 /// Reads and writes ``SimklWatchlistCache`` in the Caches directory.
 enum SimklWatchlistStore {
-    private static let logger = Logger(subsystem: "com.bilipp.lume", category: "SimklWatchlist")
+    private static let logger = Logger(subsystem: "com.skidazzit.dreamcasttv2", category: "SimklWatchlist")
 
     static var fileURL: URL? {
         FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?

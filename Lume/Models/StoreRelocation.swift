@@ -4,7 +4,7 @@
 //
 //  Moves the SwiftData stores out of the app-group container, once.
 //
-//  The app group (`group.com.bilipp.lume`, added for the Live Activity artwork)
+//  The app group (`group.com.skidazzit.dreamcasttv2`, added for the Live Activity artwork)
 //  made `ModelConfiguration.groupContainer` — `.automatic` by default — resolve
 //  both stores into the shared container. iOS terminates a suspended process
 //  that still holds a file lock there (RUNNINGBOARD 0xdead10cc), and a catalog

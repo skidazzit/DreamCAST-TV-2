@@ -84,7 +84,7 @@ nonisolated struct LumeLogger {
 
     init(category: String) {
         self.category = category
-        osLog = OSLog(subsystem: Bundle.main.bundleIdentifier ?? "com.bilipp.lume", category: category)
+        osLog = OSLog(subsystem: Bundle.main.bundleIdentifier ?? "com.skidazzit.dreamcasttv2", category: category)
         osLogger = Logger(osLog)
     }
 

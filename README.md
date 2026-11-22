@@ -421,7 +421,7 @@ or import an M3U playlist, and Lume will sync your catalog.
 > build, `ios-arm64` / `tvos-arm64` for device builds.
 
 **Code signing.** The project ships with the maintainer's Development Team
-(`DEVELOPMENT_TEAM`) and bundle identifier (`com.bilipp.lume`). Simulator builds run as
+(`DEVELOPMENT_TEAM`) and bundle identifier (`com.skidazzit.dreamcasttv2`). Simulator builds run as
 is. To run on a physical device, open **Signing & Capabilities** for each target and set
 your own team (and, if needed, a unique bundle identifier) — or clear the team for a
 simulator-only build. Don't commit these personal signing changes back to the repo.
