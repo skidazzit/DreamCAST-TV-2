@@ -8,7 +8,7 @@ nonisolated enum PlayerEngineKind: String, CaseIterable, Identifiable {
     /// Lume's own FFmpeg 9 engine. Declared after the original three so a
     /// stored priority list from before it existed gets it appended at the end
     /// (`PlayerEnginePriority.normalized`) rather than promoted over the user's
-    /// choice; a fresh install leads with it per `PlayerEnginePriority.defaultOrder`.
+    /// choice. Fresh installs use the platform's default order.
     case lumeEngine
     /// AetherEngine — declared after LumeEngine so it appends last to stored
     /// priority lists. Not linked on visionOS (see `isAvailable`).
@@ -70,7 +70,7 @@ nonisolated enum PlayerEngineKind: String, CaseIterable, Identifiable {
     }
 
     /// The default engine: the head of `PlayerEnginePriority.defaultOrder` on
-    /// this platform (AetherEngine, or LumeEngine on visionOS).
+    /// this platform.
     static var defaultValue: PlayerEngineKind {
         PlayerEnginePriority.defaultOrder.first ?? .avPlayer
     }
@@ -184,7 +184,11 @@ enum PlayerEnginePriority {
     /// The order a fresh install tries engines in, restricted to the engines
     /// available on this platform.
     nonisolated static var defaultOrder: [PlayerEngineKind] {
-        [.aetherEngine, .lumeEngine, .ksPlayer, .vlcKit, .avPlayer].filter(\.isAvailable)
+        #if os(tvOS)
+            [.ksPlayer, .avPlayer, .aetherEngine, .lumeEngine, .vlcKit]
+        #else
+            [.aetherEngine, .lumeEngine, .ksPlayer, .vlcKit, .avPlayer].filter(\.isAvailable)
+        #endif
     }
 
     /// Decode the stored priority into a complete, de-duplicated engine list.
@@ -533,21 +537,27 @@ enum PlayerSettings {
         static let maxBufferKey = "player.ks.maxBuffer"
         static let primaryEngineKey = "player.ks.primaryEngine"
 
+        #if os(tvOS)
+            static let secondOpenDefault = true
+            static let noBufferDefault = true
+            static let liveBufferDefault = 8
+        #else
+            static let secondOpenDefault = false
+            static let noBufferDefault = false
+            static let liveBufferDefault = 4
+        #endif
+
         static let hardwareDecodeDefault = true
         static let asyncDecompressionDefault = true
-        static let secondOpenDefault = false
         static let accurateSeekDefault = false
         static let loopPlayDefault = false
         static let systemProxyDefault = true
         static let autoDeinterlaceDefault = false
         static let autoRotateDefault = true
         static let adaptiveDefault = true
-        static let noBufferDefault = false
         static let codecLowDelayDefault = false
         static let autoPipDefault = true
         static let autoSelectSubtitleDefault = false
-        /// Minimum forward buffer for live streams, in seconds.
-        static let liveBufferDefault = 4
         /// Minimum forward buffer for on-demand streams, in seconds.
         static let vodBufferDefault = 8
         /// Maximum buffer, in seconds.
