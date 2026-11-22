@@ -47,15 +47,8 @@ struct XtreamProviderPicker: View {
                 .font(.system(size: 25, weight: .medium))
                 .padding(.horizontal, 22)
                 .frame(height: 68)
-                .background(DreamCASTDisplayColors.surface,
-                            in: RoundedRectangle(cornerRadius: 16))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(DreamCASTVisualSettings.theme.selectionAccent.opacity(0.65),
-                                      lineWidth: 1.5)
-                }
             }
-            .buttonStyle(.plain)
+            .buttonStyle(TVPlaylistFieldButtonStyle(cornerRadius: 16))
             .accessibilityLabel("Server provider")
             .accessibilityValue(store.providers.first(where: { $0.serverURL == serverURL })?.name
                                 ?? "None selected")
@@ -83,10 +76,8 @@ struct XtreamProviderPicker: View {
                             }
                             .padding(.horizontal, 22)
                             .frame(height: 62)
-                            .background(DreamCASTDisplayColors.surface,
-                                        in: RoundedRectangle(cornerRadius: 12))
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(TVPlaylistFieldButtonStyle(cornerRadius: 12))
                     }
                 }
                 .padding(12)

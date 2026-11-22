@@ -174,6 +174,34 @@
 
     // MARK: - Labelled text field
 
+    struct TVPlaylistFieldButtonStyle: ButtonStyle {
+        var cornerRadius: CGFloat = 14
+
+        func makeBody(configuration: Configuration) -> some View {
+            Row(label: configuration.label, cornerRadius: cornerRadius)
+        }
+
+        private struct Row: View {
+            let label: ButtonStyleConfiguration.Label
+            let cornerRadius: CGFloat
+            @Environment(\.isFocused) private var focused
+
+            var body: some View {
+                let shape = RoundedRectangle(cornerRadius: cornerRadius)
+                label
+                    .background(DreamCASTDisplayColors.surface, in: shape)
+                    .overlay {
+                        shape.strokeBorder(
+                            DreamCASTVisualSettings.theme.selectionAccent.opacity(focused ? 1 : 0.36),
+                            lineWidth: focused ? 3 : 1
+                        )
+                        .allowsHitTesting(false)
+                    }
+                    .focusEffectDisabled()
+            }
+        }
+    }
+
     /// Show a themed row while browsing and a native text field while editing.
     struct TVSettingsField: View {
         let title: LocalizedStringKey
@@ -182,7 +210,6 @@
         var isSecure: Bool = false
         var contentType: UITextContentType?
         var whiteText = false
-        @FocusState private var fieldFocused: Bool
         @State private var isEditing = false
         @State private var draft = ""
 
@@ -213,21 +240,10 @@
                     .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(TVPlaylistFieldButtonStyle())
                 .focusEffectDisabled()
-                .focused($fieldFocused)
                 .accessibilityLabel(Text(title))
                 .accessibilityValue(Text(verbatim: isSecure ? "" : text))
-                .background {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(DreamCASTDisplayColors.surface)
-                }
-                .overlay {
-                    RoundedRectangle(cornerRadius: 14)
-                        .strokeBorder(DreamCASTVisualSettings.theme.selectionAccent.opacity(fieldFocused ? 1 : 0.36),
-                                      lineWidth: fieldFocused ? 3 : 1)
-                        .allowsHitTesting(false)
-                }
                 .sheet(isPresented: $isEditing, onDismiss: { draft = "" }) {
                     VStack(alignment: .leading, spacing: 24) {
                         Text(title).font(.title2.bold())
