@@ -163,6 +163,11 @@ final class FixtureStore: ObservableObject {
                                status: live?.status ?? schedule?.status ?? event.strStatus)
     }
 
+    func isFinal(_ event: SportEvent) -> Bool {
+        [score(for: event).status, event.strStatus, event.strProgress]
+            .contains(where: SportsZoneScoreRefreshPolicy.isFinal)
+    }
+
     func isLive(_ event: SportEvent) -> Bool {
         // The live-score endpoint also returns scheduled fixtures. Require a
         // real in-play status and never label a future kickoff as live.

@@ -493,7 +493,13 @@ struct SportFrameLeagueDetail: View {
             ForEach(store.upcomingMatches) { match in
                 switch match {
                 case .sportsDB(let event):
-                    Button { onSelectEvent(event) } label: { fixtureRow(event) }
+                    Button {
+                        if scores.isFinal(event) {
+                            openHighlights(for: event)
+                        } else {
+                            onSelectEvent(event)
+                        }
+                    } label: { fixtureRow(event) }
                         .buttonStyle(.plain)
                 case .espn(let event):
                     espnFixtureRow(event)

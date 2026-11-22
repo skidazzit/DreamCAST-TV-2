@@ -73,7 +73,18 @@ struct SportFrameMobile: View {
     @State private var expandedSport: String?
     @State private var expandedLeagues: Set<String> = []
     @State private var sportsFollowExpanded = false
+    @Environment(\.openURL) private var openURL
+    @State private var highlightEvent: SportEvent?
     @State private var selectedEvent: SportEvent?
+
+    private func selectEvent(_ event: SportEvent) {
+        if fixtures.isFinal(event) {
+            highlightEvent = event
+        } else {
+            highlightEvent = nil
+            selectedEvent = event
+        }
+    }
     /// Hold the tapped channel until the match sheet has fully dismissed.
     /// This replaces a fixed delay before full-screen playback.
     @State private var pendingPlaybackMedia: PlayableMedia?
@@ -184,6 +195,13 @@ struct SportFrameMobile: View {
                 .environment(sportsPlayback)
         }
         .task { await catalog.refresh() }
+        .task(id: highlightEvent?.idEvent) {
+            guard let event = highlightEvent else { return }
+            let destination = await SportFrameLeagueDetailStore().highlightDestination(for: event)
+            guard !Task.isCancelled, highlightEvent?.idEvent == event.idEvent else { return }
+            highlightEvent = nil
+            openURL(destination)
+        }
         .task(id: "\(dayOffset)|\(followedValue)|\(SportsDBAccess.apiKey)|\(page)|\(scenePhase == .active)") {
             guard page == 0, scenePhase == .active else { return }
             let date = Calendar.current.date(byAdding: .day, value: dayOffset, to: .now) ?? .now
@@ -374,7 +392,7 @@ struct SportFrameMobile: View {
                             ? (groups[league] ?? [])
                             : Array((groups[league] ?? []).prefix(5))
                     ) { event in
-                        Button { selectedEvent = event } label: {
+                        Button { selectEvent(event) } label: {
                             mobileFixture(event)
                         }
                         .buttonStyle(.plain)
