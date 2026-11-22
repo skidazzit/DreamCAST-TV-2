@@ -104,6 +104,9 @@ final class PremiumManager {
         var isPremium: Bool {
             debugForcePremium || isEntitled
         }
+    #elseif os(tvOS)
+        // DreamCAST TV includes these features in the distributed Apple TV app.
+        var isPremium: Bool { true }
     #else
         /// App Store build: Premium iff the user owns the lifetime unlock or has an
         /// active subscription.
@@ -115,7 +118,7 @@ final class PremiumManager {
     private var transactionListener: Task<Void, Never>?
 
     private init() {
-        #if !SIDE_LOAD
+        #if !SIDE_LOAD && !os(tvOS)
             // Listen for renewals, refunds, Ask-to-Buy approvals and purchases made
             // on other devices for the whole app lifetime.
             transactionListener = Task { [weak self] in
