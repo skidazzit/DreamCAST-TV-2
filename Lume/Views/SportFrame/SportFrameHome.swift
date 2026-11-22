@@ -710,23 +710,6 @@ struct SportFrameHome: View {
                             .foregroundStyle(.white.opacity(0.83))
                             .lineLimit(1)
                     }
-
-                    Text(featured.name)
-                        .font(.system(size: 37, weight: .bold))
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.8)
-
-                    HStack(spacing: 18) {
-                        Text(featured.timeLabel)
-                            .font(.system(size: 22))
-                        if let home = fixtures.score(for: featured).home,
-                           let away = fixtures.score(for: featured).away {
-                            Text(home + " – " + away)
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundStyle(TVNeonTheme.iceBlue)
-                        }
-                    }
-                    .foregroundStyle(.white.opacity(0.78))
                 } else {
                     Text(hubWindow == .now
                          ? "Live games will appear here"
