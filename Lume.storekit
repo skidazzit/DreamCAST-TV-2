@@ -20,13 +20,13 @@
       "internalID" : "5001",
       "localizations" : [
         {
-          "description" : "Unlock every Lume Pro feature forever with a single payment.",
-          "displayName" : "Lume Pro (Lifetime)",
+          "description" : "Unlock every DreamCAST TV Pro feature forever with a single payment.",
+          "displayName" : "DreamCAST TV Pro (Lifetime)",
           "locale" : "en_US"
         }
       ],
-      "productID" : "com.bilipp.lume.premium.lifetime",
-      "referenceName" : "Lume Pro Lifetime",
+      "productID" : "com.skidazzit.dreamcasttv2.premium.lifetime",
+      "referenceName" : "DreamCAST TV Pro Lifetime",
       "type" : "NonConsumable"
     },
     {
@@ -36,12 +36,12 @@
       "localizations" : [
         {
           "description" : "Retired. Kept here only so the grandfathered entitlement path stays testable.",
-          "displayName" : "Lume Pro (Retired Monthly)",
+          "displayName" : "DreamCAST TV Pro (Retired Monthly)",
           "locale" : "en_US"
         }
       ],
-      "productID" : "com.bilipp.lume.premium.monthly",
-      "referenceName" : "Lume Pro Retired Monthly",
+      "productID" : "com.skidazzit.dreamcasttv2.premium.monthly",
+      "referenceName" : "DreamCAST TV Pro Retired Monthly",
       "type" : "NonConsumable"
     }
   ],
@@ -103,7 +103,7 @@
       "localizations" : [
 
       ],
-      "name" : "Lume Pro",
+      "name" : "DreamCAST TV Pro",
       "subscriptions" : [
         {
           "adHocOffers" : [
@@ -135,9 +135,9 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.bilipp.lume.pro.monthly",
+          "productID" : "com.skidazzit.dreamcasttv2.pro.monthly",
           "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Lume Pro Monthly Subscription",
+          "referenceName" : "DreamCAST TV Pro Monthly Subscription",
           "subscriptionGroupID" : "22272764",
           "type" : "RecurringSubscription",
           "winbackOffers" : [
