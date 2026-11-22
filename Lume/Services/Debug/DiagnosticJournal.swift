@@ -30,7 +30,7 @@ final nonisolated class DiagnosticJournal: @unchecked Sendable {
     private static let flushLineThreshold = 200
 
     let directory: URL?
-    private let queue = DispatchQueue(label: "com.bilipp.lume.diagnostic-journal", qos: .utility)
+    private let queue = DispatchQueue(label: "com.skidazzit.dreamcasttv2.diagnostic-journal", qos: .utility)
     private let state = OSAllocatedUnfairLock(initialState: State())
 
     private struct Pending {

@@ -22,7 +22,7 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.bilipp.lume</string>
+		<string>group.com.skidazzit.dreamcasttv2</string>
 	</array>
 </dict>
 </plist>

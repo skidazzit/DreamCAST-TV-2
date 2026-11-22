@@ -25,16 +25,16 @@ final class PremiumManager {
     /// retired product we still honour.
     enum Plan: String, CaseIterable {
         /// Auto-renewable monthly subscription (App Store Connect group "Lume Pro").
-        case monthly = "com.bilipp.lume.pro.monthly"
+        case monthly = "com.skidazzit.dreamcasttv2.pro.monthly"
         /// One-time non-consumable unlock.
-        case lifetime = "com.bilipp.lume.premium.lifetime"
+        case lifetime = "com.skidazzit.dreamcasttv2.premium.lifetime"
         /// Retired. This shipped as a *non-consumable* that App Store Connect could
         /// never renew or cancel, while the paywall advertised it as a monthly
         /// subscription — so it never appeared under App Store ▸ Subscriptions and
         /// buyers were understandably confused. It is off sale; the handful of people
         /// who bought it paid once and keep Pro permanently, which is why it still
         /// entitles below. Replaced by `monthly`.
-        case retiredMonthly = "com.bilipp.lume.premium.monthly"
+        case retiredMonthly = "com.skidazzit.dreamcasttv2.premium.monthly"
 
         /// The plans the paywall offers, cheapest first.
         static let purchasable: [Plan] = [.monthly, .lifetime]

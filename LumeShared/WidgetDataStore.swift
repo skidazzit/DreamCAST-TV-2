@@ -17,7 +17,7 @@ nonisolated enum WidgetDataStore {
     #if os(tvOS)
     static let appGroupID = "group.com.skidazzit.dreamcasttv2"
     #else
-    static let appGroupID = "group.com.bilipp.lume"
+    static let appGroupID = "group.com.skidazzit.dreamcasttv2"
     #endif
 
     private static let snapshotFilename = "widget-snapshot.json"

@@ -106,7 +106,7 @@ nonisolated enum DeviceDiagnostics {
     /// calls back (seen on a sim with networking disabled).
     static func networkPathDescription(timeout: Duration = .seconds(1)) async -> String {
         let monitor = NWPathMonitor()
-        let queue = DispatchQueue(label: "com.bilipp.lume.diagnostics.path")
+        let queue = DispatchQueue(label: "com.skidazzit.dreamcasttv2.diagnostics.path")
         let path: NWPath? = await withCheckedContinuation { continuation in
             let resumed = OSAllocatedUnfairLock(initialState: false)
             let finish: @Sendable (NWPath?) -> Void = { path in

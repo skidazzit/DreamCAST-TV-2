@@ -4,7 +4,7 @@
 //
 //  Guards the plan catalogue against the mistake that shipped once already: the
 //  "monthly" plan was advertised as an auto-renewing subscription while the product
-//  behind it — `com.bilipp.lume.premium.monthly` — was a non-consumable in App Store
+//  behind it — `com.skidazzit.dreamcasttv2.premium.monthly` — was a non-consumable in App Store
 //  Connect. Non-consumables never appear under App Store ▸ Subscriptions, so buyers
 //  had no way to cancel something the paywall told them renewed every month.
 //
@@ -22,9 +22,9 @@ struct PremiumPlanTests {
     /// `Product.products(for:)` silently returns fewer products and the paywall
     /// renders a spinner forever.
     @Test func `product ids match app store connect`() {
-        #expect(PremiumManager.Plan.monthly.rawValue == "com.bilipp.lume.pro.monthly")
-        #expect(PremiumManager.Plan.lifetime.rawValue == "com.bilipp.lume.premium.lifetime")
-        #expect(PremiumManager.Plan.retiredMonthly.rawValue == "com.bilipp.lume.premium.monthly")
+        #expect(PremiumManager.Plan.monthly.rawValue == "com.skidazzit.dreamcasttv2.pro.monthly")
+        #expect(PremiumManager.Plan.lifetime.rawValue == "com.skidazzit.dreamcasttv2.premium.lifetime")
+        #expect(PremiumManager.Plan.retiredMonthly.rawValue == "com.skidazzit.dreamcasttv2.premium.monthly")
     }
 
     /// The retired non-consumable must never be offered again, and the paywall lists

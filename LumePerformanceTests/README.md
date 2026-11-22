@@ -1157,7 +1157,7 @@ xcodebuild -project Lume.xcodeproj -scheme LumePerformance \
 ### 2. Record the sync phases
 
 `Perf` posts to an `OSSignposter` whose **subsystem is the app's bundle
-identifier** (`com.bilipp.lume`) and whose **category is `Performance`**. That
+identifier** (`com.skidazzit.dreamcasttv2`) and whose **category is `Performance`**. That
 feeds Instruments' Points of Interest lane, so the trace shows the sync phases
 as intervals rather than an undifferentiated wall of stacks — for an Xtream
 playlist `SyncMovies` / `XtreamFetchMovies` / `XtreamDecodeMovies` /
@@ -1188,7 +1188,7 @@ for the `Xtream*` ones); a refresh of an already-imported playlist measures a
 warm path, not the cold import the complaints are about. `--attach Lume` keeps
 launch out of the trace; use `--launch -- <path to Lume.app>` instead if the
 question is about launch. Filter the os_signpost instrument to subsystem
-`com.bilipp.lume`, category `Performance`.
+`com.skidazzit.dreamcasttv2`, category `Performance`.
 
 To read intervals without opening Instruments:
 
@@ -1275,7 +1275,7 @@ xcrun xctrace export --input ~/Desktop/lume-m3u-iphone.trace \
   --xpath '/trace-toc/run[@number="1"]/data/table[@schema="os-signpost"]'
 ```
 
-Filter os_signpost to subsystem `com.bilipp.lume`, category `Performance`. The
+Filter os_signpost to subsystem `com.skidazzit.dreamcasttv2`, category `Performance`. The
 twelve signpost names are the same ones `M3UColdImportBenchmarks` measures, so a
 device trace and a simulator run are directly comparable *phase by phase* even
 though their absolute seconds are not.
