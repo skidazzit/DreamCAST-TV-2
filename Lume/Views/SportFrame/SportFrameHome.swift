@@ -176,6 +176,7 @@ struct SportFrameHome: View {
     @State private var selectedSport = "All Sports"
     @State private var selectedLeague = "All Leagues"
     @State private var expandedLeagueSport: String?
+    @State private var apiSettingsExpanded = false
     @State private var sportsFollowExpanded = false
     @State private var selectedEvent: SportEvent?
     @State private var openedLeague: SportFrameLeagueRoute?
@@ -1174,72 +1175,85 @@ struct SportFrameHome: View {
     /// selected tier rather than treating a saved key as proof of access.
     private var sportsDBAPISettings: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 20) {
-                Label("TheSportsDB API", systemImage: "network")
-                    .font(.largeTitle.bold())
-                Spacer()
-                Text(SportsDBAccess.hasPremiumKey ? "Premium" : "Free")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(accent)
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 10)
-                    .background(accent.opacity(0.18), in: Capsule())
-            }
-
-            HStack(alignment: .center, spacing: 16) {
-                Image(systemName: apiConnectionStatus.symbol)
-                    .font(.title2)
-                    .foregroundStyle(apiConnectionStatus.tint)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(apiConnectionStatus.title)
+            Button {
+                apiSettingsExpanded.toggle()
+            } label: {
+                HStack(spacing: 20) {
+                    Label("TheSportsDB API", systemImage: "network")
+                        .font(.largeTitle.bold())
+                    Spacer()
+                    Text(SportsDBAccess.hasPremiumKey ? "Premium" : "Free")
                         .font(.title3.weight(.semibold))
-                    Text(apiConnectionStatus.detail)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(accent)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 10)
+                        .background(accent.opacity(0.18), in: Capsule())
+                    Image(systemName: apiSettingsExpanded ? "chevron.up" : "chevron.down")
+                        .font(.title2)
+                        .accessibilityHidden(true)
                 }
-                Spacer()
-                if apiConnectionStatus == .checking { ProgressView() }
-            }
-
-            if let apiLastChecked {
-                Text("Last checked: \(apiLastChecked.formatted(date: .abbreviated, time: .shortened))")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            Text(SportsDBAccess.hasPremiumKey
-                 ? "A Premium key is saved. The status above checks whether v2 access works."
-                 : "Using the public Free API. Save a Premium key to test v2 access.")
-                .foregroundStyle(.secondary)
-
-            SecureField("Premium API key", text: $premiumKeyInput)
-                .textContentType(.password)
-
-            HStack(spacing: 16) {
-                Button("Save Key") {
-                    if SportsDBAccess.save(premiumKeyInput) {
-                        premiumKeyInput = ""
-                        keyMessage = "Premium key saved."
-                        apiCheckID += 1
-                    } else {
-                        keyMessage = "Enter a valid Premium API key."
-                    }
-                }
-                Button("Remove Key") {
-                    SportsDBAccess.remove()
-                    premiumKeyInput = ""
-                    keyMessage = "Premium key removed. Using Free API."
-                    apiCheckID += 1
-                }
-                Button("Test Connection") {
-                    apiCheckID += 1
-                }
-                .disabled(apiConnectionStatus == .checking)
+                .padding(15)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .buttonStyle(SportsZonePillStyle())
-            .focusSection()
+            .accessibilityValue(apiSettingsExpanded ? "Expanded" : "Collapsed")
 
-            if let keyMessage {
-                Text(keyMessage).foregroundStyle(.secondary)
+            if apiSettingsExpanded {
+                HStack(alignment: .center, spacing: 16) {
+                    Image(systemName: apiConnectionStatus.symbol)
+                        .font(.title2)
+                        .foregroundStyle(apiConnectionStatus.tint)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(apiConnectionStatus.title)
+                            .font(.title3.weight(.semibold))
+                        Text(apiConnectionStatus.detail)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if apiConnectionStatus == .checking { ProgressView() }
+                }
+
+                if let apiLastChecked {
+                    Text("Last checked: \(apiLastChecked.formatted(date: .abbreviated, time: .shortened))")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                Text(SportsDBAccess.hasPremiumKey
+                     ? "A Premium key is saved. The status above checks whether v2 access works."
+                     : "Using the public Free API. Save a Premium key to test v2 access.")
+                    .foregroundStyle(.secondary)
+
+                SecureField("Premium API key", text: $premiumKeyInput)
+                    .textContentType(.password)
+
+                HStack(spacing: 16) {
+                    Button("Save Key") {
+                        if SportsDBAccess.save(premiumKeyInput) {
+                            premiumKeyInput = ""
+                            keyMessage = "Premium key saved."
+                            apiCheckID += 1
+                        } else {
+                            keyMessage = "Enter a valid Premium API key."
+                        }
+                    }
+                    Button("Remove Key") {
+                        SportsDBAccess.remove()
+                        premiumKeyInput = ""
+                        keyMessage = "Premium key removed. Using Free API."
+                        apiCheckID += 1
+                    }
+                    Button("Test Connection") {
+                        apiCheckID += 1
+                    }
+                    .disabled(apiConnectionStatus == .checking)
+                }
+                .buttonStyle(SportsZonePillStyle())
+                .focusSection()
+
+                if let keyMessage {
+                    Text(keyMessage).foregroundStyle(.secondary)
+                }
             }
         }
         .padding(24)
