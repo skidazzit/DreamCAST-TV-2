@@ -174,9 +174,7 @@
 
     // MARK: - Labelled text field
 
-    /// A labelled input row. The field itself keeps the native tvOS appearance
-    /// (its focus treatment is system-drawn and can't be cleanly replaced); only
-    /// the small uppercase label and spacing are ours.
+    /// Show a themed row while browsing and a native text field while editing.
     struct TVSettingsField: View {
         let title: LocalizedStringKey
         let placeholder: LocalizedStringKey
@@ -185,6 +183,8 @@
         var contentType: UITextContentType?
         var whiteText = false
         @FocusState private var fieldFocused: Bool
+        @State private var isEditing = false
+        @State private var draft = ""
 
         var body: some View {
             VStack(alignment: .leading, spacing: 8) {
@@ -195,23 +195,29 @@
                     .foregroundStyle(whiteText ? Color.white : Color.secondary)
                     .padding(.horizontal, TVSettingsMetrics.rowHPadding)
 
-                Group {
-                    if isSecure {
-                        SecureField(placeholder, text: $text)
-                    } else {
-                        TextField(placeholder, text: $text)
+                Button {
+                    draft = text
+                    isEditing = true
+                } label: {
+                    Group {
+                        if text.isEmpty {
+                            Text(placeholder).foregroundStyle(.white.opacity(0.65))
+                        } else {
+                            Text(verbatim: isSecure ? String(repeating: "•", count: 8) : text)
+                                .foregroundStyle(.white)
+                        }
                     }
+                    .font(.system(size: TVSettingsMetrics.rowFontSize))
+                    .lineLimit(1)
+                    .padding(.horizontal, 16)
+                    .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
+                    .contentShape(Rectangle())
                 }
-                .textFieldStyle(.plain)
+                .buttonStyle(.plain)
                 .focusEffectDisabled()
                 .focused($fieldFocused)
-                .font(.system(size: TVSettingsMetrics.rowFontSize))
-                .foregroundStyle(whiteText ? Color.white : Color.primary)
-                .textContentType(contentType)
-                .autocorrectionDisabled()
-                .padding(.horizontal, 16)
-                .padding(.vertical, 9)
-                .frame(minHeight: 64)
+                .accessibilityLabel(Text(title))
+                .accessibilityValue(Text(verbatim: isSecure ? "" : text))
                 .background {
                     RoundedRectangle(cornerRadius: 14)
                         .fill(DreamCASTDisplayColors.surface)
@@ -222,7 +228,33 @@
                                       lineWidth: fieldFocused ? 3 : 1)
                         .allowsHitTesting(false)
                 }
+                .sheet(isPresented: $isEditing, onDismiss: { draft = "" }) {
+                    VStack(alignment: .leading, spacing: 24) {
+                        Text(title).font(.title2.bold())
+                        Group {
+                            if isSecure {
+                                SecureField(placeholder, text: $draft)
+                            } else {
+                                TextField(placeholder, text: $draft)
+                            }
+                        }
+                        .textContentType(contentType)
+                        .autocorrectionDisabled()
+                        .onSubmit(save)
+                        HStack {
+                            Button("Done", action: save)
+                            Button("Cancel") { isEditing = false }
+                        }
+                    }
+                    .frame(maxWidth: 780)
+                    .padding(40)
+                }
             }
+        }
+
+        private func save() {
+            text = draft
+            isEditing = false
         }
     }
 
