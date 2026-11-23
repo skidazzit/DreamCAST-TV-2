@@ -18,6 +18,7 @@ struct EPGSettingsView: View {
     @AppStorage(SyncFrequency.epgStorageKey) private var freqRaw = SyncFrequency.epgDefaultValue.rawValue
 
     @State private var showingAdd = false
+    @State private var syncMessage: String?
     #if os(tvOS)
         @State private var addName = ""
         @State private var addURL = ""
@@ -130,6 +131,31 @@ struct EPGSettingsView: View {
             }
         }
 
+        func syncGuide() {
+            syncMessage = nil
+            do {
+                let playlists = try modelContext.fetch(FetchDescriptor<Playlist>())
+                for playlist in playlists {
+                    EPGSourceReconciler.apply(playlist, in: modelContext)
+                }
+                if modelContext.hasChanges { try modelContext.save() }
+
+                let feeds = try modelContext.fetch(FetchDescriptor<EPGSource>())
+                guard !feeds.isEmpty else {
+                    syncMessage = String(localized: "Add an XMLTV guide source to sync listings.")
+                    showingAdd = true
+                    return
+                }
+                guard feeds.contains(where: { $0.isEnabled }) else {
+                    syncMessage = String(localized: "Enable a guide source above, then tap Sync Now.")
+                    return
+                }
+                epgSync.syncNow()
+            } catch {
+                syncMessage = String(localized: "Could not load guide sources. Please try again.")
+            }
+        }
+
         var refreshSection: some View {
             Section {
                 Picker("Refresh", selection: frequency) {
@@ -140,7 +166,7 @@ struct EPGSettingsView: View {
                 .pickerStyle(.menu)
 
                 Button {
-                    epgSync.syncNow()
+                    syncGuide()
                 } label: {
                     HStack {
                         Label("Sync Now", systemImage: "arrow.triangle.2.circlepath")
@@ -151,7 +177,10 @@ struct EPGSettingsView: View {
                         }
                     }
                 }
-                .disabled(epgSync.isSyncing || sources.isEmpty)
+                .disabled(epgSync.isSyncing)
+                if let syncMessage {
+                    Text(syncMessage).font(.footnote).foregroundStyle(.secondary)
+                }
             } header: {
                 Text("Automatic Refresh")
             } footer: {
