@@ -28,6 +28,10 @@ struct SearchView: View {
 
     @AppStorage(SearchSettings.searchAllPlaylistsKey)
     private var searchAllPlaylists = SearchSettings.searchAllPlaylistsDefault
+    #if os(iOS)
+    @State private var selectedChannelID: String?
+    @AppStorage(DreamCASTAccentTheme.storageKey) private var themeRaw = DreamCASTAccentTheme.defaultValue.rawValue
+    #endif
     @State private var searchText = ""
     @State private var debouncedSearchText = ""
     @State private var selectedFilter: ContentFilter = .all
@@ -139,11 +143,32 @@ struct SearchView: View {
                                     )
                                 case let .liveStream(stream):
                                     Button {
+                                        #if os(iOS)
+                                        guard selectedChannelID == result.id else {
+                                            selectedChannelID = result.id
+                                            return
+                                        }
+                                        #endif
                                         playChannel(stream)
                                     } label: {
                                         SearchResultRow(result: result, playlistName: playlistName(for: result, in: searched))
                                     }
                                     .buttonStyle(.plain)
+                                    #if os(iOS)
+                                    .contentShape(Rectangle())
+                                    .listRowBackground(Group {
+                                        if selectedChannelID == result.id {
+                                            let accent = DreamCASTAccentTheme.resolve(themeRaw).selectionAccent
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .fill(accent.opacity(0.09))
+                                                .overlay {
+                                                    RoundedRectangle(cornerRadius: 8)
+                                                        .strokeBorder(accent.opacity(0.75), lineWidth: 1.4)
+                                                }
+                                        }
+                                    })
+                                    .accessibilityAddTraits(selectedChannelID == result.id ? .isSelected : [])
+                                    #endif
                                     .liveChannelMenu(
                                         stream: stream,
                                         isFavorite: stream.isFavorite,
@@ -158,6 +183,10 @@ struct SearchView: View {
                 }
             }
             #if os(iOS)
+            .onChange(of: searchText) { _, _ in selectedChannelID = nil }
+            .onChange(of: selectedFilter) { _, _ in selectedChannelID = nil }
+            .onChange(of: scope.token) { _, _ in selectedChannelID = nil }
+            .onChange(of: searchAllPlaylists) { _, _ in selectedChannelID = nil }
             .scrollContentBackground(.hidden)
             .background { DreamCASTMobileWallpaper() }
             #endif

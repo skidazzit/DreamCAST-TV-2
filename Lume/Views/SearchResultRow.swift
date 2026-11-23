@@ -26,7 +26,7 @@ struct SearchResultRow: View {
                 case let .success(image):
                     image
                         .resizable()
-                        .aspectRatio(contentMode: .fill)
+                        .aspectRatio(contentMode: isChannel ? .fit : .fill)
                 case .failure:
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
@@ -38,7 +38,7 @@ struct SearchResultRow: View {
                     EmptyView()
                 }
             }
-            .frame(width: 60, height: 90)
+            .frame(width: 60, height: isChannel ? 60 : 90)
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
             VStack(alignment: .leading, spacing: 4) {
@@ -72,6 +72,13 @@ struct SearchResultRow: View {
 
             Spacer()
         }
+    }
+
+    private var isChannel: Bool {
+        #if os(iOS)
+            if case .liveStream = result { return true }
+        #endif
+        return false
     }
 
     private var thumbnailURL: URL? {
