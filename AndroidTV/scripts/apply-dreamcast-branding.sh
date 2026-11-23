@@ -8,8 +8,10 @@ ROOT="$(cd "$SCRIPT_DIR/../../" && pwd)"
 TARGET="${1:-$ROOT/AndroidTV/DreamCAST-StreamVault}"
 SOURCE_RES="$TARGET/app/src/main/res"
 BRAND_RES="$ROOT/Lume/Assets.xcassets"
-ICON="$BRAND_RES/AppIcon.appiconset/icon-mac-512x512@2x.png"
-LOGO="$BRAND_RES/DreamCASTHeaderLogo.imageset/DreamCASTHeaderLogo.png"
+# Prefer the supplied official transparent Android artwork.
+ANDROID_BRAND_DIR="$ROOT/AndroidTV/branding"
+ICON="$ANDROID_BRAND_DIR/dreamcast-icon.png"
+LOGO="$ANDROID_BRAND_DIR/dreamcast-tv-banner.png"
 
 if [[ ! -f "$TARGET/settings.gradle.kts" || ! -f "$SOURCE_RES/values/strings.xml" ]]; then
   echo "Missing generated Android app: $TARGET" >&2
@@ -17,7 +19,7 @@ if [[ ! -f "$TARGET/settings.gradle.kts" || ! -f "$SOURCE_RES/values/strings.xml
   exit 1
 fi
 if [[ ! -f "$ICON" || ! -f "$LOGO" ]]; then
-  echo "DreamCAST tvOS artwork not found in $BRAND_RES" >&2
+  echo "Copy the supplied official logo files into $ANDROID_BRAND_DIR" >&2
   exit 1
 fi
 # The upstream Gradle version catalog is needed for libs.plugins.* aliases.
@@ -73,7 +75,7 @@ for file in base.glob('values*/strings.xml'):
 print(f'Updated {count} user-facing string entries across {files} locale files.')
 PY
 
-# Build launcher images from the approved DreamCAST assets already tracked
+# Build launcher images from the supplied official transparent Android assets
 # in this repository. The app's existing XML/manifest resources keep their
 # names, so no package or manifest migration is needed.
 for density in ldpi mdpi hdpi xhdpi xxhdpi xxxhdpi; do
@@ -93,7 +95,7 @@ for density in ldpi mdpi hdpi xhdpi xxhdpi xxxhdpi; do
   done
 done
 # Use the TV logo as the leanback banner. Keep the exact resource name.
-sips -s format png -z 180 320 "$LOGO" --out "$SOURCE_RES/drawable/app_banner.png" >/dev/null
+cp "$LOGO" "$SOURCE_RES/drawable/app_banner.png"
 # Also replace web/store preview art if present.
 for file in "$SOURCE_RES/ic_launcher-web.png" "$SOURCE_RES/playstore-icon.png"; do
   [[ -f "$file" ]] && sips -s format png -z 512 512 "$ICON" --out "$file" >/dev/null
