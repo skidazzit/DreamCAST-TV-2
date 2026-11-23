@@ -49,6 +49,15 @@ cd AndroidTV/DreamCAST-StreamVault
 Check `app/build/outputs/apk/debug/` for generated debug output.
 **No successful Android build, emulator run, or device test is claimed here.**
 
+## Official DreamCAST Android logo assets
+
+Use the transparent artwork supplied for this rebrand. Extract the `branding/` directory from the DreamCAST Android branding ZIP into `AndroidTV/` so the following files exist:
+
+- `AndroidTV/branding/dreamcast-icon.png` — 1024 × 1024 square transparent logo.
+- `AndroidTV/branding/dreamcast-tv-banner.png` — 320 × 180 transparent TV banner.
+
+Then run `bash AndroidTV/scripts/apply-dreamcast-branding.sh` from the repository root. The script updates the generated local `AndroidTV/DreamCAST-StreamVault` workspace, not the upstream StreamVault submodule. It creates density-specific launcher assets and copies the supplied TV banner. The ZIP must be placed on the Mac first; image files are not embedded in this Git commit. This is a development rebrand; distribution still requires in-app attribution and matching public source under the upstream license.
+
 ## Rebrand an existing built Android workspace
 
 Do not rerun the `prepare-streamvault-worktree.sh` script or clone again.
