@@ -6,6 +6,12 @@ struct SportFrameScore: Equatable {
     let home: String?
     let away: String?
     let status: String?
+
+    init(home: String?, away: String?, status: String?, progress: String? = nil) {
+        self.home = home
+        self.away = away
+        self.status = SportsZoneScoreRefreshPolicy.isFinal(progress) ? progress : status
+    }
 }
 
 /// Shared poll rules for the current SportsZone screens.
@@ -158,14 +164,17 @@ final class FixtureStore: ObservableObject {
     func score(for event: SportEvent) -> SportFrameScore {
         let schedule = scoreUpdates[event.idEvent]
         let live = liveScores[event.idEvent]
-        return SportFrameScore(home: live?.home ?? schedule?.home ?? event.intHomeScore,
-                               away: live?.away ?? schedule?.away ?? event.intAwayScore,
-                               status: live?.status ?? schedule?.status ?? event.strStatus)
+        let fixture = SportFrameScore(home: event.intHomeScore, away: event.intAwayScore,
+                                      status: event.strStatus, progress: event.strProgress)
+        let sources = [live, schedule, fixture].compactMap { $0 }
+        let final = sources.first { SportsZoneScoreRefreshPolicy.isFinal($0.status) }
+        return SportFrameScore(home: final?.home ?? live?.home ?? schedule?.home ?? fixture.home,
+                               away: final?.away ?? live?.away ?? schedule?.away ?? fixture.away,
+                               status: final?.status ?? live?.status ?? schedule?.status ?? fixture.status)
     }
 
     func isFinal(_ event: SportEvent) -> Bool {
-        [score(for: event).status, event.strStatus, event.strProgress]
-            .contains(where: SportsZoneScoreRefreshPolicy.isFinal)
+        SportsZoneScoreRefreshPolicy.isFinal(score(for: event).status)
     }
 
     func isLive(_ event: SportEvent) -> Bool {
@@ -265,7 +274,7 @@ final class FixtureStore: ObservableObject {
                     let (data, response) = try await URLSession.shared.data(from: url)
                     guard (response as? HTTPURLResponse)?.statusCode == 200 else { continue }
                     for event in try JSONDecoder().decode(DayResponse.self, from: data).events ?? [] {
-                        updates[event.idEvent] = SportFrameScore(home: event.intHomeScore, away: event.intAwayScore, status: event.strStatus)
+                        updates[event.idEvent] = SportFrameScore(home: event.intHomeScore, away: event.intAwayScore, status: event.strStatus, progress: event.strProgress)
                     }
                 } catch { continue }
             }
@@ -293,7 +302,7 @@ final class FixtureStore: ObservableObject {
                     if let value = row[key] as? NSNumber { return value.stringValue }
                     return nil
                 }
-                scores[eventID] = SportFrameScore(home: field("intHomeScore"), away: field("intAwayScore"), status: field("strStatus"))
+                scores[eventID] = SportFrameScore(home: field("intHomeScore"), away: field("intAwayScore"), status: field("strStatus"), progress: field("strProgress"))
             }
             guard !Task.isCancelled else { return }
             if scores != liveScores { liveScores = scores }
@@ -315,7 +324,7 @@ final class FixtureStore: ObservableObject {
 
     private func eventFingerprint(_ events: [SportEvent]) -> [String] {
         events.map {
-            "\($0.idEvent)|\($0.strStatus ?? "")|\($0.intHomeScore ?? "")|\($0.intAwayScore ?? "")|\($0.strTimestamp ?? "")"
+            "\($0.idEvent)|\($0.strStatus ?? "")|\($0.strProgress ?? "")|\($0.intHomeScore ?? "")|\($0.intAwayScore ?? "")|\($0.strTimestamp ?? "")"
         }
     }
 }
