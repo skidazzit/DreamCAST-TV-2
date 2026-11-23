@@ -697,19 +697,10 @@ struct SportFrameHome: View {
                 }
 
                 if let featured {
-                    HStack(spacing: 12) {
-                        if fixtures.isLive(featured) {
-                            Label("LIVE", systemImage: "circle.fill")
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 5)
-                                .background(Color.red.opacity(0.9), in: Capsule())
-                        }
-                        Text(activePlayback.miniMedia?.title ?? featured.league)
-                            .font(.system(size: 19, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.83))
-                            .lineLimit(1)
-                    }
+                    Text(activePlayback.miniMedia?.title ?? featured.league)
+                        .font(.system(size: 19, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.83))
+                        .lineLimit(1)
                 } else {
                     Text(hubWindow == .now
                          ? "Live games will appear here"

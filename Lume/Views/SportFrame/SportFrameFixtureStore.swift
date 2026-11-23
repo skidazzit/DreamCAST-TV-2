@@ -140,6 +140,14 @@ final class FixtureStore: ObservableObject {
     func score(for event: SportEvent) -> SportFrameScore {
         let schedule = scoreUpdates[event.idEvent]
         let live = liveScores[event.idEvent]
+        let fixture = SportFrameScore(home: event.intHomeScore, away: event.intAwayScore,
+                                     status: event.strStatus)
+        // A confirmed result takes precedence when feeds update at different times.
+        if let result = [live, schedule, fixture].compactMap({ $0 }).first(where: { SportsZoneScoreRefreshPolicy.isFinal($0.status) }) {
+            return SportFrameScore(home: result.home ?? live?.home ?? schedule?.home ?? fixture.home,
+                                   away: result.away ?? live?.away ?? schedule?.away ?? fixture.away,
+                                   status: result.status)
+        }
         return SportFrameScore(home: live?.home ?? schedule?.home ?? event.intHomeScore,
                                away: live?.away ?? schedule?.away ?? event.intAwayScore,
                                status: live?.status ?? schedule?.status ?? event.strStatus)
