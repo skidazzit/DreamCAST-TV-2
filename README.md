@@ -1,7 +1,7 @@
 # DreamCAST TV 2
 
 An open-source DreamCAST TV 2 fork of [Lume](https://github.com/bilipp/Lume),
-using Nana Asare's DreamCAST TV branding and a SportsFrame view adapted from
+using DreamCAST TV branding and a SportsFrame view adapted from
 [DreamCAST TV](https://github.com/skidazzit/Dreamcast-TV).
 
 The tvOS SportsFrame beta uses TheSportsDB for fixtures and broadcaster names.
