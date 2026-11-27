@@ -1,0 +1,74 @@
+name: DreamCAST TV Android Debug APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/dreamcast-streamvault-migration
+    paths:
+      - '.github/workflows/android-debug-apk.yml'
+      - 'AndroidTV/scripts/**'
+      - 'AndroidTV/STREAMVAULT_SETUP.md'
+      - 'Lume/Assets.xcassets/**'
+
+permissions:
+  contents: read
+
+jobs:
+  build-debug-apk:
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - name: Checkout Android branch and StreamVault submodule
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Verify Android SDK
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          test -d "$ANDROID_HOME"
+          java -version
+
+      - name: Generate DreamCAST Android workspace
+        run: bash AndroidTV/scripts/prepare-streamvault-worktree.sh
+
+      - name: Repair Gradle version catalog
+        run: python3 AndroidTV/scripts/repair-gradle-catalog.py AndroidTV/DreamCAST-StreamVault
+
+      - name: Restore missing and empty upstream source files
+        run: python3 AndroidTV/scripts/repair-empty-upstream-files.py
+
+      - name: Build APK
+        working-directory: AndroidTV/DreamCAST-StreamVault
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug --no-configuration-cache --stacktrace 2>&1 | tee "$RUNNER_TEMP/dreamcast-android-build.log"
+        shell: bash
+
+      - name: Upload debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DreamCAST-TV-Android-debug-apk
+          path: AndroidTV/DreamCAST-StreamVault/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload build log when failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DreamCAST-TV-Android-build-log
+          path: ${{ runner.temp }}/dreamcast-android-build.log
+          if-no-files-found: ignore
