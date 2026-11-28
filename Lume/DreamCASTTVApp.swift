@@ -5,6 +5,7 @@
 //  Created by Philipp Bischoff on 09.04.26.
 //
 
+import Foundation
 import OSLog
 import SwiftData
 import SwiftUI
@@ -38,6 +39,13 @@ struct LumeApp: App {
     init() {
         // First, so the launch marker precedes anything the setup below logs.
         DiagnosticSession.start()
+        #if os(tvOS)
+            // Provider sessions use the shared HTTP cache. Keep their responses
+            // in memory and discard disk entries left by older builds.
+            let responseCache = URLCache.shared
+            responseCache.diskCapacity = 0
+            responseCache.removeAllCachedResponses()
+        #endif
         // Apply the new six-hour cadence once to existing installs still using
         // the old three-day default. Keep other user-selected intervals intact.
         let defaults = UserDefaults.standard
